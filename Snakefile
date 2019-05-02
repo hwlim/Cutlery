@@ -106,5 +106,9 @@ rule make_bigwig:
 	shell:
 		"touch {output}"
 
-rule make_homer:
+rule peak_call:
+	input:
+	output:
+	message:
+	shell:
 
