@@ -106,9 +106,9 @@ rule make_bigwig:
 	shell:
 		"touch {output}"
 
-rule peak_call:
-	input:
-	output:
-	message:
-	shell:
-
+#rule peak_call:
+#	input:
+#	output:
+#	message:
+#	shell:
+#
