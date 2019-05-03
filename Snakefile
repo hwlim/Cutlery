@@ -33,7 +33,7 @@ rule all:
 
 rule clean:
 	shell:
-		"rm -rf 1.1.Align 1.2.Align.filtered 1.3.Align.dedup 1.4.Align.split 2.BigWig"
+		"rm -rf 0.Fastq/Trim 1.1.Align 1.2.Align.filtered 1.3.Align.dedup 1.4.Align.split 2.BigWig"
 
 rule trim_pe:
 	input:
