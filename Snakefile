@@ -9,6 +9,12 @@ samples = pd.read_csv("sample.tsv", sep="\t", comment="#")
 ########################
 genome="mm10"
 chrom_size="chrom.size"
+adapter="AGATCGGAAGAGC"
+#trim_maxLen=100
+trim_minLen=25
+trim_minQual=20
+
+star_index="index dir"
 
 
 ## Directories
@@ -55,8 +61,18 @@ rule trim_pe:
 		fq2 = trimDir + "/{sampleId}_2.trim.fq.gz"
 	message:
 		"Trimming... [{wildcards.sampleId}]"
+	params:
+		adapter = adapter,
+		minLen = trim_minLen,
+		minQual = trim_minQual,
+	log:
+		trimDir + "/{sampleId}.trim.log"
 	shell:
-		"touch {output.fq1} {output.fq2}"
+		# Needs to be implemented as a quantum transaction
+		"cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual}"
+		" -o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2> {log};"
+		"mv __temp__.$$.1.fq.gz {output.fq1};" 
+		"mv __temp__.$$.2.fq.gz {output.fq2}" 
 
 rule align_pe:
 	input:
@@ -66,9 +82,24 @@ rule align_pe:
 		alignDir+"/{sampleName}.bam"
 	message:
 		"Aligning... [{wildcards.sampleName}]"
-	thread: 4
+	params:
+		index=star_index,
+		otherOpt=""
+	log:
+		alignDir + "/{sampleName}.star.log"
+	threads: 4
 	shell:
-		"touch {output}"
+		#"--limitBAMsortRAM 10000000000
+		#"--genomeLoad LoadAndKeep
+		"STAR --runMode alignReads --genomeDir {params.index} "
+		"--genomeLoad NoSharedMemory "
+		"--runThreadN {threads} "
+		"--readFilesIn {input.fq1} {input.fq2} "
+		"--outSAMtype BAM Unsorted "
+		"--outFilterMultimapNmax 1 "
+		"--outReadsUnmapped None "
+		"--outFileNamePrefix __temp__.$$ 2> {log}; "
+		"mv __temp__.$$Aligned.out.bam {output}"
 
 rule filter_align:
 	input:
