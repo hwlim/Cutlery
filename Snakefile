@@ -93,10 +93,12 @@ rule align_pe:
 		#"--genomeLoad LoadAndKeep
 		"STAR --runMode alignReads --genomeDir {params.index} "
 		"--genomeLoad NoSharedMemory "
+		"--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} )"
 		"--runThreadN {threads} "
-		"--readFilesIn {input.fq1} {input.fq2} "
 		"--outSAMtype BAM Unsorted "
 		"--outFilterMultimapNmax 1 "
+		"--alignMatesGapMax 2000 "
+		"--alignIntronMax 1 "
 		"--outReadsUnmapped None "
 		"--outFileNamePrefix __temp__.$$ 2> {log}; "
 		"mv __temp__.$$Aligned.out.bam {output}"
