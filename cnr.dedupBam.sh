@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-
-###########################################3
 # ATAC-seq tools
 # Written by Hee-Wooong Lim
 # 
