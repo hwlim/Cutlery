@@ -48,9 +48,9 @@ rule all:
 #		expand("1.3.Align.dedup/{sampleId}.filtered.dedup.bam", sampleId=samples["Id"].tolist()),
 #		expand("1.2.Align.filtered/{sampleId}.filtered.bam", sampleId=samples.index.values.tolist()),
 
-rule clean:
-	shell:
-		"rm -rf " + " ".join([ trimDir, alignDir, filteredDir, dedupDir, splitDir, baseFreqDir, bigWigDir ])
+#rule clean:
+#	shell:
+#		"rm -rf " + " ".join([ trimDir, alignDir, filteredDir, dedupDir, splitDir, baseFreqDir, bigWigDir ])
 
 rule trim_pe:
 	input:

@@ -19,9 +19,11 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm _
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bam1] [bam2] ..." >&2
-	echo -e "Description: Eliminate unnecessary alignment such as chrM or discordant read-pairs" >&2
-	echo -e "\tIf multiple bam files are given, output is saved in a single bam file" >&2
-	echo -e "Input: Paired-end BAM file(s)" >&2
+	echo -e "Description:" >&2
+	echo -e "\tEliminate unnecessary alignment such as chrM or discordant read-pairs" >&2
+	echo -e "\tIf multiple bam files are given, they are processed all together and output is saved in a single bam file" >&2
+	echo -e "Input:" >&2
+	echo -e "\tPaired-end BAM file(s)" >&2
 	echo -e "Options:" >&2
         echo -e "\t-o <output>: output file, must be specified" >&2
 	echo -e "\t-f <samFlag>: SAM flag to include, none if NULL. default=0x2 (properly paired only)" >&2
