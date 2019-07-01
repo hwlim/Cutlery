@@ -31,6 +31,7 @@ function printUsage {
 	echo -e "\t-q <MAPQ>: Alignment quality (MAPQ) threshold for filtering (>= mapq). default=0 (No filtering by MAPQ)" >&2
         echo -e "\t-c <chromosome regex>: Regular expression for chromosome selection, default=chr[0-9XY]*$" >&2
         echo -e "\t\tFor multiple patterns use regular expression, such as \"chr[0-9XY]*$|chrM\"" >&2  
+        echo -e "\t\tNULL if not applicable or no filtering" >&2
 }
 
 if [ $# -eq 0 ];then
