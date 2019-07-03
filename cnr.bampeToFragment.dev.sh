@@ -1,38 +1,25 @@
 #!/usr/bin/env bash
 
 
-###########################################3
-# ATAC-seq tools
+##############################################################################
 # Written by Hee-Wooong Lim
-# 
-# Classify nucleosome-free reads and nucleosomal reads based on fragment length
-#	1. Nucleosome-free reads  (NFR)
-#	2. Mono-nucleosome reads (MON)
-#	3. Nucleosomal reads (NUC): mono, di, tri nucleosomes
-# For each category above, pair-connected files and pair-separate files are created
-# => total 6 files are created
+# - Convert paired-end BAM file into fragment bed file by connecting two reads
+# - Assume that reads are sorted by query name
 #
 	
 source $MYBASHLIB/commonBash.sh
 trap 'if [ `ls -1 __temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
 
 function printUsage {
-	echo -e "Usage: `basename $0` (options) [inputFiles] ..." >&2
-	echo -e "Description: Split BAM file records into tree bed files" >&2
-	echo -e "Options:" >&2
-        echo -e "\t-o <outDir>: Destination directory, default=<same with the src file>" >&2
-	echo -e "\t-f <samFlag>: SAM flag to include, default=0x2 (Properly paired)" >&2
-	echo -e "\t-F <samFlag>: SAM flag to exclude, default=0x400 (Duplicate)" >&2
-	echo -e "\t-l <finalLen>: final fixed size around the fragment center for *ctr.bed files, default=100" >&2
-	echo -e "Output:" >&2
-	echo -e "\tRead from nucleosome free regions" >&2
-	echo -e "\t- <filename>.nfr.sep.bed: seprate read 1 & 2" >&2
-	echo -e "\t- <filename>.nfr.con.bed: joined read 1 & 2 into single fragment" >&2
-	echo -e "\t- <filename>.nfr.ctr.bed: joing read 1 & 2 into single fragment then resized to fixed length" >&2
-	echo -e "\tRead from nucleosomal regions" >&2
-	echo -e "\t- <filename>.nuc.sep.bed: seprate read 1 & 2" >&2
-	echo -e "\t- <filename>.nuc.con.bed: joined read 1 & 2 into single fragment" >&2
-	echo -e "\t- <filename>.nuc.ctr.bed: joing read 1 & 2 into single fragment then resized to fixed length" >&2
+	echo "Usage: `basename $0` (options) [bam]
+Description: Convert paired-end BAM file into fragment bed file by connecting two reads
+	Assume that reads reads are sorted by query name
+Options:
+	-o <outFile>: output file, must be set.  default=<bamFile without path & extension>.frag.bed.gz
+		e.g. ../input.bam -> input.frag.bed.gz
+	-l <fragLen>: resize the fragment around the center. 0 for no resize. default=0
+	-s: Sort by sort -k1,1 -k2,2n -k3,3n. default=Off
+	-m: Memory size for sort, e.g. 10G. default=5G" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -43,23 +30,23 @@ fi
 
 ###################################
 ## option and input file handling
-desBase=NULL
-flagInc=0x2
-flagExc=0x400
-finalLen=100
-while getopts ":o:f:F:l:" opt; do
+des=NULL
+finalLen=0
+sortBed=FALSE
+sortMem=5G
+while getopts ":o:l:m:s" opt; do
 	case $opt in
 		o)
-			desBase=$OPTARG
-			;;
-		f)
-			flagInc=$OPTARG
-			;;
-		F)
-			flagExc=$OPTARG
+			des=$OPTARG
 			;;
 		l)
-			finalLen=$OPTARG
+			fragLen=$OPTARG
+			;;
+		m)
+			sortMem=$OPTARG
+			;;
+		s)
+			sortBam=TRUE
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -81,14 +68,18 @@ if [ $# -eq 0 ];then
 	exit 1
 fi
 
-assertFileExist $@
+src=$1
+assertFileExist $src
 
 
 ###################################
 ## main code
 
-if [ "$desBase" != "NULL" ];then
-	mkdir -p $desBase
+if [ "$des" != "NULL" ];then
+	srcFile=`basename $src`
+	prefix=${srcFile%.gz}
+	prefix=${prefix%.bed}
+	des=${prefix}.frag.bed.gz
 fi
 
 optStr=""
