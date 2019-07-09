@@ -97,7 +97,7 @@ if [ "$genome" = "NULL" ];then
 fi
 isDirExist $genome
 
-if [ "sortBam" == "TRUE" ];then
+if [ "$sortBam" == "TRUE" ];then
 	optStr="${optStr} --outSAMtype BAM SortedByCoordinate"
 else
 	optStr="${optStr} --outSAMtype BAM Unsorted"
