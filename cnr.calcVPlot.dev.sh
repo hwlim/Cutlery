@@ -4,15 +4,7 @@
 # Cut&Run tools
 # Written by Hee-Wooong Lim
 # 
-# Bam file filtering tool
-# - Input: bam file(s)
-# - Output: Filtered bam file depending on options,
-#	In default, following criteria applied
-#	1. Only concordantly aligned pairs (0x2 sam flag)
-#	2. Read-pairs with duplicate-flag in sam flag will be discarded (0x400 sam flag)
-#	   (no explicit deduplcation is performed in this command)
-#	3. Subset of chromosome can be selected such as excluding chrM
-#	
+# Convert given alignment file into v-plot ready coordinates: < center, fragment length >
 
 source $MYBASHLIB/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
