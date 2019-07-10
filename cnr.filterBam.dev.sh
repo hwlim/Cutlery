@@ -109,6 +109,7 @@ if [ "$des" == "$src" ];then
 	echo -e "Error: source and destination files are the same" >&2
 	exit 1
 fi
+desLog=${des%.bam}.log
 
 desDir=`dirname $des`
 mkdir -p $desDir
@@ -120,6 +121,13 @@ echo -e "  MAPQ    >= $mapq" >&2
 echo -e "  chrRegex = $chrRegex" >&2
 echo -e "  src  = $src" >&2
 echo -e "  des  = $des" >&2
+
+echo -e "Filtering BAM file" > $desLog
+echo -e "  SAM flag = $optStr" >> $desLog
+echo -e "  MAPQ    >= $mapq" >> $desLog
+echo -e "  chrRegex = $chrRegex" >> $desLog
+echo -e "  src  = $src" >> $desLog
+echo -e "  des  = $des" >> $desLog
 
 chrList=`samtools view -H ${srcL[0]} | grep ... `
 
