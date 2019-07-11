@@ -116,21 +116,21 @@ mkdir -p $desDir
 
 
 echo -e "Filtering BAM file" >&2
-echo -e "  SAM flag = $optStr" >&2
-echo -e "  MAPQ    >= $mapq" >&2
-echo -e "  chrRegex = $chrRegex" >&2
-echo -e "  src  = $src" >&2
-echo -e "  des  = $des" >&2
+echo -e "- SAM flag = $optStr" >&2
+echo -e "- MAPQ    >= $mapq" >&2
+echo -e "- chrRegex = $chrRegex" >&2
+echo -e "- src  = $src" >&2
+echo -e "- des  = $des" >&2
 
 echo -e "Filtering BAM file" > $desLog
-echo -e "  SAM flag = $optStr" >> $desLog
-echo -e "  MAPQ    >= $mapq" >> $desLog
-echo -e "  chrRegex = $chrRegex" >> $desLog
-echo -e "  src  = $src" >> $desLog
-echo -e "  des  = $des" >> $desLog
+echo -e "- SAM flag = $optStr" >> $desLog
+echo -e "- MAPQ    >= $mapq" >> $desLog
+echo -e "- chrRegex = $chrRegex" >> $desLog
+echo -e "- src  = $src" >> $desLog
+echo -e "- des  = $des" >> $desLog
 
-chrList=`samtools view -H ${srcL[0]} | grep ... `
+chrList=`samtools view -H $src | sed 's/:/\t/' | gawk '{ if($1=="@SQ" && $2=="SN") print $3 }' | grep -w ${chrRegex}`
 
 tmp=${TMPDIR}/__temp__.$$.bam
-samtools view -b -o $tmp $chrList 
+samtools view -b -o $tmp $src $chrList 
 mv $tmp $des

@@ -15,7 +15,8 @@ trim_minLen=25
 trim_minQual=20
 
 star_index="index dir"
-
+star_option="--outSAMtype BAM Unsorted --alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 2000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None"
+## Additoinal star_option to prevent soft-clipping: "--alignEndsType EndToEnd"
 
 ## Directories
 fastqDir = "0.Fastq"
@@ -37,8 +38,10 @@ bigWigDir = "2.BigWig"
 	
 rule all:
 	input:
+		## output from check_baseFreq
 		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.freq.line.png",
 			sampleName=samples.Name.tolist(), read=[1,2]),
+		## output from make_bigwig
 		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
 			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
 #		expand("1.4.Align.split/{sampleId}.filtered.dedup.{group}.{proctype}.bed", 
@@ -68,11 +71,13 @@ rule trim_pe:
 	log:
 		trimDir + "/{sampleId}.trim.log"
 	shell:
+		"""
 		# Needs to be implemented as a quantum transaction
-		"cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual}"
-		" -o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2> {log};"
-		"mv __temp__.$$.1.fq.gz {output.fq1};" 
-		"mv __temp__.$$.2.fq.gz {output.fq2}" 
+		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} \
+			-o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2> {log}
+		mv __temp__.$$.1.fq.gz {output.fq1}
+		mv __temp__.$$.2.fq.gz {output.fq2} 
+		"""
 
 rule align_pe:
 	input:
@@ -84,24 +89,20 @@ rule align_pe:
 		"Aligning... [{wildcards.sampleName}]"
 	params:
 		index=star_index,
-		otherOpt=""
+		option=star_option
 	log:
 		alignDir + "/{sampleName}.star.log"
 	threads: 4
 	shell:
-		#"--limitBAMsortRAM 10000000000
-		#"--genomeLoad LoadAndKeep
-		"STAR --runMode alignReads --genomeDir {params.index} "
-		"--genomeLoad NoSharedMemory "
-		"--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} )"
-		"--runThreadN {threads} "
-		"--outSAMtype BAM Unsorted "
-		"--outFilterMultimapNmax 1 "
-		"--alignMatesGapMax 2000 "
-		"--alignIntronMax 1 "
-		"--outReadsUnmapped None "
-		"--outFileNamePrefix __temp__.$$ 2> {log}; "
-		"mv __temp__.$$Aligned.out.bam {output}"
+		"""
+		STAR --runMode alignReads --genomeDir {params.index} \
+			--genomeLoad NoSharedMemory \
+			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
+			--runThreadN {threads} \
+			{params}.{option} \
+			--outFileNamePrefix __temp__.$$ 2> {log} "
+		mv __temp__.$$Aligned.out.bam {output}"
+		"""
 
 rule filter_align:
 	input:
