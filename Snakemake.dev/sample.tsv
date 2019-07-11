@@ -1,0 +1,3 @@
+Id	Name	Description	Fq1	Fq2
+sample1	name1	desc1	SRR7965431_1.fastq.gz	SRR7965431_2.fastq.gz
+sample2	name2	desc2	SRR7965435_1.fastq.gz	SRR7965435_2.fastq.gz
