@@ -153,7 +153,7 @@ rule split_bam:
 	message:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
-		"touch {output}"
+		"cnr.splitBamToBed.dev.sh -o {splitDir}/{sampleName}.filtered.dedup {input}"
 
 rule make_bigwig:
 	input:
