@@ -8,6 +8,7 @@ samples = pd.read_csv("sample.tsv", sep="\t", comment="#")
 
 ########################
 genome="mm10"
+genomeFa="~/Research/Common_Data/mm10/genome/genome.fa"
 chrom_size="chrom.size"
 adapter="AGATCGGAAGAGC"
 #trim_maxLen=100
@@ -133,12 +134,15 @@ rule check_baseFreq:
 	input:
 		filteredDir + "/{sampleName}.filtered.bam"
 	output:
-		expand(baseFreqDir + "/{{sampleName}}.{read}.freq.line.png",
-			read=["R1","R2"])
+		expand(baseFreqDir + "/{{sampleName}}.{read}.freq.line.png", read=["R1","R2"])
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
-		"touch {output}"
+		"""
+		bamToBed.separate.sh -o {baseFreqDir} {input}
+		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} ${baseFreqDir}/{sampleName}.filtered.R1.bed
+		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} ${baseFreqDir}/{sampleName}.filtered.R2.bed
+		"""
 
 rule split_bam:
 	input:
