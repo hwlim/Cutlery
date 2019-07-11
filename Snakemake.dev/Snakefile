@@ -13,6 +13,7 @@ adapter="AGATCGGAAGAGC"
 #trim_maxLen=100
 trim_minLen=25
 trim_minQual=20
+chrRegex="chr[0-9XY]+$"
 
 star_index="index dir"
 star_option="--outSAMtype BAM Unsorted --alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 2000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None"
@@ -112,7 +113,9 @@ rule filter_align:
 	message:
 		"Filtering... [{wildcards.sampleName}]"
 	shell:
-		"touch {output}"
+		"""
+		cnr.filterBam.sh  -o {output} -c "{chrRegex}" {input}
+		"""
 
 rule dedup_align:
 	input:
@@ -122,7 +125,9 @@ rule dedup_align:
 	message:
 		"Deduplicating... [{wildcards.sampleName}]"
 	shell:
-		"touch {output}"
+		"""
+		cnr.filterBam.sh  -o {output} -r {input}
+		"""
 
 rule check_baseFreq:
 	input:

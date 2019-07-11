@@ -29,8 +29,8 @@ Options:
 	-f <samFlag>: SAM flag to include, none if NULL. default=0x2 (properly paired only)
 	-F <samFlag>: SAM flag to exclude, none if NULL. default=0x400 (duplicated)
 	-q <MAPQ>: Alignment quality (MAPQ) threshold for filtering (>= mapq). default=0 (No filtering by MAPQ)
-        -c <chromosome regex>: Regular expression for chromosome selection, default=chr[0-9XY]*$
-		For multiple patterns use regular expression, such as \"chr[0-9XY]*$|chrM\" 
+        -c <chromosome regex>: Regular expression for chromosome selection, default=chr[0-9XY]+$
+		For multiple patterns use regular expression, such as \"chr[0-9XY]+$|chrM\" 
 		NULL if not applicable or no filtering" >&2
 }
 
@@ -45,7 +45,7 @@ fi
 des=""
 flagInc=0x2
 flagExc=0x400
-chrRegex='chr[0-9XY]*$'
+chrRegex='chr[0-9XY]+$'
 mapq=0
 while getopts ":o:f:F:q:c:" opt; do
 	case $opt in
@@ -129,7 +129,7 @@ echo -e "- chrRegex = $chrRegex" >> $desLog
 echo -e "- src  = $src" >> $desLog
 echo -e "- des  = $des" >> $desLog
 
-chrList=`samtools view -H $src | sed 's/:/\t/' | gawk '{ if($1=="@SQ" && $2=="SN") print $3 }' | grep -w ${chrRegex}`
+chrList=`samtools view -H $src | sed 's/:/\t/' | gawk '{ if($1=="@SQ" && $2=="SN") print $3 }' | grep -E -w ${chrRegex}`
 
 tmp=${TMPDIR}/__temp__.$$.bam
 samtools view -b -o $tmp $src $chrList 

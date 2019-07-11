@@ -13,9 +13,9 @@ function printUsage {
 	echo -e "\t1) Coordinate sorting => 2) Deduplication => 3) Readname sorting" >&2
 	echo -e "\tIf intermediate or final file already exists, pass the corresponding step or whole steps" >&2
 	echo -e "Options:" >&2
-	echo -e "\t-o <outPrefix>: prefix (including path) for output files, default=<src file name without path/.bam>" >&2
+	echo -e "\t-o <outFile>: output files, default=<src file name without path/.bam>.dedup.bam" >&2
         echo -e "\t-m <maxMem>: Maxmum memory, default=5G" >&2
-        echo -e "\t-p <thread>: Maximum thread, default=1" >&2
+#        echo -e "\t-p <thread>: Maximum thread, default=1" >&2
 	echo -e "\t-r         : If set, remove duplicate. In default, duplicates are just makred only by 0x400 SAM flag" >&2
 }
 
@@ -27,21 +27,21 @@ fi
 
 ###################################
 ## option and input file handling
-outPrefix=NULL
+des=NULL
 maxMem=5G
-thread=1
+#thread=1
 removeDuplicate=false
-while getopts ":o:m:p:r" opt; do
+while getopts ":o:m:r" opt; do
 	case $opt in
 		o)
-			desBase=$OPTARG
+			des=$OPTARG
 			;;
 		m)
 			maxMem=$OPTARG
 			;;
-		p)
-			thread=$OPTARG
-			;;
+#		p)
+#			thread=$OPTARG
+#			;;
 		r)
 			removeDuplicate=true
 			;;
@@ -68,7 +68,8 @@ if [ $# -eq 0 ];then
 	exit 1
 fi
 
-assertFileExist $1
+src=$1
+assertFileExist $src
 
 
 ###################################
@@ -78,46 +79,54 @@ assertFileExist $1
 #maxRead=20000000
 memOpt=-Xmx${maxMem}
 
-srcFile=`basename $src .bam`
-desDir=`dirname $outPrefix`
+if [ "$des" = "NULL" ];then
+	srcPrefix=`basename $src .bam`
+	des=${srcPrefix}.dedup.bam
+fi
+desDir=`dirname $des`
 mkdir -p $desDir
 
 ## coordindate sorted bam
 ## deduplicated / coordinate sorted bam
 ## deduplicated / readname sorted bam
-sorted=${outPrefix}.csort.bam
-dedupCsort=${outPrefix}.csort.dedup.bam
-dedupNsort=${outPrefix}.nsort.dedup.bam
-metric=${outPrefix}.dedup.metric
+outPrefix=${des%.bam}
+tmpCsort=${TMPDIR}/__temp__.$$.csort.bam
+tmpDedupCsort=${TMPDIR}/__temp__.$$.csort.dedup.bam
+tmpDedup=${TMPDIR}/__temp__.$$.dedup.bam
+metric=${outPrefix}.metric
 
+if [ "$src" == "$des" ];then
+	echo -e "Error: source and destination are the same" >&2
+	exit 1
+fi
 tmp=${TMPDIR}/__temp__.$$.bam
 echo -e "Deduplicate by Picard" >&2
-echo -e "  Src = $src" >&2
-echo -e "  DesSorted = $sorted" >&2
-echo -e "  DesDedup = $dedupNsort" >&2
-echo -e "  Remove duplicate = ${removeDuplicate}" >&2
+echo -e "- Src = $src" >&2
+echo -e "- Des = $des" >&2
+echo -e "- Remove duplicate = ${removeDuplicate}" >&2
 
-echo -e "  1) Sort by Coordinate => $sorted" >&2
+echo -e "  1) Sort by Coordinate => $tmpCsort" >&2
 java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam \
 	INPUT=${src} \
-	OUTPUT=${tmp} \
-	SORT_ORDER=coordinate 
-mv $tmp $sorted
-samtools index -b ${sorted} ${sorted}.bai
+	OUTPUT=${tmpCsort} \
+	SORT_ORDER=coordinate \
+	COMPRESSION_LEVEL=1 
 
-echo -e "  2) Deduplicate => $dedupCsort" >&2
+echo -e "  2) Deduplicate => $tmpDedupCsort" >&2
 java $memOpt -jar ${PICARD_HOME}/picard.jar MarkDuplicates \
-	INPUT=${sorted} \
-	OUTPUT=${tmp} \
+	INPUT=${tmpCsort} \
+	OUTPUT=${tmpDedupCsort} \
 	METRICS_FILE=${metric} \
 	REMOVE_DUPLICATES=${removeDuplicate} \
 	ASSUME_SORTED=true \
 	COMPRESSION_LEVEL=1 
-mv $tmp $dedupCsort
 
-echo -e "  3) Sort by Queryname => $dedupNsort" >&2
+echo -e "  3) Sort by Queryname => $des" >&2
+java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam \
+	INPUT=${tmpDedupCsort} \
+	OUTPUT=${tmpDedup} \
+	SORT_ORDER=queryname 
 #java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam INPUT=${dedup} OUTPUT=${tmp} SORT_ORDER=queryname MAX_RECORDS_IN_RAM=$maxRead
-samtools sort -n -l 5 -m $maxMem -T ${TMPDIR}/__temp__.$$ -@ $thread -o $tmp $dedup
-mv $tmp $dedupNsort
-rm -v $dedupCsort
+#samtools sort -n -l 5 -m $maxMem -T ${TMPDIR}/__temp__.$$ -@ $thread -o $tmpDedup $tmpDedupCsort
+mv $tmpDedup $des
 
