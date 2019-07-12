@@ -11,6 +11,7 @@ function printUsage {
 	echo -e "Options:" >&2
         echo -e "\t-o <outFile>: Destination directory. required" >&2
         echo -e "\t-g <genome>: genome or chromosome size file, default=NULL" >&2
+        echo -e "\t-m <memory>: memory size for sorting bedGraph file, default=5G" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -23,13 +24,17 @@ fi
 ## option and input file handling
 des=NULL
 genome=NULL
-while getopts ":o:g:" opt; do
+memory=5G
+while getopts ":o:g:m:" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
 			;;
 		g)
 			genome=$OPTARG
+			;;
+		m)
+			memory=$OPTARG
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -104,7 +109,7 @@ echo -e "\tTTC = $ttc (scale $scale)" >&2
 
 echo -e "  2) Making bedGraph file" >&2
 printBed $src \
-	| sort -S 10G -k1,1 -k2,2n -k3,3n \
+	| sort -S $memory -k1,1 -k2,2n -k3,3n \
 	| genomeCoverageBed -bg -scale $scale -g $chrom -i stdin \
 	| gawk '{ printf "%s\t%s\t%s\t%.5f\n", $1,$2,$3,$4 }' \
 	> $tmpBG

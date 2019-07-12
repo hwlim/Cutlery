@@ -153,19 +153,24 @@ rule split_bam:
 	message:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
-		"cnr.splitBamToBed.dev.sh -o {splitDir}/{sampleName}.filtered.dedup {input}"
+		"""
+		cnr.splitBamToBed.dev.sh -o {splitDir}/{sampleName}.filtered.dedup {input}
+		"""
 
 rule make_bigwig:
 	input:
-		expand(splitDir + "/{{sampleName}}.filtered.dedup.{group}.ctr.bed",
-			group=["nfr","nuc"])
+		nfr = splitDir + "/{sampleName}.filtered.dedup.nfr.ctr.bed"
+		nuc = splitDir + "/{sampleName}.filtered.dedup.nuc.ctr.bed"
 	output:
-		expand(bigWigDir + "/{{sampleName}}.filtered.dedup.{group}.ctr.bw",
-			group=["nfr","nuc"])
+		nfr = bigWigDir + "/{sampleName}.filtered.dedup.nfr.ctr.bw"
+		nuc = bigWigDir + "/{sampleName}.filtered.dedup.nuc.ctr.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
 	shell:
-		"touch {output}"
+		"""
+		cnt.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		cnt.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
+		"""
 
 #rule peak_call:
 #	input:
