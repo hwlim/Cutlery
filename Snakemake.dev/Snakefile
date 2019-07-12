@@ -46,7 +46,7 @@ rule all:
 		## output from make_bigwig
 		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
 			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
-#		expand("1.4.Align.split/{sampleId}.filtered.dedup.{group}.{proctype}.bed", 
+#		expand("1.4.Align.split/{sampleId}.filtered.dedup.{group}.{proctype}.bed.gz", 
 #			sampleId=samples["Id"].tolist(),
 #			group=["nfr","nuc"],
 #			proctype=["con","ctr","sep"])
@@ -148,7 +148,7 @@ rule split_bam:
 	input:
 		dedupDir + "/{sampleName}.filtered.dedup.bam"
 	output:
-		expand(splitDir + "/{{sampleName}}.filtered.dedup.{group}.{proctype}.bed",
+		expand(splitDir + "/{{sampleName}}.filtered.dedup.{group}.{proctype}.bed.gz",
 			group=["nfr","nuc"], proctype=["con","ctr","sep"])
 	message:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"

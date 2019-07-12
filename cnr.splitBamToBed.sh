@@ -11,6 +11,9 @@
 # For each category above, pair-connected files and pair-separate files are created
 # => total 6 files are created
 #
+# To do
+# - all fragment for v-plot?
+# - 
 	
 source $MYBASHLIB/commonBash.sh
 trap 'if [ `ls -1 __temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
@@ -114,22 +117,23 @@ printBAM(){
 	fi
 }
 
-desNfr=${outPrefix}.nfr.sep.bed
-desNfrCon=${outPrefix}.nfr.con.bed
-desNfrCtr=${outPrefix}.nfr.ctr.bed
-desNuc=${outPrefix}.nuc.sep.bed
-desNucCon=${outPrefix}.nuc.con.bed
-desNucCtr=${outPrefix}.nuc.ctr.bed
+desNfr=${outPrefix}.nfr.sep.bed.gz
+desNfrCon=${outPrefix}.nfr.con.bed.gz
+desNfrCtr=${outPrefix}.nfr.ctr.bed.gz
+desNuc=${outPrefix}.nuc.sep.bed.gz
+desNucCon=${outPrefix}.nuc.con.bed.gz
+desNucCtr=${outPrefix}.nuc.ctr.bed.gz
 
 #######################################
 ## Start processing
 echo -e "Splitting $src" >&2
-echo -e "  SAM flag option = $optStr" >&2
-echo -e "  Nucleosome free reads" >&2
+echo -e "- SAM flag option = $optStr" >&2
+echo -e "- Center fragment size = $finalLen" >&2
+echo -e "- Nucleosome free reads" >&2
 echo -e "\t=> $desNfr" >&2
 echo -e "\t=> $desNfrCon" >&2
 echo -e "\t=> $desNfrCtr" >&2
-echo -e "  Nucleosomal reads" >&2
+echo -e "- Nucleosomal reads" >&2
 echo -e "\t=> $desNuc" >&2
 echo -e "\t=> $desNucCon" >&2
 echo -e "\t=> $desNucCtr" >&2
@@ -174,9 +178,15 @@ printBAM $src \
 			}
 		}'
 
-mv $tmpNfr $desNfr
-mv $tmpNfrCon $desNfrCon
-mv $tmpNfrCtr $desNfrCtr
-mv $tmpNuc $desNuc
-mv $tmpNucCon $desNucCon
-mv $tmpNucCtr $desNucCtr
+gzip $tmpNfr
+gzip $tmpNfrCon
+gzip $tmpNfrCtr
+gzip $tmpNuc
+gzip $tmpNucCon
+gzip $tmpNucCtr
+mv ${tmpNfr}.gz $desNfr
+mv ${tmpNfrCon}.gz $desNfrCon
+mv ${tmpNfrCtr}.gz $desNfrCtr
+mv ${tmpNuc}.gz $desNuc
+mv ${tmpNucCon}.gz $desNucCon
+mv ${tmpNucCtr}.gz $desNucCtr
