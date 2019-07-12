@@ -3,11 +3,11 @@
 # command-line application template
 
 source $MYBASHLIB/commonBash.sh
-trap 'if [ `ls -1 __temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
+trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bed]" >&2
-	echo -e "Description: Make a bigWig file from fragment BED file" >&2
+	echo -e "Description: Make a bigWig file from a fragment BED file" >&2
 	echo -e "Options:" >&2
         echo -e "\t-o <outFile>: Destination directory. required" >&2
         echo -e "\t-g <genome>: genome or chromosome size file, default=NULL" >&2
@@ -62,9 +62,12 @@ if [ "$des" == "NULL" ];then
 	echo -e "Error: Destination file must be specified" >&2
 	exit 1
 fi
-desDir=`dirname $des`
-mkdir -p $desDir
 
+if [ -f $genome ];then
+	chrom=${genome}
+else
+	chrom=~/Research/Common_Data/${genome}/chrom.sizes
+fi
 
 ###################################
 ## main code
@@ -81,20 +84,13 @@ printBed(){
 	fi
 }
 
-if [ -f $genome ];then
-	chrom=${genome}
-else
-	chrom=~/Research/Common_Data/${genome}/chrom.sizes
-fi
 assertFileExist $chrom
 
-srcFile=`basename $src`
-if [ "$desDir" == "NULL" ];then
-	desDir=`dirname $src`
-fi
-tmpBG=__temp__.$$.bedGraph
-tmpBW=__temp__.$$.bw
-des=${desDir}/${srcFile%.bed*}.bw
+desDir=`dirname $des`
+mkdir -p $desDir
+
+tmpBG=${TMPDIR}/__temp__.$$.bedGraph
+tmpBW=${TMPDIR}/__temp__.$$.bw
 
 echo -e "Creating BigWig file from a fragment bed file" >&2
 echo -e "- src = $src" >&2
