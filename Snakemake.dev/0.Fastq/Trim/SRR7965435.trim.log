@@ -1,7 +1,7 @@
 This is cutadapt 2.3 with Python 3.7.2
-Command line parameters: -a AGATCGGAAGAGC -A AGATCGGAAGAGC --minimum-length 20 -q 20 -o __temp__.80693.1.fq.gz -p __temp__.80693.2.fq.gz 0.Fastq/SRR7965435_1.fastq.gz 0.Fastq/SRR7965435_2.fastq.gz
+Command line parameters: -a AGATCGGAAGAGC -A AGATCGGAAGAGC --minimum-length 20 -q 20 -o __temp__.15841.1.fq.gz -p __temp__.15841.2.fq.gz 0.Fastq/SRR7965435_1.fastq.gz 0.Fastq/SRR7965435_2.fastq.gz
 Processing reads on 1 core in paired-end mode ...
-Finished in 0.03 s (34 us/read; 1.75 M reads/minute).
+Finished in 0.03 s (33 us/read; 1.84 M reads/minute).
 
 === Summary ===
 

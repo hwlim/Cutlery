@@ -3,7 +3,7 @@
 ## Sample Information
 import pandas as pd
 import sys
-samples = pd.read_csv("sample.tsv", sep="\t", comment="#")
+samples = pd.read_csv("./sample.tsv", sep="\t", comment="#")
 if not samples.Id.is_unique:
 	print( "Error: Id column in sample.tsv is not unique")
 	sys.exit()
@@ -11,20 +11,33 @@ if not samples.Name.is_unique:
 	print( "Error: Name column in sample.tsv is not unique")
 	sys.exit()
 
+cluster = json.load(open("./cluster.json"))
+
 
 ########################
 ## Basic parameters
+import socket
+hostname = socket.gethostname()
+
+if( hostname == "EA19-00359" ):
+	# my desktop
+	genomeFa="/Users/limc8h/Research/Common_Data/mm10/genome/genome.fa"
+	chrom_size="/Users/limc8h/Research/Common_Data/mm10/chrom.sizes"
+else:
+	# cluster system
+	genomeFa="/data/limlab/Resource/GenomeData/mm/mm10/Genome/genome.fa"
+	chrom_size="/data/limlab/Resource/GenomeData/mm/mm10/Genome/chrom.size"
+	
 genome="mm10"
-genomeFa="~/Research/Common_Data/mm10/genome/genome.fa"
-chrom_size="chrom.size"
 adapter="AGATCGGAAGAGC"
 #trim_maxLen=100
 trim_minLen=20
 trim_minQual=20
 chrRegex="chr[0-9XY]+$"
 
-star_index="index dir"
-star_option="--outSAMtype BAM Unsorted --alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 2000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None"
+star_index="/data/limlab/Resource/STAR_Index/mm10_allChr_vM20/"
+star_option="--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 2000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None"
+#star_option="--outSAMtype BAM Unsorted --alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 2000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None"
 ## Additoinal star_option to prevent soft-clipping: "--alignEndsType EndToEnd"
 
 #########################
@@ -50,14 +63,14 @@ bigWigDir = "2.BigWig"
 rule all:
 	input:
 		## output from check_baseFreq
-#		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.freq.line.png",
-#			sampleName=samples.Name.tolist(), read=[1,2]),
+		expand(filteredDir + "/BaseFreq/{sampleName}.filtered.R{read}.freq.line.png",
+			sampleName=samples.Name.tolist(), read=[1,2]),
 		## output from make_bigwig
-#		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
-#			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
+		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
+			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
 		## output from trim
-		expand(trimDir + "/{sampleId}_1.trim.fq.gz", sampleId=samples["Id"].tolist()),
-		expand(trimDir + "/{sampleId}_2.trim.fq.gz", sampleId=samples["Id"].tolist())
+#		expand(trimDir + "/{sampleId}_1.trim.fq.gz", sampleId=samples["Id"].tolist()),
+#		expand(trimDir + "/{sampleId}_2.trim.fq.gz", sampleId=samples["Id"].tolist())
 #		expand("1.4.Align.split/{sampleId}.filtered.dedup.{group}.{proctype}.bed.gz", 
 #			sampleId=samples["Id"].tolist(),
 #			group=["nfr","nuc"],
@@ -106,17 +119,23 @@ rule align_pe:
 		option=star_option
 	log:
 		alignDir + "/{sampleName}.star.log"
-	threads: 4
+	threads: cluster["align_pe"]["cpu"]
 	shell:
 		"""
-		STAR --runMode alignReads --genomeDir {params.index} \
-			--genomeLoad NoSharedMemory \
-			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
-			--runThreadN {threads} \
-			{params}.{option} \
-			--outFileNamePrefix __temp__.$$ 2> {log} "
-		mv __temp__.$$Aligned.out.bam {output}"
+		module load CnR/1.0
+		star.align.sh -g {params.index} \
+			-o {alignDir}/{wildcards.sampleName} \
+			-t {threads} \
+			-p '{params.option}' \
+			{input.fq1} {input.fq2}
 		"""
+#		STAR --runMode alignReads --genomeDir {params.index} \
+#			--genomeLoad NoSharedMemory \
+#			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
+#			--runThreadN {threads} \
+#			{params.option} \
+#			--outFileNamePrefix __temp__.$$ 2> {log}
+#		mv __temp__.$$Aligned.out.bam {output}"
 
 rule filter_align:
 	input:
@@ -127,6 +146,7 @@ rule filter_align:
 		"Filtering... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module load CnR/1.0
 		cnr.filterBam.sh  -o {output} -c "{chrRegex}" {input}
 		"""
 
@@ -139,22 +159,24 @@ rule dedup_align:
 		"Deduplicating... [{wildcards.sampleName}]"
 	shell:
 		"""
-		cnr.filterBam.sh  -o {output} -r {input}
+		module load CnR/1.0
+		cnr.dedupBam.sh -m 5G -o {output} -r {input}
 		"""
 
 rule check_baseFreq:
 	input:
 		filteredDir + "/{sampleName}.filtered.bam"
 	output:
-		read1 = baseFreqDir + "/{sampleName}.R1.freq.line.png",
-		read2 = baseFreqDir + "/{sampleName}.R2.freq.line.png"
+		read1 = baseFreqDir + "/{sampleName}.filtered.R1.freq.line.png",
+		read2 = baseFreqDir + "/{sampleName}.filtered.R2.freq.line.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module load CnR/1.0
 		bamToBed.separate.sh -o {baseFreqDir} {input}
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} ${baseFreqDir}/{sampleName}.filtered.R1.bed
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} ${baseFreqDir}/{sampleName}.filtered.R2.bed
+		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.filtered.R1.bed.gz
+		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.filtered.R2.bed.gz
 		"""
 
 rule split_bam:
@@ -167,7 +189,8 @@ rule split_bam:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
 		"""
-		cnr.splitBamToBed.dev.sh -o {splitDir}/{sampleName}.filtered.dedup {input}
+		module load CnR/1.0
+		cnr.splitBamToBed.sh -o {splitDir}/{wildcards.sampleName}.filtered.dedup {input}
 		"""
 
 rule make_bigwig:
@@ -181,8 +204,9 @@ rule make_bigwig:
 		"Making bigWig files... [{wildcards.sampleName}]"
 	shell:
 		"""
-		cnt.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
-		cnt.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
+		module load CnR/1.0
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 #rule peak_call:

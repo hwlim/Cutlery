@@ -1,18 +1,35 @@
 {
     "__default__" :
     {
-        "nCPUs"     : "1",
-        "memory"    : 50000,
-        "resources" : "\"select[mem>20000] rusage[mem=20000] span[hosts=1]\"",
-        "name"      : "JOBNAME.{rule}.{wildcards}",
-        "output"    : "logs/cluster/{rule}.{wildcards}.out",
-        "error"     : "logs/cluster/{rule}.{wildcards}.err"
+        "cpu"     : "1",
+        "memory"    : 1000,
+        "walltime"  : "6:00",
+        "name"      : "{rule}.{wildcards.sampleName}",
+        "output"    : "logs/{rule}.{wildcards.sampleName}.out",
+        "error"     : "logs/{rule}.{wildcards.sampleName}.err"
     },
 
-
-    "trimming_PE" :
+    "trim_pe"  :
     {
-        "memory"    : 30000,
-        "resources" : "\"select[mem>30000] rusage[mem=30000] span[hosts=1]\"",
+        "name"      : "{rule}.{wildcards.sampleId}",
+        "output"    : "logs/{rule}.{wildcards.sampleId}.out",
+        "error"     : "logs/{rule}.{wildcards.sampleId}.err"
+    },
+
+    "align_pe" :
+    {
+        "cpu"       : 4,
+        "memory"    : 50000
+    },
+
+    "dedup_align" :
+    {
+        "memory"    : 5000
+    },
+
+    "make_bigwig" :
+    {
+        "memory"    : 5000
     }
+
 }

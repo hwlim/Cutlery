@@ -4,6 +4,9 @@
 ## Written by Hee-Woong Lim
 #
 ## Wrapper script for star alignment
+##
+## To do:
+## - output prefix or output file? for convenience in snakemake
 
 source $MYBASHLIB/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/_temp_.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/_temp_.$$.*; fi' EXIT

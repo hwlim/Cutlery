@@ -13,6 +13,9 @@
 #	   (no explicit deduplcation is performed in this command)
 #	3. Subset of chromosome can be selected such as excluding chrM
 #	
+# Technical consideration
+# - chromosome selection in samtools view only works for sorted bam file
+#   So, for unsorted file, chromosome must be checked explicitly
 
 source $MYBASHLIB/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
@@ -129,8 +132,16 @@ echo -e "- chrRegex = $chrRegex" >> $desLog
 echo -e "- src  = $src" >> $desLog
 echo -e "- des  = $des" >> $desLog
 
-chrList=`samtools view -H $src | sed 's/:/\t/' | gawk '{ if($1=="@SQ" && $2=="SN") print $3 }' | grep -E -w ${chrRegex}`
 
 tmp=${TMPDIR}/__temp__.$$.bam
-samtools view -b -o $tmp $src $chrList 
+#chrList=`samtools view -H $src | sed 's/:/\t/' | gawk '{ if($1=="@SQ" && $2=="SN") print $3 }' | grep -E -w ${chrRegex}`
+#samtools view -b -o $tmp $src $chrList 
+
+if [ "$chrRegex" == "NULL" ];then
+	samtools view -b -1 optStr -o __temp__.$$.bam $src
+else
+	samtools view -h $optStr $src \
+		| gawk '$3 ~ /'$chrRegex'/ || $1 ~/^@/' \
+		| samtools view -b -1 -o $tmp
+fi
 mv $tmp $des
