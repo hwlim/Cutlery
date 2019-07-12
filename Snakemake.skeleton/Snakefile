@@ -50,14 +50,14 @@ bigWigDir = "2.BigWig"
 rule all:
 	input:
 		## output from check_baseFreq
-#		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.freq.line.png",
-#			sampleName=samples.Name.tolist(), read=[1,2]),
+		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.freq.line.png",
+			sampleName=samples.Name.tolist(), read=[1,2]),
 		## output from make_bigwig
-#		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
-#			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
+		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
+			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
 		## output from trim
-		expand(trimDir + "/{sampleId}_1.trim.fq.gz", sampleId=samples["Id"].tolist()),
-		expand(trimDir + "/{sampleId}_2.trim.fq.gz", sampleId=samples["Id"].tolist())
+#		expand(trimDir + "/{sampleId}_1.trim.fq.gz", sampleId=samples["Id"].tolist()),
+#		expand(trimDir + "/{sampleId}_2.trim.fq.gz", sampleId=samples["Id"].tolist())
 #		expand("1.4.Align.split/{sampleId}.filtered.dedup.{group}.{proctype}.bed.gz", 
 #			sampleId=samples["Id"].tolist(),
 #			group=["nfr","nuc"],
@@ -86,11 +86,8 @@ rule trim_pe:
 		trimDir + "/{sampleId}.trim.log"
 	shell:
 		"""
-		# Needs to be implemented as a quantum transaction
-		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} \
-			-o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2>&1 | tee {log}
-		mv __temp__.$$.1.fq.gz {output.fq1}
-		mv __temp__.$$.2.fq.gz {output.fq2} 
+		touch {output.fq1}
+		touch {output.fq2} 
 		"""
 
 rule align_pe:
@@ -109,13 +106,7 @@ rule align_pe:
 	threads: 4
 	shell:
 		"""
-		STAR --runMode alignReads --genomeDir {params.index} \
-			--genomeLoad NoSharedMemory \
-			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
-			--runThreadN {threads} \
-			{params}.{option} \
-			--outFileNamePrefix __temp__.$$ 2> {log} "
-		mv __temp__.$$Aligned.out.bam {output}"
+		touch {output}
 		"""
 
 rule filter_align:
@@ -127,7 +118,7 @@ rule filter_align:
 		"Filtering... [{wildcards.sampleName}]"
 	shell:
 		"""
-		cnr.filterBam.sh  -o {output} -c "{chrRegex}" {input}
+		touch {output}
 		"""
 
 rule dedup_align:
@@ -139,7 +130,7 @@ rule dedup_align:
 		"Deduplicating... [{wildcards.sampleName}]"
 	shell:
 		"""
-		cnr.filterBam.sh  -o {output} -r {input}
+		touch {output}
 		"""
 
 rule check_baseFreq:
@@ -152,9 +143,7 @@ rule check_baseFreq:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
-		bamToBed.separate.sh -o {baseFreqDir} {input}
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} ${baseFreqDir}/{sampleName}.filtered.R1.bed
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} ${baseFreqDir}/{sampleName}.filtered.R2.bed
+		touch {output.read1} {output.read2}
 		"""
 
 rule split_bam:
@@ -167,7 +156,7 @@ rule split_bam:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
 		"""
-		cnr.splitBamToBed.dev.sh -o {splitDir}/{sampleName}.filtered.dedup {input}
+		touch {output}
 		"""
 
 rule make_bigwig:
@@ -181,8 +170,8 @@ rule make_bigwig:
 		"Making bigWig files... [{wildcards.sampleName}]"
 	shell:
 		"""
-		cnt.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
-		cnt.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
+		touch {output.nfr}
+		touch {output.nuc}
 		"""
 
 #rule peak_call:
