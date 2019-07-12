@@ -16,7 +16,7 @@
 # - 
 	
 source $MYBASHLIB/commonBash.sh
-trap 'if [ `ls -1 __temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
+trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bam]" >&2
@@ -138,12 +138,12 @@ echo -e "\t=> $desNuc" >&2
 echo -e "\t=> $desNucCon" >&2
 echo -e "\t=> $desNucCtr" >&2
 
-tmpNfr=__temp__.$$.nfr
-tmpNfrCon=__temp__.$$.nfrCon
-tmpNfrCtr=__temp__.$$.nfrCtr
-tmpNuc=__temp__.$$.nuc
-tmpNucCon=__temp__.$$.nucCon
-tmpNucCtr=__temp__.$$.nucCtr
+tmpNfr=${TMPDIR}/__temp__.$$.nfr
+tmpNfrCon=${TMPDIR}/__temp__.$$.nfrCon
+tmpNfrCtr=${TMPDIR}/__temp__.$$.nfrCtr
+tmpNuc=${TMPDIR}/__temp__.$$.nuc
+tmpNucCon=${TMPDIR}/__temp__.$$.nucCon
+tmpNucCtr=${TMPDIR}/__temp__.$$.nucCtr
 
 printBAM $src \
 	| gawk 'BEGIN{
