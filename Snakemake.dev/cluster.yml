@@ -7,6 +7,7 @@ __default__:
     name        : "{rule}.{wildcards.sampleName}"
     output      : "logs/{rule}.{wildcards.sampleName}.out"
     error       : "logs/{rule}.{wildcards.sampleName}.err"
+    resource    : "\"span[ptile=1]\""
 
 trim_pe:
     name        : "{rule}.{wildcards.sampleId}"
@@ -16,6 +17,7 @@ trim_pe:
 align_pe:
     cpu         : 4
     memory      : 50000
+    resource    : "\"span[ptile=4]\""
 
 dedup_align:
     memory      : 5000

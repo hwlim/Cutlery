@@ -11,14 +11,15 @@ if not samples.Name.is_unique:
 	print( "Error: Name column in sample.tsv is not unique")
 	sys.exit()
 
-cluster = json.load(open("./cluster.json"))
+#cluster = json.load(open("./cluster.json"))
+with open('cluster.yaml', 'r') as fh:
+    cluster = yaml.load(fh)
 
 
 ########################
 ## Basic parameters
 import socket
-hostname = socket.gethostname()
-
+hostname = socket.gethostname()	# To distinguish CCHMC:HPC vs my desktop
 if( hostname == "EA19-00359" ):
 	# my desktop
 	genomeFa="/Users/limc8h/Research/Common_Data/mm10/genome/genome.fa"
