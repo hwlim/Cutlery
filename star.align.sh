@@ -8,7 +8,7 @@
 ## To do:
 ## - output prefix or output file? for convenience in snakemake
 
-source $MYBASHLIB/commonBash.sh
+source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/_temp_.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/_temp_.$$.*; fi' EXIT
 
 function printUsage {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source $MYBASHLIB/commonBash.sh
+source $COMMON_LIB_BASE/commonBash.sh
 
 srcFileL=(
 SRR7965431_1.fastq.gz

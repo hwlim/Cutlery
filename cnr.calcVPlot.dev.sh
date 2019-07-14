@@ -6,7 +6,7 @@
 # 
 # Convert given alignment file into v-plot ready coordinates: < center, fragment length >
 
-source $MYBASHLIB/commonBash.sh
+source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
 
 function printUsage {

@@ -15,9 +15,10 @@ suppressPackageStartupMessages(library('dplyr', quiet=TRUE))
 suppressPackageStartupMessages(library('cowplot', quiet=TRUE))
 suppressPackageStartupMessages(library('optparse', quiet=TRUE))
 
-source("~/bin/commonR.r")
-source("~/bin/basicR.r")
-source("~/bin/scRNAseq/seurat.common.r")
+source(sprintf("%s/commonR.r", Sys.getenv("COMMON_LIB_BASE")))
+source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
+source(sprintf("%s/scRNAseq/seurat.common.r", Sys.getenv("MY_SCRIPT_BASE")))
+
 
 # command line option handling
 option_list <- list(

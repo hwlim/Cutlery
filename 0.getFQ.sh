@@ -1021,7 +1021,7 @@
       </tr>
       <tr>
         <td id="L3" class="blob-num js-line-number" data-line-number="3"></td>
-        <td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-c1">source</span> <span class="pl-smi">$MYBASHLIB</span>/commonBash.sh</td>
+        <td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-c1">source</span> <span class="pl-smi">$COMMON_LIB_BASE</span>/commonBash.sh</td>
       </tr>
       <tr>
         <td id="L4" class="blob-num js-line-number" data-line-number="4"></td>
