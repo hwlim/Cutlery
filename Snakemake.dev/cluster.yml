@@ -1,5 +1,8 @@
 # Cluster configurations
 #
+# "memory" must be integer >= 1000
+#
+#
 __default__:
     cpu         : 1
     memory      : 1000

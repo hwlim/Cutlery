@@ -16,7 +16,7 @@ function printUsage {
 	echo "Description: Wrapper script for star alignnment
 Options:
 	-g <reference>: STAR index directory (required)
-	-o: outPrefix including path, default=STAR_alignment
+	-o: outPrefix including path, default=align
 		Since STAR does not add dot (.) after prefix, this script automatically add one if it doesn't end with dot
 	-t: number of threads for parallel processing, default=4
 	-s: sort by coordinate, defalt=Off
@@ -110,7 +110,7 @@ fi
 [[ ! "$outPrefix" =~ \.$ ]] && outPrefix=${outPrefix}.
 desDir=`dirname $outPrefix`
 mkdir -p $desDir
-desBAM=${outPrefix}bam
+desBam=${outPrefix}bam
 
 
 ###########################
@@ -118,16 +118,16 @@ desBAM=${outPrefix}bam
 
 echo -e "============================================"
 echo -e "Running STAR" >&2
-echo -e "fq1: $fq1" >&2
-echo -e "fq2: $fq2" >&2
-echo -e "Index: $genome" >&2
-echo -e "sortBam: $sortBam" >&2
-echo -e "outPrefix: $outPrefix" >&2
-echo -e "desBAM: $desBAM" >&2
+echo -e "- fq1: $fq1" >&2
+echo -e "- fq2: $fq2" >&2
+echo -e "- Index: $genome" >&2
+echo -e "- sortBam: $sortBam" >&2
+echo -e "- outPrefix: $outPrefix" >&2
+echo -e "- desBam: $desBam" >&2
 
 
-if [ -f ${desBAM} ];then
-	echo -e "Error: ${desBAM} already exists" >&2
+if [ -f ${desBam} ];then
+	echo -e "Error: ${desBam} already exists" >&2
 	exit 1
 fi
 
@@ -161,10 +161,10 @@ else
 fi
 
 if [ "$sortBam" = "TRUE" ];then
-	mv ${outPrefix}Aligned.sortedByCoord.out.bam ${desBAM}
+	mv ${outPrefix}Aligned.sortedByCoord.out.bam ${desBam}
 	echo -e "Indexing" >&2
-	samtools index ${desBAM}
+	samtools index ${desBam}
 else
-	mv ${outPrefix}Aligned.out.bam ${desBAM}
+	mv ${outPrefix}Aligned.out.bam ${desBam}
 fi
 
