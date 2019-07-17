@@ -45,6 +45,7 @@ alignDir	= "1.1.Align"
 filteredDir	= "1.2.Align.filtered"
 dedupDir	= "1.3.Align.dedup"
 splitDir	= "1.4.Align.split"
+fragDir		= "1.5.Align.fragment"
 baseFreqDir = filteredDir + "/BaseFreq"
 bigWigDir	= "2.BigWig"
 homerDir	= "3.Homer"
@@ -234,6 +235,21 @@ rule make_bigwig:
 		module load CnR/1.0
 		cnr.bedToBigWig.sh -g {chrom_size} -m {params.memory} -o {output.nfr} {input.nfr}
 		cnr.bedToBigWig.sh -g {chrom_size} -m {params.memory} -o {output.nuc} {input.nuc}
+		"""
+
+rule make_fragment:
+	input:
+		filteredDir + "/{sampleName}.filtered.bam"
+	output:
+		fragDir + "/{sampleName}.filtered.frag.bed.gz"
+	params:
+		memory = "%dG" % (cluster["make_fragment"]["memory"]/1000)
+	message:
+		"Making fragment bed files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		bamToFragment.sh -o {homerDir}/{sampleName}.filtered.frag.bed.gz -l 0 -s -m {params.memory} ${input}
 		"""
 
 rule make_tagdir:

@@ -27,3 +27,8 @@ dedup_align:
 
 make_bigwig:
     memory      : 5000
+
+make_fragment:
+    memory      : 5000
+
+    
