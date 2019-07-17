@@ -4,7 +4,7 @@ nJob=8
 
 
 #bsub -W 6:00 -n $nthread -e submit.err -o submit.out \
-bsub -W 6:00 -e submit.err -o submit.out \
+bsub -W 6:00 -eo submit.err -oo submit.out \
 	"module load python3/3.6.3
 	snakemake -j $nJob --latency-wait 60 \
 		--cluster-config cluster.yml \

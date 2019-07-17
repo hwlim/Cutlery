@@ -73,7 +73,8 @@ if not samples.Name.is_unique:
 #################################
 ## Cluster configuration file
 #cluster = json.load(open("./cluster.json"))
-with open('cluster.yaml', 'r') as fh:
+import yaml
+with open('cluster.yml', 'r') as fh:
     cluster = yaml.load(fh)
 
 
@@ -140,7 +141,7 @@ rule align_pe:
 		index=star_index,
 		option=star_option
 	log:
-		alignDir + "/{sampleName}.star.log"
+		alignDir + "/{sampleName}/star.log"
 	threads:
 		cluster["align_pe"]["cpu"]
 	shell:

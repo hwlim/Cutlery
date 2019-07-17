@@ -1,0 +1,182 @@
+
+########################
+## Sample Information
+import pandas as pd
+import sys
+samples = pd.read_csv("sample.tsv", sep="\t", comment="#")
+if not samples.Id.is_unique:
+	print( "Error: Id column in sample.tsv is not unique")
+	sys.exit()
+if not samples.Name.is_unique:
+	print( "Error: Name column in sample.tsv is not unique")
+	sys.exit()
+
+
+########################
+## Basic parameters
+genome="mm10"
+genomeFa="~/Research/Common_Data/mm10/genome/genome.fa"
+chrom_size="chrom.size"
+adapter="AGATCGGAAGAGC"
+#trim_maxLen=100
+trim_minLen=20
+trim_minQual=20
+chrRegex="chr[0-9XY]+$"
+
+star_index="index dir"
+star_option="--outSAMtype BAM Unsorted --alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 2000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None"
+## Additoinal star_option to prevent soft-clipping: "--alignEndsType EndToEnd"
+
+#########################
+## Directories
+fastqDir = "0.Fastq"
+trimDir = fastqDir + "/Trim"
+alignDir = "1.1.Align"
+filteredDir = "1.2.Align.filtered"
+dedupDir = "1.3.Align.dedup"
+splitDir = "1.4.Align.split"
+baseFreqDir = filteredDir + "/BaseFreq"
+bigWigDir = "2.BigWig"
+
+#def getfq(wildcards):
+#	return "0.Fastq/" + samples_indexById.loc[wildcards.sampleId, ["Fq1","Fq2"]]
+#
+#def getfq_trim(wildcards):
+#	sampleId = samples_indexByName.loc[wildcards.sampleName, ["Id"]]
+#	return [ "0.Fastq/Trim/" + sampleId + "_1.trim.fq.gz", "0.Fastq/Trim/" + sampleId + "_2.trim.fq.gz" ]
+
+#########################
+## Rules start
+rule all:
+	input:
+		## output from check_baseFreq
+		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.freq.line.png",
+			sampleName=samples.Name.tolist(), read=[1,2]),
+		## output from make_bigwig
+		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
+			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
+		## output from trim
+#		expand(trimDir + "/{sampleId}_1.trim.fq.gz", sampleId=samples["Id"].tolist()),
+#		expand(trimDir + "/{sampleId}_2.trim.fq.gz", sampleId=samples["Id"].tolist())
+#		expand("1.4.Align.split/{sampleId}.filtered.dedup.{group}.{proctype}.bed.gz", 
+#			sampleId=samples["Id"].tolist(),
+#			group=["nfr","nuc"],
+#			proctype=["con","ctr","sep"])
+#		expand("1.3.Align.dedup/{sampleId}.filtered.dedup.bam", sampleId=samples["Id"].tolist()),
+#		expand("1.2.Align.filtered/{sampleId}.filtered.bam", sampleId=samples.index.values.tolist()),
+
+#rule clean:
+#	shell:
+#		"rm -rf " + " ".join([ trimDir, alignDir, filteredDir, dedupDir, splitDir, baseFreqDir, bigWigDir ])
+
+rule trim_pe:
+	input:
+		fq1 = lambda wildcards: fastqDir + "/" + samples.Fq1[samples.Name == wildcards.sampleName],
+		fq2 = lambda wildcards: fastqDir + "/" + samples.Fq2[samples.Name == wildcards.sampleName]
+	output:
+		fq1 = trimDir + "/{sampleName}_1.trim.fq.gz",
+		fq2 = trimDir + "/{sampleName}_2.trim.fq.gz"
+	message:
+		"Trimming... [{wildcards.sampleName}]"
+	params:
+		adapter = adapter,
+		minLen = trim_minLen,
+		minQual = trim_minQual,
+	log:
+		trimDir + "/{sampleName}.trim.log"
+	shell:
+		"""
+		touch {output.fq1}
+		touch {output.fq2} 
+		"""
+
+rule align_pe:
+	input:
+		fq1 = lambda wildcards: trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName] + "_1.trim.fq.gz",
+		fq2 = lambda wildcards: trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName] + "_2.trim.fq.gz"
+	output:
+		alignDir+"/{sampleName}.bam"
+	message:
+		"Aligning... [{wildcards.sampleName}]"
+	params:
+		index=star_index,
+		option=star_option
+	log:
+		alignDir + "/{sampleName}.star.log"
+	threads: 4
+	shell:
+		"""
+		touch {output}
+		"""
+
+rule filter_align:
+	input:
+		alignDir+"/{sampleName}.bam"
+	output:
+		filteredDir + "/{sampleName}.filtered.bam"
+	message:
+		"Filtering... [{wildcards.sampleName}]"
+	shell:
+		"""
+		touch {output}
+		"""
+
+rule dedup_align:
+	input:
+		filteredDir + "/{sampleName}.filtered.bam"
+	output:
+		dedupDir + "/{sampleName}.filtered.dedup.bam"
+	message:
+		"Deduplicating... [{wildcards.sampleName}]"
+	shell:
+		"""
+		touch {output}
+		"""
+
+rule check_baseFreq:
+	input:
+		filteredDir + "/{sampleName}.filtered.bam"
+	output:
+		read1 = baseFreqDir + "/{sampleName}.R1.freq.line.png",
+		read2 = baseFreqDir + "/{sampleName}.R2.freq.line.png"
+	message:
+		"Checking baseFrequency... [{wildcards.sampleName}]"
+	shell:
+		"""
+		touch {output.read1} {output.read2}
+		"""
+
+rule split_bam:
+	input:
+		dedupDir + "/{sampleName}.filtered.dedup.bam"
+	output:
+		expand(splitDir + "/{{sampleName}}.filtered.dedup.{group}.{proctype}.bed.gz",
+			group=["nfr","nuc"], proctype=["con","ctr","sep"])
+	message:
+		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
+	shell:
+		"""
+		touch {output}
+		"""
+
+rule make_bigwig:
+	input:
+		nfr = splitDir + "/{sampleName}.filtered.dedup.nfr.ctr.bed.gz",
+		nuc = splitDir + "/{sampleName}.filtered.dedup.nuc.ctr.bed.gz"
+	output:
+		nfr = bigWigDir + "/{sampleName}.filtered.dedup.nfr.ctr.bw",
+		nuc = bigWigDir + "/{sampleName}.filtered.dedup.nuc.ctr.bw"
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		touch {output.nfr}
+		touch {output.nuc}
+		"""
+
+#rule peak_call:
+#	input:
+#	output:
+#	message:
+#	shell:
+#
