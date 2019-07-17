@@ -18,7 +18,7 @@ function printUsage {
 	echo -e "Usage: `basename $0` (options) [fragment bed file in gzip]
 Description: Make Homer data directory from BED file
 Options:
-	-o <oudesDir>: Destination tag directory, required
+	-o <outDir>: Destination tag directory, required
 	-n <name>: data name to be stored under */TSV/info.txt, default=<src file name>" >&2
 #	echo -e "\t-l <fragLen,peakWidth>: Comma-separated fragment length and peak width, default=NULL,NULL" >&2
 #        echo -e "\t-g <genome>: genome, default=NULL" >&2
@@ -98,7 +98,7 @@ log=${desDir}/TSV.log
 echo -e "Creating Homer tag directory" >&2
 echo -e "- src = $src" >&2
 echo -e "- name = $name" >&2
-echo -e "- des = $desDir" >&2
+echo -e "- desDir = $desDir" >&2
 
 mkdir -p $desDir
 echo -e "$name" > ${desDir}/info.txt
