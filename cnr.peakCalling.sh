@@ -14,7 +14,7 @@ function printUsage {
 Description: Make Homer data directory from BED file
 Options:
 	-o <outDir>: Destination tag directory, required
-	-i <input>: input (control) homer tag directory
+	-i <input>: (optional) ctrl homer tag directory
 	-m <mask>: mask bed file for filtering such as ENCODE blacklist
 	-s <optStr>: additional option for 'findPeaks' of Homer
 		Internally defined option is: -style factor -tbp 0 -norm 1000000 -strand -center -size 200
