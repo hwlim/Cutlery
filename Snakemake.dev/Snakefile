@@ -72,13 +72,15 @@ if not samples.Id.is_unique:
 if not samples.Name.is_unique:
 	print( "Error: Name column in sample.tsv is not unique")
 	sys.exit()
+## To do: Additional validation: for Ctrl column, it should be valid Name or NULL
 
 #################################
 ## Cluster configuration file
 #cluster = json.load(open("./cluster.json"))
 import yaml
 with open('cluster.yml', 'r') as fh:
-    cluster = yaml.full_load(fh)
+	cluster = yaml.load(fh)
+#    cluster = yaml.full_load(fh)
 
 
 
@@ -95,8 +97,9 @@ rule all:
 		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
 			sampleName=samples.Name.tolist(), group=["nfr","nuc"]),
 		#expand(homerDir + "/{sampleName}/TSV", sampleName=samples.Name.tolist())
-		expand(homerDir + "/{sampleName}/HomerPeak/peak.200bp.exBL.1rpm.bed",
-			sampleName=samples.Name.tolist())
+		#expand(homerDir + "/{sampleName}/HomerPeak/peak.200bp.exBL.1rpm.bed",
+		#	sampleName=samples.Name.tolist())
+
 		## output from trim
 #		expand(trimDir + "/{sampleId}_1.trim.fq.gz", sampleId=samples["Id"].tolist()),
 #		expand(trimDir + "/{sampleId}_2.trim.fq.gz", sampleId=samples["Id"].tolist())
