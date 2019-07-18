@@ -65,7 +65,7 @@ homerDir	= "3.Homer"
 ## Loading sample Information
 import pandas as pd
 import sys
-samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#")
+samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
 if not samples.Id.is_unique:
 	print( "Error: Id column in sample.tsv is not unique")
 	sys.exit()
@@ -78,7 +78,7 @@ if not samples.Name.is_unique:
 #cluster = json.load(open("./cluster.json"))
 import yaml
 with open('cluster.yml', 'r') as fh:
-    cluster = yaml.load(fh)
+    cluster = yaml.full_load(fh)
 
 
 
@@ -93,7 +93,10 @@ rule all:
 			sampleName=samples.Name.tolist(), read=[1,2]),
 		## output from make_bigwig
 		expand(bigWigDir + "/{sampleName}.filtered.dedup.{group}.ctr.bw",
-			sampleName=samples.Name.tolist(), group=["nfr","nuc"])
+			sampleName=samples.Name.tolist(), group=["nfr","nuc"]),
+		#expand(homerDir + "/{sampleName}/TSV", sampleName=samples.Name.tolist())
+		expand(homerDir + "/{sampleName}/HomerPeak/peak.200bp.exBL.1rpm.bed",
+			sampleName=samples.Name.tolist())
 		## output from trim
 #		expand(trimDir + "/{sampleId}_1.trim.fq.gz", sampleId=samples["Id"].tolist()),
 #		expand(trimDir + "/{sampleId}_2.trim.fq.gz", sampleId=samples["Id"].tolist())
@@ -252,46 +255,59 @@ rule make_fragment:
 	shell:
 		"""
 		module load CnR/1.0
-		bamToFragment.sh -o {homerDir}/{sampleName}.filtered.frag.bed.gz -l 0 -s -m {params.memory} ${input}
+		bamToFragment.sh -o {output} -l 0 -s -m {params.memory} ${input}
 		"""
 
 
 rule make_tagdir:
 	input:
-		splitDir + "/{sampleName}.filtered.dedup.nfr.ctr.bed.gz"
+		fragDir + "/{sampleName}.filtered.frag.bed.gz"
 	output:
-		homerDir + "/{sampleName}/TSV",
-		homerDir + "/{sampleName}/TSV/Autocorrelation.png"
+		homerDir + "/{sampleName}/TSV"
+	params:
+		name = "{sampleName}"
 	message:
 		"Making Homer tag directory... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.makeHomerDir.sh -o {homerDir}/{sampleName}/TSV -n ${sampleName} {input}
+		cnr.makeHomerDir.sh -o {output} -n {params.name} {input}
 		"""
 
 
 
 def get_ctrl(wildcards):
 	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-	if ctrlName.upper() == "NULL":
+	if ctrlName.tolist()[0].upper() == "NULL":
 		return "NULL"
 	else:
 		return homerDir + "/" + ctrlName + "/TSV"
 
+def get_peakcall_input(wildcards):
+	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
+	ctrlName = ctrlName.tolist()[0]
+	if ctrlName.upper() == "NULL":
+		return [ homerDir + "/" + wildcards.sampleName + "/TSV" ]
+	else:
+		return [ homerDir + "/" + ctrlName + "/TSV", homerDir + "/" + wildcards.sampleName + "/TSV" ]
 
 rule call_peaks:
 	input:
-		target 	= homerDir + "/{sampleName}/TSV"
-		ctrl 	= getCtrl
+		get_peakcall_input
+		#target 	= homerDir + "/{sampleName}/TSV",
+		#ctrl 	= "test"
+		#ctrl 	= "get_ctrl"
 	output:
 		homerDir + "/{sampleName}/HomerPeak/peak.200bp.exBL.1rpm.bed"
 	params:
-		mask = src_mask
+		mask = peak_mask,
+		peakDir = homerDir + "/{sampleName}/HomerPeak",
+		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.peakCalling.sh -o {homerDir}/{sampleName}/HomerPeak -m {params.mask} -i {input.ctrl} {input.target}
+		cnr.peakCalling.sh -o {params.peakDir} -m {params.mask} {params.optStr} {input}
 		"""
+		#cnr.peakCalling.sh -o {params.peakDir} -m {params.mask} -i {input.ctrl} {input.target}
