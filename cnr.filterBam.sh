@@ -18,7 +18,7 @@
 #   So, for unsorted file, chromosome must be checked explicitly
 
 source $COMMON_LIB_BASE/commonBash.sh
-trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
+trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bam]
@@ -138,7 +138,7 @@ tmp=${TMPDIR}/__temp__.$$.bam
 #samtools view -b -o $tmp $src $chrList 
 
 if [ "$chrRegex" == "NULL" ];then
-	samtools view -b -1 optStr -o __temp__.$$.bam $src
+	samtools view -b -1 optStr -o $tmp $src
 else
 	samtools view -h $optStr $src \
 		| gawk '$3 ~ /'$chrRegex'/ || $1 ~/^@/' \
