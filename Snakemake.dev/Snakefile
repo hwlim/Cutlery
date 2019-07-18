@@ -24,6 +24,9 @@ trim_minLen		= 20
 trim_minQual	= 20
 chrRegex		= "chr[0-9XY]+$"
 
+## blacklist regions for peak calling, "NULL" if N/A
+peak_mask		= "path/to/encode_blacklist.bed"  
+
 
 ########################
 ## STAR index & options
@@ -252,6 +255,7 @@ rule make_fragment:
 		bamToFragment.sh -o {homerDir}/{sampleName}.filtered.frag.bed.gz -l 0 -s -m {params.memory} ${input}
 		"""
 
+
 rule make_tagdir:
 	input:
 		splitDir + "/{sampleName}.filtered.dedup.nfr.ctr.bed.gz"
@@ -262,15 +266,32 @@ rule make_tagdir:
 		"Making Homer tag directory... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module load CnR/1.0
+		cnr.makeHomerDir.sh -o {homerDir}/{sampleName}/TSV -n ${sampleName} {input}
 		"""
+
+
+
+def get_ctrl(wildcards):
+	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
+	if ctrlName.upper() == "NULL":
+		return "NULL"
+	else:
+		return homerDir + "/" + ctrlName + "/TSV"
+
 
 rule call_peaks:
 	input:
-		homerDir + "/{sampleName}/TSV"
+		target 	= homerDir + "/{sampleName}/TSV"
+		ctrl 	= getCtrl
 	output:
 		homerDir + "/{sampleName}/HomerPeak/peak.200bp.exBL.1rpm.bed"
+	params:
+		mask = src_mask
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module load CnR/1.0
+		cnr.peakCalling.sh -o {homerDir}/{sampleName}/HomerPeak -m {params.mask} -i {input.ctrl} {input.target}
 		"""
