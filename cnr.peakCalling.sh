@@ -5,6 +5,8 @@
 # 
 # Wrapper script for peak calling
 #
+# To do & consider:
+# - default option & additional option handling
 
 source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
@@ -22,8 +24,8 @@ Options:
 	-i <input>: (optional) ctrl homer tag directory
 	-m <mask>: mask bed file for filtering such as ENCODE blacklist
 	-s <optStr>: additional option for 'findPeaks' of Homer
-		Internally defined option is: -style factor -tbp 0 -norm 1000000 -strand -center -size 200
-		-fragLength 100 is recommended as an additiona option considering the input bed length" >&2
+		Internal pre-set option: \"-style factor -tbp 0 -norm 1000000 -strand -center -size 200\"
+		\"-fragLength 100\" is recommended as an additiona option considering the input bed length" >&2
 #	echo -e "\t-l <fragLen,peakWidth>: Comma-separated fragment length and peak width, default=NULL,NULL" >&2
 #        echo -e "\t-g <genome>: genome, default=NULL" >&2
 #        echo -e "\t-h: Print help" >&2
