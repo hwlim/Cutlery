@@ -137,6 +137,7 @@ echo -e "- Nucleosomal reads" >&2
 echo -e "\t=> $desNuc" >&2
 echo -e "\t=> $desNucCon" >&2
 echo -e "\t=> $desNucCtr" >&2
+#echo -e "TMPDIR = $TMPDIR" >&2
 
 tmpNfr=${TMPDIR}/__temp__.$$.nfr
 tmpNfrCon=${TMPDIR}/__temp__.$$.nfrCon

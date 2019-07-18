@@ -106,6 +106,7 @@ echo -e "- src = $src" >&2
 echo -e "- des = $des" >&2
 echo -e "- fragLen = $fragLen" >&2
 echo -e "- sortMem = $sortMem" >&2
+echo -e "- TMPDIR = $TMPDIR" >&2
 
 tmpDes=${TMPDIR}/__temp__.$$.bed.gz
 
