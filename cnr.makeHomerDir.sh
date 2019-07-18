@@ -103,6 +103,6 @@ echo -e "- desDir = $desDir" >&2
 mkdir -p $desDir
 echo -e "$name" > ${desDir}/info.txt
 printFile $src \
-	| makeTagDirectory ${desDir} /dev/stdin -format bed -fragLenth given 2>&1 | tee $log
+	| makeTagDirectory ${desDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
 drawAutoCorrplot.r -t "$name" ${desDir}
 
