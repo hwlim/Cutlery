@@ -12,6 +12,11 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [taget tagDir]
 Description: Make Homer data directory from BED file
+Output:
+	- <outDir>/peak.homer.txt              Homer peak calling result
+	- <outDir>/peak.homer.bed              Homer peak in bed format
+	- <outDir>/peak.homer.exBL.bed         After blacklist filtering
+	- <outDir>/peak.homer.exBL.1rpm.bed    > 1rpm after filtering
 Options:
 	-o <outDir>: Destination tag directory, required
 	-i <input>: (optional) ctrl homer tag directory
