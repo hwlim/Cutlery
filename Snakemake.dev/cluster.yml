@@ -5,7 +5,7 @@
 #
 __default__:
     cpu         : 1
-    memory      : 1000
+    memory      : 5000
     walltime    : "6:00"
     name        : "{rule}.{wildcards.sampleName}"
     output      : "logs/{rule}.{wildcards.sampleName}.out"
@@ -22,13 +22,16 @@ align_pe:
     memory      : 50000
     resource    : "\"span[ptile=4]\""
 
+check_baseFreq:
+    memory      : 6000
+
 dedup_align:
-    memory      : 5000
+    memory      : 6000
 
 make_bigwig:
-    memory      : 5000
+    memory      : 6000
 
 make_fragment:
-    memory      : 5000
+    memory      : 6000
 
     
