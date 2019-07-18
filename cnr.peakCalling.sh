@@ -21,7 +21,7 @@ Output:
 	- <outDir>/peak.homer.exBL.1rpm.bed    > 1rpm after filtering
 Options:
 	-o <outDir>: Destination tag directory, required
-	-i <input>: (optional) ctrl homer tag directory
+	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
 	-m <mask>: mask bed file for filtering such as ENCODE blacklist
 	-s <optStr>: additional option for 'findPeaks' of Homer
 		Internal pre-set option: \"-style factor -tbp 0 -norm 1000000 -strand -center -size 200\"
