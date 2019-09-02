@@ -20,6 +20,7 @@ trim_pe:
 align_pe:
     cpu         : 4
     memory      : 50000
+    walltime    : "12:00"
     resource    : "\"span[ptile=4]\""
 
 check_baseFreq:
