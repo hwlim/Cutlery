@@ -8,6 +8,7 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bed]" >&2
 	echo -e "Description: Make a bigWig file from a fragment BED file" >&2
+	echo -e "**Note that this only considers chromosome names starting with chr" >&2
 	echo -e "Options:" >&2
         echo -e "\t-o <outFile>: Destination directory. required" >&2
         echo -e "\t-g <genome>: genome or chromosome size file, default=NULL" >&2
@@ -83,9 +84,9 @@ printBed(){
 	local ext=${src##*.}
 	
 	if [ "$ext" == "gz" ];then
-		zcat $src
+		zcat $src | grep ^chr
 	else
-		cat $src
+		cat $src | grep ^chr
 	fi
 }
 
