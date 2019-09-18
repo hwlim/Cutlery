@@ -28,12 +28,12 @@ Description:
 Input:
 	Paired-end BAM file(s)
 Options:
-        -o <output>: output file, default=<src file name>.filtered.bam
+    -o <output>: output file, default=<src file name>.filtered.bam
 	-f <samFlag>: SAM flag to include, none if NULL. default=0x2 (properly paired only)
 	-F <samFlag>: SAM flag to exclude, none if NULL. default=0x400 (duplicated)
 	-q <MAPQ>: Alignment quality (MAPQ) threshold for filtering (>= mapq). default=0 (No filtering by MAPQ)
-        -c <chromosome regex>: Regular expression for chromosome selection, default=^chr[0-9XY]+$
-		For multiple patterns use regular expression, such as \"^chr[0-9XY]+$|chrM\" 
+    -c <chromosome regex>: Regular expression for chromosome selection, default=^chr[0-9XY]+$
+		For multiple patterns use regular expression, such as \"^chr[0-9XY]+$|^chrM$\" 
 		NULL if not applicable or no filtering" >&2
 }
 
