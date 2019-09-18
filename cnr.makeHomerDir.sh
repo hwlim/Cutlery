@@ -19,7 +19,9 @@ function printUsage {
 Description: Make Homer data directory from BED file
 Options:
 	-o <outDir>: Destination tag directory, required
-	-n <name>: data name to be stored under */TSV/info.txt, default=<src file name>" >&2
+	-n <name>: data name to be stored under */TSV/info.txt, default=<src file name>
+	-c <chrRegex>: regular expression for chromosome filtering, default=NULL (no filtering)
+		\"^chr[0-9XY]+$|^dm-$\": autosome + sex chromosome + drosophila spikein" >&2
 #	echo -e "\t-l <fragLen,peakWidth>: Comma-separated fragment length and peak width, default=NULL,NULL" >&2
 #        echo -e "\t-g <genome>: genome, default=NULL" >&2
 #        echo -e "\t-h: Print help" >&2
@@ -35,14 +37,18 @@ fi
 ## option and input file handling
 desDir=NULL
 name=NULL
+chrRegex=NULL
 #lengthParam=NULL,NULL
-while getopts ":o:n:" opt; do
+while getopts ":o:n:c:" opt; do
 	case $opt in
 		o)
 			desDir=$OPTARG
 			;;
 		n)
 			name=$OPTARG
+			;;
+		c)
+			chrRegex=$OPTARG
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -102,7 +108,15 @@ echo -e "- desDir = $desDir" >&2
 
 mkdir -p $desDir
 echo -e "$name" > ${desDir}/info.txt
-printFile $src \
-	| makeTagDirectory ${desDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
+
+if [ "$chrRegex" != "NULL" ];then
+	printFile $src \
+		| makeTagDirectory ${desDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
+else
+	printFile $src \
+		| gawk '$1 ~ /'$chrRegex'/' \
+		| makeTagDirectory ${desDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
+fi
+
 drawAutoCorrplot.r -t "$name" ${desDir}
 
