@@ -89,12 +89,19 @@ desDir=`dirname $desPrefix`
 mkdir -p $desDir
 
 
+echo -e "#######################################" >&2
 echo -e "Making stranded bigWig files" >&2
 echo -e "  src = $src" >&2
+echo -e "  desPrefix = $desPrefix" >&2
 echo -e "  chrom = $chrom" >&2
 echo -e "  fragLen = $fragLen" >&2
 echo -e "  sortMem = $sortMem" >&2
 echo -e "  chrRegex = $chrRegex" >&2
+echo -e "" >&2
+
+if [ "$chrRegex" == "NULL" ];then
+	chrRegex=.
+fi
 
 printAlign(){
 	if [ -d "$src" ];then
@@ -121,25 +128,25 @@ printAlign(){
 }
 
 
-tmpChrom=${TMPDIR}/$$.chrom.size
-bed=${TMPDIR}/$$.bed.gz
-tmpBg_plus=${TMPDIR}/$$.plus.bedGraph
-tmpBg_minus=${TMPDIR}/$$.minus.bedGraph
-tmpBw_plus=${TMPDIR}/$$.plus.bw
-tmpBw_minus=${TMPDIR}/$$.minus.bw
-bw_plus=${name}.plus.bw
-bw_minus=${name}.minus.bw
+tmpChrom=${TMPDIR}/__temp__.$$.chrom.size
+bed=${TMPDIR}/__temp__.$$.bed.gz
+tmpBg_plus=${TMPDIR}/__temp__.$$.plus.bedGraph
+tmpBg_minus=${TMPDIR}/__temp__.$$.minus.bedGraph
+tmpBw_plus=${TMPDIR}/__temp__.$$.plus.bw
+tmpBw_minus=${TMPDIR}/__temp__.$$.minus.bw
+bw_plus=${desPrefix}.plus.bw
+bw_minus=${desPrefix}.minus.bw
 
-echo $chrom \
+cat $chrom \
 	| gawk '$1 ~ /'$chrRegex'/' \
 	| sort -k1,1 \
 	> $tmpChrom
 
 ## Resized alignment bed file
-echo -e "1) Making (resized) bed file: fragLen=${fragLen}" >&2
+echo -e "1) Making resized bed file: fragLen=${fragLen}" >&2
 if [ ${fragLen} -gt 0 ];then
 	printAlign ${src} \
-		| gawk '{
+		| gawk '$1 ~ /'$chrRegex'/{
 				if( $6 == "+" ){
 					s = $2
 					e = s + '$fragLen'
@@ -150,10 +157,13 @@ if [ ${fragLen} -gt 0 ];then
 				printf "%s\t%d\t%d\t.\t0\t%s\n", $1, s, e, $6
 			}' \
 		| sort -S $sortMem -k1,1 -k2,2n -k3,3n \
+		| gzip \
 		> $bed
 else
 	printAlign ${src} \
+		| gawk '$1 ~ /'$chrRegex'/' \
 		| sort -S $sortMem -k1,1 -k2,2n -k3,3n \
+		| gzip \
 		> $bed
 fi
 
@@ -180,7 +190,6 @@ genomeCoverageBed -bg -i ${bed} -strand - -g $tmpChrom \
 
 
 ## BigWig file
-isFileExist $tmpBw_plus $tmpBw_minus
 echo -e "3) Making bigWig files" >&2
 echo -e "\tStep 1: Generating Plus: $bw_plus" >&2
 bedGraphToBigWig ${tmpBg_plus} ${tmpChrom} ${tmpBw_plus}

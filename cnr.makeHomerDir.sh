@@ -100,23 +100,26 @@ printFile(){
 
 
 
-log=${desDir}/TSV.log
+tmpTagDir=${TMPDIR}/__temp__.$$.tDir
+log=${tmpTagDir}/TSV.log
 echo -e "Creating Homer tag directory" >&2
 echo -e "- src = $src" >&2
 echo -e "- name = $name" >&2
 echo -e "- desDir = $desDir" >&2
+echo -e "- chrRegex = $chrRegex" >&2
 
-mkdir -p $desDir
+#mkdir -p $desDir
 echo -e "$name" > ${desDir}/info.txt
 
-if [ "$chrRegex" != "NULL" ];then
+if [ "$chrRegex" == "NULL" ];then
 	printFile $src \
-		| makeTagDirectory ${desDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
+		| makeTagDirectory ${tmpTagDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
 else
 	printFile $src \
 		| gawk '$1 ~ /'$chrRegex'/' \
-		| makeTagDirectory ${desDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
+		| makeTagDirectory ${tmpTagDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
 fi
 
-drawAutoCorrplot.r -t "$name" ${desDir}
+drawAutoCorrplot.r -t "$name" ${tmpTagDir}
+mv ${tmpTagDir} ${desDir}
 
