@@ -24,7 +24,9 @@ option_list <- list(
 #	make_option(c("-f","--field"), default="", help="Comma-separated field numbers for x-axis, y-axis."),
 )
 parser <- OptionParser(usage = "%prog [options] <bam or bed.gz>",
-	description="Output:
+	description="Description:
+	Check and visualize fragment length distribution for a paired-end BAM file. Considers chromosomes starting with \"chr\" only
+Output:
 	- <outPrefix>.dist.txt
 	- <outPrefix>.dist.png",
 	 option_list=option_list)
@@ -104,7 +106,7 @@ write(sprintf("  - %s", src), stderr())
 if( mode=="bam" ){
 	cmd=sprintf("bamToBed -bedpe -i %s 2>&1 | grep ^chr | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ if($1==\".\" || $3==\".\") next; d=$6-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
 }else{
-	cmd=sprintf("zcat %s | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ d=$3-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
+	cmd=sprintf("zcat %s | grep ^chr | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ d=$3-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
 }
 system(cmd)
 data.dist = read.delim(des.dist, header=TRUE)
