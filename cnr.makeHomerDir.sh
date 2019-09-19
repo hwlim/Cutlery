@@ -109,7 +109,7 @@ echo -e "- desDir = $desDir" >&2
 echo -e "- chrRegex = $chrRegex" >&2
 
 #mkdir -p $desDir
-echo -e "$name" > ${desDir}/info.txt
+echo -e "$name" > ${tmpTagDir}/info.txt
 
 if [ "$chrRegex" == "NULL" ];then
 	printFile $src \
