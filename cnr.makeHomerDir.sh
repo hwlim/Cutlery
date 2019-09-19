@@ -108,7 +108,7 @@ echo -e "- name = $name" >&2
 echo -e "- desDir = $desDir" >&2
 echo -e "- chrRegex = $chrRegex" >&2
 
-#mkdir -p $desDir
+mkdir -p $tmpTagDir
 echo -e "$name" > ${tmpTagDir}/info.txt
 
 if [ "$chrRegex" == "NULL" ];then
