@@ -6,13 +6,14 @@ source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
-	echo -e "Usage: `basename $0` (options) [bed]" >&2
-	echo -e "Description: Make a bigWig file from a fragment BED file" >&2
-	echo -e "**Note that this only considers chromosome names starting with chr" >&2
-	echo -e "Options:" >&2
-        echo -e "\t-o <outFile>: Destination directory. required" >&2
-        echo -e "\t-g <genome>: genome or chromosome size file, default=NULL" >&2
-        echo -e "\t-m <memory>: memory size for sorting bedGraph file, default=5G" >&2
+	echo -e "Usage: `basename $0` (options) [bed]
+Description: Make a bigWig file from a fragment BED file in RPM scale (default) or manually scaled
+**Note that this only considers chromosome names starting with chr
+Options:
+	-o <outFile>: Destination directory. required
+	-g <genome>: genome or chromosome size file, default=NULL
+	-m <memory>: memory size for sorting bedGraph file, default=5G
+	-s <scale factor>: Manual scaling factor. This value is multiplied to raw read count. If 0, RPM normalized. default=0" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -26,7 +27,8 @@ fi
 des=NULL
 genome=NULL
 memory=5G
-while getopts ":o:g:m:" opt; do
+scaleFactor=0
+while getopts ":o:g:m:s:" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
@@ -36,6 +38,9 @@ while getopts ":o:g:m:" opt; do
 			;;
 		m)
 			memory=$OPTARG
+			;;
+		s)
+			scaleFactor=$OPTARG
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -103,10 +108,15 @@ echo -e "- src = $src" >&2
 echo -e "- des = $des" >&2
 echo -e "- genome = $genome" >&2
 
-echo -e "  1) Counting total tag count" >&2
-ttc=`printBed $src | wc -l`
-scale=`echo $ttc | gawk '{ printf "%f", 1000000/$1}'`
-echo -e "\tTTC = $ttc (scale $scale)" >&2
+if [ $scaleFactor  -eq 0 ];then
+	echo -e "  1) Calculating scale factor for RPM normalization" >&2
+	ttc=`printBed $src | wc -l`
+	scale=`echo $ttc | gawk '{ printf "%f", 1000000/$1}'`
+	echo -e "\tTTC = $ttc (scale $scale)" >&2
+else
+	echo -e "  1) Scale factor was manually assigned" >&2
+	echo -e "\tscale: ${scaleFactor}" >*2
+fi
 
 echo -e "  2) Making bedGraph file" >&2
 printBed $src \
