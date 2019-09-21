@@ -35,7 +35,14 @@ make_bigwig:
 make_bigwig_subtract:
     memory      : 30000
 
+make_bigwig1bp:
+    memory      : 6000
+
 make_fragment:
     memory      : 6000
 
-    
+make_spikeintable:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"
+ 
