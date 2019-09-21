@@ -276,7 +276,7 @@ rule make_spikeintable:
 	output:
 		spikeinCntDir + "/spikein.txt"
 	message:
-		"Counting spikein table..."
+		"Making spikein table..."
 	shell:
 		"""
 		module load CnR/1.0
