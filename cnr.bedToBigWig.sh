@@ -108,20 +108,20 @@ echo -e "- src = $src" >&2
 echo -e "- des = $des" >&2
 echo -e "- genome = $genome" >&2
 
-if [ $scaleFactor  -eq 0 ];then
+if [ $scaleFactor == "0" ];then
 	echo -e "  1) Calculating scale factor for RPM normalization" >&2
 	ttc=`printBed $src | wc -l`
-	scale=`echo $ttc | gawk '{ printf "%f", 1000000/$1}'`
-	echo -e "\tTTC = $ttc (scale $scale)" >&2
+	scaleFactor=`echo $ttc | gawk '{ printf "%f", 1000000/$1}'`
+	echo -e "\tTTC = $ttc (scaleFactor $scaleFactor)" >&2
 else
 	echo -e "  1) Scale factor was manually assigned" >&2
-	echo -e "\tscale: ${scaleFactor}" >*2
+	echo -e "\tscaleFactor: ${scaleFactor}" >&2
 fi
 
 echo -e "  2) Making bedGraph file" >&2
 printBed $src \
 	| sort -S $memory -k1,1 -k2,2n -k3,3n \
-	| genomeCoverageBed -bg -scale $scale -g $chrom -i stdin \
+	| genomeCoverageBed -bg -scale $scaleFactor -g $chrom -i stdin \
 	| gawk '{ printf "%s\t%s\t%s\t%.5f\n", $1,$2,$3,$4 }' \
 	> $tmpBG
 

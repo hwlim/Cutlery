@@ -123,7 +123,14 @@ g1 = plot_grid(g.Main, g.Spike, g.frac, ncol=1)
 g2 = plot_grid(g.ratio, g.scale, ncol=1)
 g = plot_grid(g1, g2, ncol=2)
 
-ggsave(des.plot, g, width=3+0.3*nrow(df), height=8, dpi=200)
+if(nrow(df) < 10){
+	unit=0.3
+}else if(nrow(df) < 20 ){
+	unit=0.2
+}else{
+	unit=0.1
+}
+ggsave(des.plot, g, width=3+unit*nrow(df), height=8, dpi=200)
 
 
 
