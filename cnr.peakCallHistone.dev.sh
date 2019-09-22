@@ -140,7 +140,7 @@ getPeakTags $tmpPeakMasked $target -tagAdjust 0 -tbp 0 -fixed \
 	> __temp__.$$.target
 
 paste ${tmpPeakMasked} __temp__.$$.target \
-	| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.3f\t%s\n", $1,$2,$3,$4,$8*1000/($3-$2) }' \
+	| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.3f\t%s\n", $1,$2,$3,$4,$8*1000/($3-$2),$6 }' \
 	| sort -k5,5nr \
 	> $peakMasked
 
