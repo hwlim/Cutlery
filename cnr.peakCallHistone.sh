@@ -17,7 +17,7 @@ Description: Make Homer data directory from BED file
 Output:
 	- <outDir>/peak.homer.txt              Homer peak calling result
 	- <outDir>/peak.homer.bed              Homer peak in bed format
-#	- <outDir>/peak.homer.exBL.bed         After blacklist filtering
+	- <outDir>/peak.homer.exBL.bed         After blacklist filtering
 Options:
 	-o <outDir>: Destination tag directory, required
 	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
@@ -95,7 +95,12 @@ if [ "$mask" != "NULL" ];then
 	assertFileExist $mask
 fi
 
-ttc=`grep genomeo ${target}/tagInfo.txt | cut -f 3`
+assertFileExist ${target}/tagInfo.txt
+ttc=`( grep genome ${target}/tagInfo.txt || true ) | cut -f 3`
+if [ "$ttc" == "" ];then
+	echo -e "Error: no tag count information found in [${target}/tagInfo.txt]" >&2
+	exit 1
+fi
 
 ###################################
 ## main code
