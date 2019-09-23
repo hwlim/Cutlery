@@ -95,6 +95,8 @@ if [ "$mask" != "NULL" ];then
 	assertFileExist $mask
 fi
 
+ttc=`grep genomeo ${target}/tagInfo.txt | cut -f 3`
+
 ###################################
 ## main code
 log=${desDir}/peak.homer.log
@@ -102,14 +104,16 @@ echo -e "Homer peak-calling" >&2
 echo -e "- target = $target" >&2
 echo -e "- ctrl = $ctrl" >&2
 echo -e "- desDir = $desDir" >&2
+echo -e "- TTC = $ttc" >&2
 echo -e "- optStr = $optStr" >&2
 echo -e "" >&2
 
 peak0=${desDir}/peak.homer.txt
 peakBed=${desDir}/peak.homer.bed
-tmpPeakMasked=${TMPDIR}/__temp__.$$.bed
 peakMasked=${desDir}/peak.homer.exBL.bed
 #peak1rpm=${desDir}/peak.homer.exBL.1rpm.bed
+tmpPeakMasked=${TMPDIR}/__temp__.$$.bed
+tmpTagCount=${TMPDIR}/__temp__.$$.target
 
 mkdir -p $desDir
 if [ "$ctrl" == "NULL" ];then
@@ -128,7 +132,7 @@ grep -v "^#" ${peak0} \
 
 if [ "$mask" != "NULL" ];then
 	subtractBed -a ${peakBed} -b $mask \
-		| gawk '{ printf "%s\t%d\t%d\t%peak.%d\t%s\t%s\n", $1,$2,$3,NR,$5,$6 }' \
+		| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%s\t%s\n", $1,$2,$3,NR,$5,$6 }' \
 		| sort -k4,4 \
 		> ${tmpPeakMasked}
 else
@@ -137,10 +141,10 @@ fi
 
 getPeakTags $tmpPeakMasked $target -tagAdjust 0 -tbp 0 -fixed \
 	| sort -k1,1 \
-	> __temp__.$$.target
+	> ${tmpTagCount}
 
-paste ${tmpPeakMasked} __temp__.$$.target \
-	| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.3f\t%s\n", $1,$2,$3,$4,$8*1000/($3-$2),$6 }' \
+paste ${tmpPeakMasked} ${tmpTagCount} \
+	| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.5f\t%s\n", $1,$2,$3,NR,$8*1000000/'${ttc}'*1000/($3-$2),$6 }' \
 	| sort -k5,5nr \
 	> $peakMasked
 
