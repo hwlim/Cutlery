@@ -144,14 +144,19 @@ else
 	cp ${peakBed} ${tmpPeakMasked}
 fi
 
-getPeakTags $tmpPeakMasked $target -tagAdjust 0 -tbp 0 -fixed \
-	| sort -k1,1 \
-	> ${tmpTagCount}
+if [ `cat $tmpPeakMasked | wc -l` -eq 0 ];then
+	touch $peakMasked
+else
 
-paste ${tmpPeakMasked} ${tmpTagCount} \
-	| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.5f\t%s\n", $1,$2,$3,NR,$8*1000000/'${ttc}'*1000/($3-$2),$6 }' \
-	| sort -k5,5nr \
-	> $peakMasked
+	getPeakTags $tmpPeakMasked $target -tagAdjust 0 -tbp 0 -fixed \
+		| sort -k1,1 \
+		> ${tmpTagCount}
+
+	paste ${tmpPeakMasked} ${tmpTagCount} \
+		| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.5f\t%s\n", $1,$2,$3,NR,$8*1000000/'${ttc}'*1000/($3-$2),$6 }' \
+		| sort -k5,5nr \
+		> $peakMasked
+fi
 
 #if [ "$ctrl" != "NULL" ];then
 #	getPeakTags $peakMasked $ctrl -tagAdjust 0 -tbp 0 \
