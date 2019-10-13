@@ -2,6 +2,7 @@
 
 nJob=20
 totalWaitTime="48:00"
+timestamp=$(date +%Y%m%d_%H%M%S)
 
 if [ ! -f diag.pdf ];then
 	module load python3/3.6.3
@@ -12,7 +13,7 @@ fi
 #snakemake -np
 #exit 0
 mkdir -p logs
-bsub -W ${totalWaitTime} -eo submit.err -oo submit.out \
+bsub -W ${totalWaitTime} -eo bsub.${timestamp}.err -oo bsub.${timestamp}.out \
 	"module load python3/3.6.3
 	snakemake -j $nJob \
 		--latency-wait 60 \

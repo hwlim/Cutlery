@@ -13,7 +13,8 @@ Options:
 	-o <outFile>: Destination directory. required
 	-g <genome>: genome or chromosome size file, default=NULL
 	-m <memory>: memory size for sorting bedGraph file, default=5G
-	-s <scale factor>: Manual scaling factor. This value is multiplied to raw read count. If 0, RPM normalized. default=0" >&2
+	-s <scale factor>: Manual scaling factor. This value is multiplied to \"raw read count\" primarily for spike-in based scaling.
+			If 0, RPM normalized. default=0" >&2
 }
 
 if [ $# -eq 0 ];then
