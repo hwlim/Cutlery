@@ -119,14 +119,18 @@ g.scale = ggplot(data=df, aes(x=Sample, y=ScaleFactor)) +
 	labs(title="Scaling Factor (to multiply)", x="", y="Scaling Factor (to Multiply)")
 
 
-g1 = plot_grid(g.Main, g.Spike, g.frac, ncol=1)
-g2 = plot_grid(g.ratio, g.scale, ncol=1)
+g1 = plot_grid(g.Main, g.Spike, ncol=1)
+g2 = plot_grid(g.frac, g.ratio, g.scale, ncol=1)
 g = plot_grid(g1, g2, ncol=2)
 
 if(nrow(df) < 10){
 	unit=0.3
 }else if(nrow(df) < 20 ){
+	unit=0.25
+}else if(nrow(df) < 30 ){
 	unit=0.2
+}else if(nrow(df) < 40 ){
+	unit=0.15
 }else{
 	unit=0.1
 }

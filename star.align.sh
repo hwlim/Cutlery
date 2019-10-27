@@ -101,11 +101,10 @@ fi
 isDirExist $genome
 
 if [ "$sortBam" == "TRUE" ];then
-	optStr="${optStr} --outSAMtype BAM SortedByCoordinate"
+	optStr="${optStr} --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000"
 else
 	optStr="${optStr} --outSAMtype BAM Unsorted"
 fi
-
 
 [[ ! "$outPrefix" =~ \.$ ]] && outPrefix=${outPrefix}.
 desDir=`dirname $outPrefix`
