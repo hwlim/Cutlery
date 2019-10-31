@@ -48,32 +48,19 @@ assertFileExist(src)
 
 
 if(FALSE){
-	src="Sox2.frag.bed.gz"
-	maxLen=1000
+	src="JP1010_CnR_Hnf4a.frag.bed.gz"
+	maxDist=1000
 	outPrefix=NULL	
 }
 
 if(is.null(outPrefix)){
-	outPrefix = sub(".bed.gz|.bam","", src)
+	outPrefix = sub(".bed.gz|.bed","", src)
 	outPrefix = basename(outPrefix)
 }
 desDir=dirname(outPrefix)
-ext=file_ext(src)
 
-if(ext=="gz"){
-	write(sprintf("Input is gzipped bed format"), stderr())
-	mode="bed.gz"
-}else if(ext=="bed"){
-	write(sprintf("Input is bed format"), stderr())
-	mode="bed"
-}else{
-	stop(sprintf("Invalid file type: %s", ext))
-}
 
-#outPrefix=opt$outPrefix
-#if( is.null(outPrefix) ) outPrefix=basename
-
-write(sprintf("Checking fragment length distribution"), stderr())
+write(sprintf("Checking fragment auto-correlation"), stderr())
 
 
 system(sprintf("mkdir -p %s", desDir))
@@ -82,20 +69,40 @@ des.pdf = sprintf("%s.acor.pdf", outPrefix)
 des.png = sprintf("%s.acor.png", outPrefix)
 	
 write(sprintf("  - %s", src), stderr())
-cmd=sprintf("cnr.autoCorFrag.sh -o %s -m %d", des.acor, maxDist)
+cmd=sprintf("cnr.autoCorFrag.sh -o %s -m %d %s", des.acor, maxDist, src)
 system(cmd)
 
 data.acor = read.delim(des.acor, header=TRUE)
 a_index0=sum(data.acor[1:201,2])/sum(data.acor[,2])*100
 a_index1=sum(data.acor[2:201,2])/sum(data.acor[2:(maxDist+1),2])*100
 
-g1 = ggplot(data=data.acor, aes(x=Distance, y=NormFreq)) + geom_line() +
-	labs(title=sprintf("Fragment Auto-Correlation: A-index0 = %.01f / A-index1 = %.01f", a_index0, a_index1),
+g0 = ggplot(data=data.acor, aes(x=Distance, y=NormFreq)) + geom_line() +
+	labs(title=sprintf("Fragment Auto-Correlation: A-index0 = %.01f", a_index0),
 		x="Distance to the Closest Next Fragment (bp)",
-		y="Normalized Frequency")
-		
-g2 = ggplot(data=data.dist, aes(x=fragLen, y=log10(Cnt))) + geom_line() +
-	labs(title="Fragment Length Distribution", x="Fragment Length", y="log10(Frequency)")
-g = plot_grid(g1, g2, nrow=2)
-ggsave(des.hist, g, width=6, height=6)
+		y="Normalized Frequency") +
+	geom_vline(xintercept=200, color="purple", linetype="dashed")
+
+g1 = ggplot(data=data.acor[2:nrow(data.acor),], aes(x=Distance, y=NormFreq)) + geom_line() +
+	labs(title=sprintf("Fragment Auto-Correlation excl. 0: A-index1 = %.01f", a_index1),
+		x="Distance to the Closest Next Fragment (bp)",
+		y="Normalized Frequency") +
+	geom_vline(xintercept=200, color="purple", linetype="dashed")
+
+g0.log = ggplot(data=data.acor, aes(x=Distance, y=log2(NormFreq))) + geom_line() +
+	labs(title=sprintf("Fragment Auto-Correlation: A-index0 = %.01f", a_index0),
+		x="Distance to the Closest Next Fragment (bp)",
+		y="log2(Normalized Frequency)") +
+	geom_vline(xintercept=200, color="purple", linetype="dashed")
+
+g1.log = ggplot(data=data.acor[2:nrow(data.acor),], aes(x=Distance, y=log2(NormFreq))) + geom_line() +
+	labs(title=sprintf("Fragment Auto-Correlation exc. 0: A-index1 = %.01f", a_index1),
+		x="Distance to the Closest Next Fragment (bp)",
+		y="log2(Normalized Frequency)") +
+	geom_vline(xintercept=200, color="purple", linetype="dashed")
+
+g.linear = plot_grid(g0, g1, nrow=2)
+g.log = plot_grid(g0.log, g1.log, nrow=2)
+g = plot_grid(g.linear, g.log, nrow=1)
+ggsave(des.pdf, g, width=10, height=5)
+ggsave(des.png, g, width=10, height=5, dpi=200)
 
