@@ -1,0 +1,36 @@
+Sender: LSF System <srv-lsf@bmi-460g10-02>
+Subject: Job 235827: <31807.dedup_align.name1> Done
+
+Job <31807.dedup_align.name1> was submitted from host <bmi-460g9-14> by user <limc8h> in cluster <BMICluster>.
+Job was executed on host(s) <bmi-460g10-02>, in queue <normal>, as user <limc8h> in cluster <BMICluster>.
+</tmp/.lsbtmp42176> was used as the home directory.
+</users/limc8h/bin/CnR/Snakemake.dev> was used as the working directory.
+Started at Thu Jul 18 13:37:38 2019
+Results reported at Thu Jul 18 13:37:46 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/users/limc8h/bin/CnR/Snakemake.dev/.snakemake/tmp.ua9cv1px/snakejob.dedup_align.11.sh
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :     17.35 sec.
+    Max Memory :         1 MB
+    Max Swap   :       126 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) follows:
+
+
+
+PS:
+
+Read file <logs/dedup_align.name1.err> for stderr output of this job.
+

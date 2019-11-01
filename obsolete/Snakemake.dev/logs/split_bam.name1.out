@@ -1,0 +1,36 @@
+Sender: LSF System <srv-lsf@bmi-460g9-14>
+Subject: Job 235837: <31807.split_bam.name1> Done
+
+Job <31807.split_bam.name1> was submitted from host <bmi-460g9-14> by user <limc8h> in cluster <BMICluster>.
+Job was executed on host(s) <bmi-460g9-14>, in queue <normal>, as user <limc8h> in cluster <BMICluster>.
+</tmp/.lsbtmp42176> was used as the home directory.
+</users/limc8h/bin/CnR/Snakemake.dev> was used as the working directory.
+Started at Thu Jul 18 13:37:58 2019
+Results reported at Thu Jul 18 13:38:06 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/users/limc8h/bin/CnR/Snakemake.dev/.snakemake/tmp.ua9cv1px/snakejob.split_bam.7.sh
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :      3.94 sec.
+    Max Memory :         1 MB
+    Max Swap   :       126 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) follows:
+
+
+
+PS:
+
+Read file <logs/split_bam.name1.err> for stderr output of this job.
+

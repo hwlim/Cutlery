@@ -1,0 +1,120 @@
+Sender: LSF System <srv-lsf@bmi-460g9-14>
+Subject: Job 235760: <31807.trim_pe.SRR7965435> Done
+
+Job <31807.trim_pe.SRR7965435> was submitted from host <bmi-460g9-14> by user <limc8h> in cluster <BMICluster>.
+Job was executed on host(s) <bmi-460g9-14>, in queue <normal>, as user <limc8h> in cluster <BMICluster>.
+</tmp/.lsbtmp42176> was used as the home directory.
+</users/limc8h/bin/CnR/Snakemake.dev> was used as the working directory.
+Started at Thu Jul 18 13:35:38 2019
+Results reported at Thu Jul 18 13:35:41 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/users/limc8h/bin/CnR/Snakemake.dev/.snakemake/tmp.ua9cv1px/snakejob.trim_pe.14.sh
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :      3.00 sec.
+    Max Memory :        20 MB
+    Max Swap   :       514 MB
+
+    Max Processes  :         4
+    Max Threads    :         4
+
+The output (if any) follows:
+
+This is cutadapt 2.1 with Python 3.6.3
+Command line parameters: -a AGATCGGAAGAGC -A AGATCGGAAGAGC --minimum-length 20 -q 20 -o __temp__.29201.1.fq.gz -p __temp__.29201.2.fq.gz 0.Fastq/SRR7965435_1.fastq.gz 0.Fastq/SRR7965435_2.fastq.gz
+Processing reads on 1 core in paired-end mode ...
+Finished in 0.13 s (126 us/read; 0.48 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:              1,000
+  Read 1 with adapter:                     526 (52.6%)
+  Read 2 with adapter:                     466 (46.6%)
+Pairs that were too short:                 544 (54.4%)
+Pairs written (passing filters):           456 (45.6%)
+
+Total basepairs processed:        42,000 bp
+  Read 1:        21,000 bp
+  Read 2:        21,000 bp
+Quality-trimmed:                      84 bp (0.2%)
+  Read 1:            28 bp
+  Read 2:            56 bp
+Total written (filtered):         19,138 bp (45.6%)
+  Read 1:         9,571 bp
+  Read 2:         9,567 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: AGATCGGAAGAGC; Type: regular 3'; Length: 13; Trimmed: 526 times.
+
+No. of allowed errors:
+0-9 bp: 0; 10-13 bp: 1
+
+Bases preceding removed adapters:
+  A: 0.2%
+  C: 98.7%
+  G: 1.0%
+  T: 0.0%
+  none/other: 0.2%
+WARNING:
+    The adapter is preceded by "C" extremely often.
+    The provided adapter sequence could be incomplete at its 3' end.
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	8	15.6	0	8
+4	4	3.9	0	4
+5	1	1.0	0	1
+7	1	0.1	0	1
+16	1	0.0	1	1
+17	8	0.0	1	7 1
+18	286	0.0	1	277 9
+19	217	0.0	1	209 8
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: AGATCGGAAGAGC; Type: regular 3'; Length: 13; Trimmed: 466 times.
+
+No. of allowed errors:
+0-9 bp: 0; 10-13 bp: 1
+
+Bases preceding removed adapters:
+  A: 1.1%
+  C: 97.2%
+  G: 0.9%
+  T: 0.9%
+  none/other: 0.0%
+WARNING:
+    The adapter is preceded by "C" extremely often.
+    The provided adapter sequence could be incomplete at its 3' end.
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	8	15.6	0	8
+4	3	3.9	0	3
+5	2	1.0	0	2
+15	1	0.0	1	0 1
+16	2	0.0	1	1 1
+17	10	0.0	1	10
+18	222	0.0	1	214 8
+19	218	0.0	1	214 4
+
+
+WARNING:
+    One or more of your adapter sequences may be incomplete.
+    Please see the detailed output above.
+
+
+PS:
+
+Read file <logs/trim_pe.SRR7965435.err> for stderr output of this job.
+

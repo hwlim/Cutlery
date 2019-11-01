@@ -1,0 +1,21 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 16
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	filter_align
+	1
+
+[Thu Jul 18 13:37:31 2019]
+Job 0: Filtering... [name1]
+
+Filtering BAM file
+- SAM flag = -f 0x2 -F 0x400
+- MAPQ    >= 0
+- chrRegex = chr[0-9XY]+$
+- src  = 1.1.Align/name1/align.bam
+- des  = 1.2.Align.filtered/name1.filtered.bam
+[Thu Jul 18 13:37:34 2019]
+Finished job 0.
+1 of 1 steps (100%) done

@@ -11,9 +11,7 @@
 # For each category above, pair-connected files and pair-separate files are created
 # => total 6 files are created
 #
-# To do
-# - all fragment for v-plot?
-# - 
+
 	
 source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
@@ -30,6 +28,7 @@ Options:
 		For multiple patterns use regular expression, such as \"^chr[0-9XY]+$|^chrM$\" 
 		NULL if not applicable or no filtering
 Output:
+	** Output files are not sorted **
 	Read from nucleosome free regions
 	- <outPrefix>.nfr.sep.bed: seprate read 1/2
 	- <outPrefix>.nfr.con.bed: joined read 1/2 into single fragment

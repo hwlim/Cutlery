@@ -1,0 +1,36 @@
+Sender: LSF System <srv-lsf@bmi-460g9-07>
+Subject: Job 222865: <module load python3/3.6.3;	snakemake -j 8 --latency-wait 60 		--cluster-config cluster.yml 		--cluster 'bsub -W {cluster.walltime} -n {cluster.cpu} -M {cluster.memory} -J 2356.{cluster.name} -R {cluster.resource} -eo {cluster.error} -oo {cluster.output}'> Done
+
+Job <module load python3/3.6.3;	snakemake -j 8 --latency-wait 60 		--cluster-config cluster.yml 		--cluster 'bsub -W {cluster.walltime} -n {cluster.cpu} -M {cluster.memory} -J 2356.{cluster.name} -R {cluster.resource} -eo {cluster.error} -oo {cluster.output}'> was submitted from host <bmiclusterp3> by user <limc8h> in cluster <BMICluster>.
+Job was executed on host(s) <bmi-460g9-07>, in queue <normal>, as user <limc8h> in cluster <BMICluster>.
+</tmp/.lsbtmp42176> was used as the home directory.
+</users/limc8h/bin/CnR/Snakemake.skeleton.withName> was used as the working directory.
+Started at Wed Jul 17 12:47:37 2019
+Results reported at Wed Jul 17 12:51:02 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+	snakemake -j 8 --latency-wait 60 		--cluster-config cluster.yml 		--cluster 'bsub -W {cluster.walltime} -n {cluster.cpu} -M {cluster.memory} -J 2356.{cluster.name} -R {cluster.resource} -eo {cluster.error} -oo {cluster.output}'"
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :      4.19 sec.
+    Max Memory :        56 MB
+    Max Swap   :      1220 MB
+
+    Max Processes  :         4
+    Max Threads    :        14
+
+The output (if any) follows:
+
+
+
+PS:
+
+Read file <submit.err> for stderr output of this job.
+
