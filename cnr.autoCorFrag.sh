@@ -18,7 +18,7 @@ Output:
 	NormFreq (Normalized frequency) = Frequency * 1000 / # of total fragment
 Options:
 	-o <outFile>: Destination directory. Print to stdout if /dev/stdout or stdout. default=stdout
-	-m <maxDistance>: maximum distance. default=2000 (bp)
+	-m <maxDistance>: maximum distance. default=1000 (bp)
 	-v : verbose mode" >&2
 }
 
@@ -31,7 +31,7 @@ fi
 ###################################
 ## option and input file handling
 des=stdout
-maxDist=2000
+maxDist=1000
 verbose=0
 while getopts ":o:m:v" opt; do
 	case $opt in
