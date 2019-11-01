@@ -17,7 +17,7 @@ Description: Convert paired-end BAM file into fragment bed file by connecting tw
 Options:
 	-o <outFile>: output file.  default=<bamFile without path & extension>.frag.bed.gz
 		e.g. ../input.bam -> input.frag.bed.gz
-	-l <fragLen>: resize the fragment around the center. 0 for no resize. default=0
+	-l <fragLen>: resize the fragment around the center. -1 for no resize. default=-1
 	-s: Sort by sort -k1,1 -k2,2n -k3,3n. default=Off
 	-m: Memory size for sort, e.g. 10G. default=5G" >&2
 }
@@ -31,7 +31,7 @@ fi
 ###################################
 ## option and input file handling
 des=NULL
-fragLen=0
+fragLen=-1
 sortBed=FALSE
 sortMem=5G
 while getopts ":o:l:m:s" opt; do
@@ -112,7 +112,7 @@ tmpDes=${TMPDIR}/__temp__.$$.bed.gz
 
 
 printBed(){
-	if [ $fragLen -eq 0 ];then
+	if [ $fragLen -eq -1 ];then
 		bamToBed -bedpe -i $1 \
 			| gawk '{ printf "%s\t%d\t%d\tFrag.%d\t0\t+\n", $1,$2,$6,NR }'
 	else
