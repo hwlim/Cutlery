@@ -57,6 +57,7 @@ filteredDir	= "1.2.Align.filtered"
 dedupDir	= "1.3.Align.dedup"
 splitDir	= "1.4.Align.split"
 fragDir		= "1.4.Align.allFrag"
+fclDir		= "1.4.Align.fcl"
 baseFreqDir = filteredDir + "/BaseFreq"
 fragLenDir 	= fragDir + "/fragLenHist"
 bigWigDir	= "2.BigWig"
@@ -117,6 +118,7 @@ rule all:
 		#expand(fragDir + "/{sampleName}.frag.bed.gz", sampleName=samples.Name.tolist())
 		## fragment length distribution
 		expand(fragLenDir + "/{sampleName}.dist.png", sampleName=samples.Name.tolist()),
+		expand(fragAcorDir + "/{sampleName}.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
 		#expand(spikeinCntDir + "/{sampleName}.spikeCnt.txt", sampleName=samples.Name.tolist()),
 		spikeinCntDir + "/spikein.txt"
 

@@ -125,14 +125,29 @@ rule make_fragment:
 		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		fragDir + "/{sampleName}.frag.bed.gz"
-	params:
-		memory = "%dG" % ( cluster["make_fragment"]["memory"]/1000 - 1 )
+#	params:
+#		memory = "%dG" % ( cluster["make_fragment"]["memory"]/1000 - 1 )
 	message:
 		"Making fragment bed files... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		bamToFragment.sh -o {output} -l -1 -s -m {params.memory} {input}
+		bamToFragment.sh -o {output} -l -1 -s -m 5G {input}
+		"""
+
+rule make_fcl_file:
+	input:
+		fragDir + "/{sampleName}.frag.bed.gz"
+	output:
+		fclDir + "/{sampleName}.fcl.bed.gz"
+#	params:
+#		memory = "%dG" % ( cluster["make_fcl_file"]["memory"]/1000 - 1 )
+	message:
+		"Making FCL bed files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		fragmentToFCL.sh -o {output} -m 5G {input}
 		"""
 
 rule get_fragLenHist:
@@ -147,6 +162,20 @@ rule get_fragLenHist:
 		"""
 		module load CnR/1.0
 		ngs.fragLenHist.r -o {fragLenDir}/{wildcards.sampleName} {input}
+		"""
+
+rule get_frag_autocor:
+	input:
+		fclDir + "/{sampleName}.fcl.bed.gz"
+	output:
+		fragAcorDir + "/{sampleName}.acor.txt",
+		fragAcorDir + "/{sampleName}.acor.png"
+	message:
+		"Checking fragment auto-correlation... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.drawAutoCorFrag.r -o {fragAcorDir}/{wildcards.sampleName} -m 1000 {input}
 		"""
 
 rule count_spikein:
@@ -199,13 +228,13 @@ rule make_bigwig:
 		nuc = bigWigDir + "/{sampleName}.nuc.ctr.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
-	params:
-		memory = "5G"
+#	params:
+#		memory = "5G"
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.bedToBigWig.sh -g {chrom_size} -m {params.memory} -o {output.nfr} {input.nfr}
-		cnr.bedToBigWig.sh -g {chrom_size} -m {params.memory} -o {output.nuc} {input.nuc}
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 rule make_bigwig1bp:
@@ -216,12 +245,12 @@ rule make_bigwig1bp:
 		bigWigDir1bp + "/{sampleName}.minus.bw"
 	message:
 		"Making 1bp-resolution bigWig files... [{wildcards.sampleName}]"
-	params:
-		memory = "5G"
+#	params:
+#		memory = "5G"
 	shell:
 		"""
 		module load CnR/1.0
-		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m {params.memory} -c "{chrRegexTarget}" {input}
+		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
 		"""
 
@@ -232,12 +261,12 @@ rule make_bigwig_allfrag:
 		bigWigDirAllFrag + "/{sampleName}.allFrag.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
-	params:
-		memory = "5G"
+#	params:
+#		memory = "5G"
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.bedToBigWig.sh -g {chrom_size} -m {params.memory} -o {output} {input}
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
 		"""
 
 
@@ -248,15 +277,15 @@ rule make_tagdir:
 	output:
 		nfr=directory(homerDir + "/{sampleName}/TSV.nfr"),
 		nuc=directory(homerDir + "/{sampleName}/TSV.nuc")
-	params:
-		name = "{sampleName}"
+#	params:
+#		name = "{sampleName}"
 	message:
 		"Making Homer tag directory... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.makeHomerDir.sh -o {output.nfr} -n {params.name} -c "{chrRegexTarget}" {input.nfr}
-		cnr.makeHomerDir.sh -o {output.nuc} -n {params.name} -c "{chrRegexTarget}" {input.nuc}
+		cnr.makeHomerDir.sh -o {output.nfr} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nfr}
+		cnr.makeHomerDir.sh -o {output.nuc} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nuc}
 		"""
 
 
@@ -341,12 +370,12 @@ rule make_bigwig_avg:
 		nuc = bigWigDir_avg + "/{groupName}.nuc.ctr.bw"
 	message:
 		"Making average bigWig files... [{wildcards.groupName}]"
-	params:
-		memory = "5G"
+#	params:
+#		memory = "5G"
 	shell:
 		"""
 		module load CnR/1.0
-		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output.nfr} {input.nfr}
-		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output.nuc} {input.nuc}
+		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
