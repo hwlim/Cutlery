@@ -3,6 +3,9 @@
 ########################################################
 ## Calculate auto-correlation using CUT&RUN fragments
 ## - normalized by read depth
+##
+## To do:
+## - homer is very slow, how to make it faster
 
 
 source $COMMON_LIB_BASE/commonBash.sh
@@ -18,7 +21,11 @@ Output:
 	NormFreq (Normalized frequency) = Frequency * 1000 / # of total fragment
 Options:
 	-o <outFile>: Destination directory. Print to stdout if /dev/stdout or stdout. default=stdout
-	-m <maxDistance>: maximum distance. default=1000 (bp)
+	-d <maxDistance>: maximum distance. default=1000 (bp)
+	-m <mode>: auto-correlation mode. 'homer' or 'closest'. default=closest
+		in homer mode, all the possible pairs within the maxDistance are counted like homer
+		in closest mode, only single closest distance is counted
+	-g <chrom>: chromosome size file. chromosomes must be sorted in the same order with the input bed file
 	-v : verbose mode" >&2
 }
 
@@ -32,14 +39,21 @@ fi
 ## option and input file handling
 des=stdout
 maxDist=1000
+chrom=""
 verbose=0
-while getopts ":o:m:v" opt; do
+while getopts ":o:d:m:g:v" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
 			;;
-		m)
+		d)
 			maxDist=$OPTARG
+			;;
+		m)
+			mode=$OPTARG
+			;;
+		g)
+			chrom=$OPTARG
 			;;
 		v)
 			verbose=1
@@ -64,6 +78,20 @@ if [ $# -eq 0 ];then
 fi
 src=$1
 assertFileExist $src
+
+if [ "$mode" != "homer" ] && [ "$mode" != "closest" ];then
+	echo -e "Error: mode (-m) must be either homer or closest" >&2
+	exit 1
+fi
+
+if [ "$mode" == "homer" ];then
+	if [ "$chrom" == "" ];then
+		error -e "Error: homer mode requires chrom.size file (-g)" >&2
+		exit 1
+	else
+		assertFileExist $chrom
+	fi
+fi
 
 ###################################
 ## main code
@@ -96,28 +124,49 @@ else
 	mkdir -p $desDir
 fi
 
-
-printBed $src \
-	| gawk 'BEGIN{
-			maxDist='$maxDist'
-			for(i=0;i<=maxDist;i=i+1) dL[i]=0
-			pChr=""
-			pStart=-1
-			ttc=0
-		}
-		{
-			if($1==pChr){
-				d=$2-pStart
-			}else{
-				d=maxDist
-				pChr=$1
+if [ "$mode" == "closest" ];then
+	printBed $src \
+		| gawk 'BEGIN{
+				maxDist='$maxDist'
+				for(i=0;i<=maxDist;i=i+1) dL[i]=0
+				pChr=""
+				pStart=-1
+				ttc=0
 			}
-			pStart=$2
-			dL[d]=dL[d]+1
-			ttc=ttc+1
-		}
-		END{
-			printf "Distance\tFrequency\tNormFreq\n"
-			for(i=0;i<=maxDist;i=i+1) printf "%d\t%d\t%.5f\n", i, dL[i], dL[i]*1000/ttc 
-		}' \
-	> $des
+			{
+				if($1==pChr){
+					d=$2-pStart
+				}else{
+					d=maxDist
+					pChr=$1
+				}
+				pStart=$2
+				dL[d]=dL[d]+1
+				ttc=ttc+1
+			}
+			END{
+				printf "Distance\tFrequency\tNormFreq\n"
+				for(i=0;i<=maxDist;i=i+1) printf "%d\t%d\t%.5f\n", i, dL[i], dL[i]*1000/ttc 
+			}' \
+		> $des
+else
+	ttc=`printBed $src | wc -l`
+	printBed $src \
+		| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t%s\n", $1,$2,$2+'$maxDist',$4,$5,$6 }' \
+	       	| intersectBed -a stdin -b $src -wa -wb -sorted \
+		| gawk 'BEGIN{
+				ttc='$ttc'
+				maxDist='$maxDist'
+				for(i=0;i<=maxDist;i=i+1) dL[i]=0
+			}
+			{
+				if($4==$10) next
+				d = $8 - $2
+				dL[d] = dL[d] + 1
+			}
+			END{
+				printf "Distance\tFrequency\tNormFreq\n"
+				for(i=0;i<=maxDist;i=i+1) printf "%d\t%d\t%.5f\n", i, dL[i], dL[i]*1000/ttc
+			}' \
+		> $des
+fi
