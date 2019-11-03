@@ -15,8 +15,8 @@ source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
 # command line option handling
 option_list <- list(
-	make_option(c("-o","--outPrefix"), default=NULL, help="Output prefix including path, default=<same with the src file excluding an extension under current directorys>"),
-	make_option(c("-m","--maxDist"), default=1000, help="Max fragment length, x-axis for plotting. default=1000")
+	make_option(c("-o","--outPrefix"), default=NULL, help="Output prefix including path, default=<same with the src file excluding an extension under current directorys>")
+#	make_option(c("-d","--maxDist"), default=1000, help="Max fragment length, x-axis for plotting. default=1000")
 #	make_option(c("-f","--bamFlag"), default="0x2", help="flag for bam records. NULL is allowed to unset. Ignored for bed file. default=0x2 (concordant pairs only)"),
 #	make_option(c("-F","--bamUnFlag"), default="0x400", help="flag for bam records to exclude, NULL is allowed to unset. Ignored for bed file. default=0x400 (exclude duplicates)")
 #	make_option(c("-t","--title"), default="Title", help="Main Title [default: Title]"),
@@ -45,7 +45,8 @@ if(length(arguments$args) == 0) {
 opt=arguments$options
 
 outPrefix=opt$outPrefix
-maxDist=opt$maxDist
+#maxDist=opt$maxDist
+maxDist=1999
 assertFileExist(src)
 
 
@@ -71,7 +72,8 @@ des.pdf = sprintf("%s.acor.pdf", outPrefix)
 des.png = sprintf("%s.acor.png", outPrefix)
 	
 write(sprintf("  - %s", src), stderr())
-cmd=sprintf("cnr.autoCorFrag.sh -o %s -m %d %s", des.acor, maxDist, src)
+#cmd=sprintf("cnr.autoCorFrag.sh -o %s -m %d %s", des.acor, maxDist, src)
+cmd=sprintf("cnr.autoCorFrag.sh -o %s -m homer %s", des.acor, src)
 system(cmd)
 
 data.acor = read.delim(des.acor, header=TRUE)

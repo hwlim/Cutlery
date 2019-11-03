@@ -175,7 +175,7 @@ rule get_frag_autocor:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.drawAutoCorFrag.r -o {fragAcorDir}/{wildcards.sampleName} -d 1000 {input}
+		cnr.drawAutoCorFrag.r -o {fragAcorDir}/{wildcards.sampleName} {input}
 		"""
 
 rule count_spikein:
