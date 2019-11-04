@@ -4,6 +4,13 @@ Modification of genetrack.py to calculate fragment auto-correlation in CUT&RUN
 
 By Hee Woong Lim 2019
 
+** Caution **
+Unlike Homer cross-correlation, which deduplicate automatically,
+this script considers all the redundant reads.
+Thus, it takes substantial time when processing high-read-density region such as ENCODE blacklist.
+To avoid unnecessary time consumption, it is strongly recommended to filter out reads within blacklist regions before running this script.
+
+
 =======================
 genetrack.py
 
@@ -146,7 +153,8 @@ class ChromosomeManager(object):
     
     def parse_bed_line(self, line):
         # turn it into one based interval
-        return [int(line[1]) + 1, line[5], line[4]]
+        return int(line[1])
+#        return [int(line[1]) + 1, line[5], line[4]]
         
     def chromosome_name(self):
         ''' Return the name of the chromosome about to be loaded '''
@@ -158,17 +166,23 @@ class ChromosomeManager(object):
         if cname in self.processed_chromosomes:
             logging.error('File is not grouped by chromosome')
             raise InvalidFileError
-        self.data = []
+        self.data = [-1]*10**7
 
+        i=0
         while self.line[0] == cname:
             
             if collect_data:
                 read = self.parse_line(self.line)
+                self.data[i]=read
+                i += 1
+                #self.data.append(read)
+                '''
                 if read[0] < self.current_index:
                     logging.error('Reads in chromosome %s are not sorted by index. (At index %d)' % (cname, self.current_index))
                     raise InvalidFileError
                 self.current_index = read[0]
                 self.add_read(read)
+                '''
             try:
                 self.next()
             except StopIteration:
@@ -184,7 +198,8 @@ class ChromosomeManager(object):
         if self.format == 'idx':
             self.data.append(read)
         else:
-            index, strand, value = read
+            #index, strand, value = read
+            index = read
             '''
             if value == '' or value == '.':
                 value = 1
@@ -194,9 +209,11 @@ class ChromosomeManager(object):
             '''
             value = 1
             if not self.data:
-                self.data.append([index, 0, 0])
+                #self.data.append([index, 0, 0])
+                self.data.append(index)
                 current_read = self.data[-1]
-            if self.data[-1][0] == index:
+
+            if self.data[-1] == index:
                 current_read = self.data[-1]
             elif self.data[-1][0] < index:
                 self.data.append([index, 0, 0])
@@ -204,6 +221,7 @@ class ChromosomeManager(object):
             else:
                 logging.error('Reads in chromosome %s are not sorted by index. (At index %d)' % (self.chromosome_name(), index))
                 raise InvalidFileError
+
             if strand == '+':
                 current_read[1] += value
             elif strand == '-':
@@ -211,7 +229,7 @@ class ChromosomeManager(object):
             else:
                 logging.error('Strand "%s" at chromosome "%s" index %d is not valid.' % (strand, self.chromosome_name(), index))
                 raise InvalidFileError
-        
+
     
     def skip_chromosome(self):
         ''' Skip the current chromosome, discarding data '''
@@ -421,20 +439,54 @@ def process_file(path, options):
         logging.error('Path "%s" does not exist.' % path)
         return
 
+    '''
     if options.format == 'idx':
         writerow(('chrom', 'strand', 'start', 'end', 'value'))
     else:
         writerow(['##gff-version 3'])
-    
+    '''
+
     manager = ChromosomeManager(reader)
-     
+
+    maxDist=2000
+    acor = [0]*(maxDist+1)
+  
     while not manager.done:
         cname = manager.chromosome_name()
+        print(cname)
         if not options.chromosome or options.chromosome == cname: # Should we process this chromosome?
             logging.info('Loading chromosome %s' % cname)
             data = manager.load_chromosome()
             if not data:
                 continue
+
+            # auto correlation
+            i=0
+            while data[i] > -1:
+                j = i+1
+                while data[j] > -1:
+                    #print( i,j, data[i], data[j] )
+                    d = data[j] - data[i]
+                    if d <= maxDist:
+                        acor[d] += 1
+                        j += 1
+                    else:
+                        break
+                i += 1
+
+            '''
+            for i in range(len(data)-1):
+                j=i+1
+                while j < len(data):
+                    #print( i,j, data[i], data[j] )
+                    d = data[j] - data[i]
+                    if d <= maxDist:
+                        acor[d] = acor[d] + 1
+                        j = j + 1
+                    else:
+                        break
+            '''
+            '''
             keys = make_keys(data)
             lo, hi = get_range(data)
             for chunk in get_chunks(lo, hi, size=options.chunk_size * 10 ** 6, overlap=WIDTH):
@@ -444,9 +496,13 @@ def process_file(path, options):
             if options.chromosome: # A specific chromosome was specified. We're done, so terminate
                 break
             #process_chromosome(cname, list(data), writer, options)
+            '''
         else:
             logging.info('Skipping chromosome %s' % cname)
             manager.skip_chromosome()
+
+    for i in range(len(acor)):
+        print("{0}\t{1}".format(i,acor[i]))
     
 usage = '''
 input_paths may be:
