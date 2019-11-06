@@ -168,7 +168,7 @@ else
 					if($1 >= 0) printf "%d\t%d\t%.3f\n", $1,$2,$2*normFactor
 				}' \
 		> $des
-
+	rm -rf $tmpDir
 	#printBed $src \
 	#	| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t%s\n", $1,$2,$2+'$maxDist',$4,$5,$6 }' \
 	#      	| intersectBed -a stdin -b $src -wa -wb -sorted \
