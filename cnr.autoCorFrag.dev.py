@@ -34,6 +34,8 @@ import csv, logging, numpy, math, bisect, sys, os, copy
 
 logging.basicConfig(format='%(levelname)s:%(message)s')
 
+
+'''
 WIDTH = 100
 
 def gff_row(cname, start, end, score, source, type='.', strand='.', phase='.', attrs={}):
@@ -49,10 +51,12 @@ def gff_attrs(d):
     if not d:
         return '.'
     return ';'.join('%s=%s' % item for item in d.items())
+'''
 
 class InvalidFileError(Exception):
     pass
 
+'''
 class Peak(object):
     def __init__(self, index, pos_width, neg_width, height):
         self.index = index
@@ -65,6 +69,7 @@ class Peak(object):
         self.safe = False
     def __repr__(self):
         return '[%d] %d' % (self.index, self.value)
+'''
 
 def is_int(i):
     try:
@@ -193,7 +198,7 @@ class ChromosomeManager(object):
         data = self.data
         del self.data # Don't retain reference anymore to save memory
         return data
-    
+    '''
     def add_read(self, read):
         if self.format == 'idx':
             self.data.append(read)
@@ -229,18 +234,19 @@ class ChromosomeManager(object):
             else:
                 logging.error('Strand "%s" at chromosome "%s" index %d is not valid.' % (strand, self.chromosome_name(), index))
                 raise InvalidFileError
-
+    '''
     
     def skip_chromosome(self):
         ''' Skip the current chromosome, discarding data '''
         self.load_chromosome(collect_data=False)
     
-            
+'''            
 def make_keys(data):
     return [read[0] for read in data]
     
 def make_peak_keys(peaks):
     return [peak.index for peak in peaks]
+'''
 
 def get_window(data, start, end, keys):
     ''' Returns all reads from the data set with index between the two indexes'''
@@ -297,6 +303,7 @@ def normal_array(width, sigma, normalize=True):
 
     return values
 
+'''
 def call_peaks(array, shift, data, keys, direction, options):
     peaks = []
     def find_peaks():
@@ -344,7 +351,8 @@ def call_peaks(array, shift, data, keys, direction, options):
         logging.debug('%d of %d peaks (%d%%) survived exclusion' % (after, before, after*100/before))
             
     return peaks
-    
+'''
+
 def process_chromosome(cname, data, process_bounds, options):
     '''
     Process a chromosome. Takes the chromosome name, list of reads,
@@ -448,7 +456,7 @@ def process_file(path, options):
 
     manager = ChromosomeManager(reader)
 
-    maxDist=2000
+    maxDist=options.maxDist
     acor = [0]*(maxDist+1)
   
     while not manager.done:
@@ -505,15 +513,9 @@ def process_file(path, options):
         print("{0}\t{1}".format(i,acor[i]))
     
 usage = '''
-input_paths may be:
-
-    - a file to run on
+Input:
+    - plain bed file
     - "-" to run on standard input
-
-example usage:
-
-    python genetrack.py -s 10 /path/to/a/file.txt
-    python genetrack.py -s 5 -e 50 -
 '''.lstrip()
  
 # We must override the help formatter to force it to obey our newlines in our custom description
@@ -522,7 +524,10 @@ class CustomHelpFormatter(IndentedHelpFormatter):
         return description
 
 def run():   
-    parser = OptionParser(usage='%prog [options] input_paths', description=usage, formatter=CustomHelpFormatter())
+    parser = OptionParser(usage='%prog [options] input', description=usage, formatter=CustomHelpFormatter())
+    parser.add_option('-d', action='store', type='int', dest='maxDist', default=1000,
+                      help='Maximum distance to consider to calculate auto-correlation. Default %default')
+    '''
     parser.add_option('-s', action='store', type='int', dest='sigma', default=5,
                       help='Sigma to use when smoothing reads to call peaks. Default %default')
     parser.add_option('-e', action='store', type='int', dest='exclusion', default=20,
@@ -540,7 +545,7 @@ def run():
     parser.add_option('-o', action='store', type='string', dest='format', default='gff',
                       help='Output format for called peaks. Valid formats are gff and txt. Default %default.')
     parser.add_option('-b', action='store_true', dest='bedgraph', help='Output bed graph tracks.')
-
+    '''
     parser.add_option('-v', action='store_true', dest='verbose', help='Verbose mode: displays debug messages.')
  
     (options, args) = parser.parse_args()
@@ -550,8 +555,8 @@ def run():
     else:
         logging.getLogger().setLevel(logging.ERROR)
 
-    if options.format not in ['gff','txt']:
-        parser.error('%s is not a valid format. Use -h option for a list of valid methods.' % options.format)
+#    if options.format not in ['gff','txt']:
+#        parser.error('%s is not a valid format. Use -h option for a list of valid methods.' % options.format)
                 
     if not args:
         parser.print_help()
