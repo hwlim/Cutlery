@@ -198,7 +198,7 @@ class ChromosomeManager(object):
         data = self.data
         del self.data # Don't retain reference anymore to save memory
         return data
-    '''
+
     def add_read(self, read):
         if self.format == 'idx':
             self.data.append(read)
@@ -234,7 +234,6 @@ class ChromosomeManager(object):
             else:
                 logging.error('Strand "%s" at chromosome "%s" index %d is not valid.' % (strand, self.chromosome_name(), index))
                 raise InvalidFileError
-    '''
     
     def skip_chromosome(self):
         ''' Skip the current chromosome, discarding data '''
@@ -513,9 +512,13 @@ def process_file(path, options):
         print("{0}\t{1}".format(i,acor[i]))
     
 usage = '''
+Description:
+    Calculate auto-correlation of fragment, i.e. distribution of distance between fragments within the maxmum distance limit
 Input:
     - plain bed file
     - "-" to run on standard input
+Output:
+    Two column data: Distance & Frequency
 '''.lstrip()
  
 # We must override the help formatter to force it to obey our newlines in our custom description
