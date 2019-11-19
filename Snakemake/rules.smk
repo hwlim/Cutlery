@@ -273,10 +273,12 @@ rule make_bigwig_allfrag:
 rule make_tagdir:
 	input:
 		nfr=splitDir + "/{sampleName}.nfr.ctr.bed.gz",
-		nuc=splitDir + "/{sampleName}.nuc.ctr.bed.gz"
+		nuc=splitDir + "/{sampleName}.nuc.ctr.bed.gz",
+		all=fragDir + "/{sampleName}.frag.bed.gz"
 	output:
 		nfr=directory(homerDir + "/{sampleName}/TSV.nfr"),
-		nuc=directory(homerDir + "/{sampleName}/TSV.nuc")
+		nuc=directory(homerDir + "/{sampleName}/TSV.nuc"),
+		all=directory(homerDir + "/{sampleName}/TSV.all")
 #	params:
 #		name = "{sampleName}"
 	message:
@@ -286,6 +288,7 @@ rule make_tagdir:
 		module load CnR/1.0
 		cnr.makeHomerDir.sh -o {output.nfr} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nfr}
 		cnr.makeHomerDir.sh -o {output.nuc} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nuc}
+		cnr.makeHomerDir.sh -o {output.all} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.all}
 		"""
 
 
@@ -314,6 +317,32 @@ rule call_peaks_factor:
 	params:
 		mask = peak_mask,
 		peakDir = homerDir + "/{sampleName}/HomerPeak.factor",
+		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
+	message:
+		"Peak calling using Homer... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		"""
+
+def get_peakcall_factor_input_allfrag(wildcards):
+	# return ordered [ctrl , target] list. if no ctrl, simply [target].
+	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
+	ctrlName = ctrlName.tolist()[0]
+	if ctrlName.upper() == "NULL":
+		return [ homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
+	else:
+		return [ homerDir + "/" + ctrlName + "/TSV.all", homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
+
+rule call_peaks_factor_allfrag:
+	input:
+		get_peakcall_factor_input_allfrag
+	output:
+		homerDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed"
+	params:
+		mask = peak_mask,
+		peakDir = homerDir + "/{sampleName}/HomerPeak.factor.allFrag",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
