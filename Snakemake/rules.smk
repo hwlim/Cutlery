@@ -408,3 +408,153 @@ rule make_bigwig_avg:
 		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
+
+#####################################################
+## Scaled BigWig by Spike-in using raw read counts (not RPM)
+#def get_scalefactor(wildcards):
+#	# return ordered [ctrl , target] list.
+#	spikeinTable = pd.read_csv(spikeinCntDir + "/spikein.txt", sep="\t", comment="#", na_filter=False)
+#	if not spikeinTable.Sample.is_unique:
+#		print( "Error: Sample column spikein.txt is not unique")
+#		sys.exit()
+#	return [ spikeinTable.ScaleFactor[spikeinTable.Sample == wildcards.sampleName].tolist()[0] ]
+
+################################################################
+## *** Note *****
+## get_scalefactor function is deterministic, i.e Snakemake run this function to generate command lines to submit
+## Therefore, when spikein.txt does not exist, this rule will invoke error.
+## This rule must be revised the command take spikein.txt as an input directly not using the get_scalefactor function
+#  
+
+## Raw read count scale + spike-in scaled
+rule make_bigwig_scaled:
+	input:
+		nfr = splitDir + "/{sampleName}.nfr.ctr.bed.gz",
+		nuc = splitDir + "/{sampleName}.nuc.ctr.bed.gz",
+		spikeinCnt = spikeinCntDir + "/spikein.txt"
+	output:
+		nfr = bigWigScaledDir + "/{sampleName}.nfr.ctr.bw",
+		nuc = bigWigScaledDir + "/{sampleName}.nuc.ctr.bw"
+
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "%dG" % ( cluster["make_bigwig"]["memory"]/1000 - 1 ),
+#		scaleFactor = get_scalefactor
+	shell:
+		"""
+		module load CnR/1.0
+		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | cut -f 6`
+		if [ $scaleFactor == "" ];then
+			echo -e "Error: empty scale factor" >&2
+			exit 1
+		fi
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
+		"""
+
+
+def get_bigwig_scaled_input(sampleName, fragment):
+	# return ordered [ctrl , target] list.
+	ctrlName = samples.Ctrl[samples.Name == sampleName]
+	ctrlName = ctrlName.tolist()[0]
+	return [ bigWigScaledDir + "/" + sampleName + "." + fragment + ".ctr.bw",
+			bigWigScaledDir + "/" + ctrlName + "." + fragment + ".ctr.bw"]
+
+rule make_bigwig_scaled_subtract:
+	input:
+		nfr=lambda wildcards: get_bigwig_scaled_input(wildcards.sampleName,"nfr"),
+		nuc=lambda wildcards: get_bigwig_scaled_input(wildcards.sampleName,"nuc")
+	output:
+		nfr=bigWigScaledDir_sub + "/{sampleName}.nfr.scaled.subInput.bw",
+		nuc=bigWigScaledDir_sub + "/{sampleName}.nuc.scaled.subInput.bw"
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+	#params:
+	#	memory = "%dG" % (  cluster["make_bigwig_subtract"]["memory"]/1000 - 1 )
+	shell:
+		"""
+		module load CnR/1.0
+		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nfr} {input.nfr}
+		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
+		"""
+
+#### Note: Rules below simply copied from ChIP-seq rules. Needs revision for CUT&Run
+'''
+
+rule make_bigwig_scaled_divide:
+	input:
+		get_bigwig_scaled_input
+	output:
+		bigWigScaledDir_div + "/{sampleName}.scaled.divInput.bw",
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+	#params:
+	#	memory = "%dG" % (  cluster["make_bigwig_subtract"]["memory"]/1000 - 1 )
+	shell:
+		"""
+		module load CnR/1.0
+		bigWigDivide.sh -g {chrom_size} -m 5G -s log -a 1 -o {output} {input}
+		"""
+
+
+
+
+##### Average bigWig files
+def get_bigwig_rep_sub(wildcards):
+	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
+	return map(lambda x: bigWigDir_sub + "/" + x + ".subInput.bw", repL)
+
+rule make_bigwig_sub_avg:
+	input:
+		get_bigwig_rep_sub
+	output:
+		bigWigDir_sub_avg + "/{groupName}.subInput.avg.bw"
+	message:
+		"Making average bigWig files... [{wildcards.groupName}]"
+	params:
+		memory = "5G"
+	shell:
+		"""
+		module load CnR/1.0
+		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
+		"""
+
+def get_bigwig_rep_scaled_sub(wildcards):
+	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
+	return map(lambda x: bigWigScaledDir_sub + "/" + x + ".subInput.bw", repL)
+
+rule make_bigwig_scaled_sub_avg:
+	input:
+		get_bigwig_rep_scaled_sub
+	output:
+		bigWigScaledDir_sub_avg + "/{groupName}.scaled.subInput.avg.bw"
+	message:
+		"Making average bigWig files... [{wildcards.groupName}]"
+	params:
+		memory = "5G"
+	shell:
+		"""
+		module load CnR/1.0
+		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
+		"""
+
+def get_bigwig_rep_scaled_div(wildcards):
+	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
+	return map(lambda x: bigWigScaledDir_div + "/" + x + ".divInput.bw", repL)
+
+rule make_bigwig_scaled_div_avg:
+	input:
+		get_bigwig_rep_scaled_div
+	output:
+		bigWigScaledDir_div_avg + "/{groupName}.scaled.divInput.avg.bw"
+	message:
+		"Making average bigWig files... [{wildcards.groupName}]"
+	params:
+		memory = "5G"
+	shell:
+		"""
+		module load CnR/1.0
+		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
+		"""
+'''

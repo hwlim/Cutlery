@@ -21,7 +21,7 @@ align_pe:
     cpu         : 4
     memory      : 50000
     walltime    : "24:00"
-    resource    : "\"span[ptile=4]\""
+    resource    : "\"span[hosts=1]\""
 
 check_baseFreq:
     memory      : 6000
