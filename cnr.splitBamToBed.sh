@@ -18,7 +18,7 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bam]
-Description: Split BAM file records into tree bed files
+Description: Split BAM file records into three bed files
 Options:
 	-o <outPrefix>: Output prefix. required
 	-f <samFlag>: SAM flag to include, default=0x2 (Properly paired)
