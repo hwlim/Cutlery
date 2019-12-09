@@ -8,7 +8,7 @@ function printUsage {
 Description:
 	Create stranded bigWig files using input alignment bam or bed(.gz) file
 Input:
-	bam or bed(.gz) file
+	bam or bed(.gz) file. (doesn't need to be sorted)
 Options:
 	-o <outPrefix>: Output file prefix including path, default=<src file name>
 		<outPrefix>.plus.bw

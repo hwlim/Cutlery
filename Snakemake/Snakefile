@@ -27,7 +27,9 @@ adapter			= "AGATCGGAAGAGC"	# illumina universal adapter
 #trim_maxLen=100	## Maximum read length after trimming. ** NOT YET IMPLEMENTED **
 trim_minLen		= 20
 trim_minQual	= 20
+## Regular expression to filter-out non-regular chromosomes such as random/scaffolds
 chrRegexAll		= "^chr[0-9XY]+$|^dm-chr[0-9XYLR]+$"
+## Regular expression for target organism to exclude spike-in genome
 chrRegexTarget	= "^chr[0-9XY]+$"
 spikePrefix		= "dm-"
 
@@ -60,10 +62,14 @@ fragDir		= "1.4.Align.allFrag"
 fclDir		= "1.4.Align.fcl"
 baseFreqDir = filteredDir + "/BaseFreq"
 fragLenDir 	= fragDir + "/fragLenHist"
+fragAcorDir = fclDir + "/fragAutoCor"
 bigWigDir	= "2.BigWig"
 bigWigDir1bp = "2.BigWig.1bp"
 bigWigDirAllFrag = "2.BigWig.allFrag"
-homerDir	= "3.Homer"
+bigWigDir_avg = "2.BigWig.avg"
+bigWigScaledDir = "3.1.BigWig.scaled"
+bigWigScaledDir_sub = "3.2.BigWig.scaled.subInput"
+homerDir	= "4.Homer"
 
 spikeinCntDir = fragDir + "/spikeinCount"
 
@@ -126,4 +132,5 @@ rule all:
 		#expand(homerDir + "/{sampleName}/TSV.{fragment}", sampleName=samples.Name.tolist(), fragment=["nfr","nuc"])
 
 
-include: os.environ["MY_SCRIPT_BASE"] + "/Pipeline/Snakemake/rules.smk"
+include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.smk"
+
