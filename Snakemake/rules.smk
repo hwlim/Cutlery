@@ -119,25 +119,24 @@ rule check_baseFreq:
 		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.filtered.R2.bed.gz
 		"""
 
-## fragment bed file for V-plot analysis ** NOT FOR PEAK-CALLING
-rule make_fragment:
-	input:
-		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
-	output:
-		fragDir + "/{sampleName}.frag.bed.gz"
-#	params:
-#		memory = "%dG" % ( cluster["make_fragment"]["memory"]/1000 - 1 )
-	message:
-		"Making fragment bed files... [{wildcards.sampleName}]"
-	shell:
-		"""
-		module load CnR/1.0
-		bamToFragment.sh -o {output} -l -1 -s -m 5G {input}
-		"""
+#rule make_fragment:
+#	input:
+#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
+#	output:
+#		fragDir + "/{sampleName}.frag.bed.gz"
+#	message:
+#		"Making fragment bed files... [{wildcards.sampleName}]"
+#	shell:
+#		"""
+#		module load CnR/1.0
+#		bamToFragment.sh -o {output} -l -1 -s -m 5G {input}
+#		"""
 
+
+## Fragment Center / Length file
 rule make_fcl_file:
 	input:
-		fragDir + "/{sampleName}.frag.bed.gz"
+		splitDir + "/{sampleName}.all.con.bed.gz"
 	output:
 		fclDir + "/{sampleName}.fcl.bed.gz"
 #	params:
@@ -152,7 +151,8 @@ rule make_fcl_file:
 
 rule get_fragLenHist:
 	input:
-		fragDir + "/{sampleName}.frag.bed.gz"
+		splitDir + "/{sampleName}.all.con.bed.gz"
+		#fragDir + "/{sampleName}.frag.bed.gz"
 	output:
 		fragLenDir + "/{sampleName}.dist.txt",
 		fragLenDir + "/{sampleName}.dist.png"
@@ -180,7 +180,7 @@ rule get_frag_autocor:
 
 rule count_spikein:
 	input:
-		fragDir + "/{sampleName}.frag.bed.gz"
+		splitDir + "/{sampleName}.all.con.bed.gz"
 	output:
 		spikeinCntDir + "/{sampleName}.spikeCnt.txt"
 	message:
@@ -210,7 +210,7 @@ rule split_bam:
 		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		expand(splitDir + "/{{sampleName}}.{group}.{proctype}.bed.gz",
-			group=["nfr","nuc"], proctype=["con","ctr","sep"])
+			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
 	message:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
@@ -221,9 +221,11 @@ rule split_bam:
 
 rule make_bigwig:
 	input:
+		all = splitDir + "/{sampleName}.all.ctr.bed.gz",
 		nfr = splitDir + "/{sampleName}.nfr.ctr.bed.gz",
 		nuc = splitDir + "/{sampleName}.nuc.ctr.bed.gz"
 	output:
+		all = bigWigDir + "/{sampleName}.all.ctr.bw",
 		nfr = bigWigDir + "/{sampleName}.nfr.ctr.bw",
 		nuc = bigWigDir + "/{sampleName}.nuc.ctr.bw"
 	message:
@@ -233,13 +235,15 @@ rule make_bigwig:
 	shell:
 		"""
 		module load CnR/1.0
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 rule make_bigwig1bp:
 	input:
-		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
+		splitDir + "/{sampleName}.all.sep.bed.gz"
+#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		bigWigDir1bp + "/{sampleName}.plus.bw",
 		bigWigDir1bp + "/{sampleName}.minus.bw"
@@ -256,7 +260,7 @@ rule make_bigwig1bp:
 
 rule make_bigwig_allfrag:
 	input:
-		fragDir + "/{sampleName}.frag.bed.gz"
+		splitDir + "/{sampleName}.all.con.bed.gz"
 	output:
 		bigWigDirAllFrag + "/{sampleName}.allFrag.bw"
 	message:
@@ -272,13 +276,13 @@ rule make_bigwig_allfrag:
 
 rule make_tagdir:
 	input:
+		all=splitDir + "/{sampleName}.all.ctr.bed.gz",
 		nfr=splitDir + "/{sampleName}.nfr.ctr.bed.gz",
-		nuc=splitDir + "/{sampleName}.nuc.ctr.bed.gz",
-		all=fragDir + "/{sampleName}.frag.bed.gz"
+		nuc=splitDir + "/{sampleName}.nuc.ctr.bed.gz"
 	output:
+		all=directory(homerDir + "/{sampleName}/TSV.all"),
 		nfr=directory(homerDir + "/{sampleName}/TSV.nfr"),
-		nuc=directory(homerDir + "/{sampleName}/TSV.nuc"),
-		all=directory(homerDir + "/{sampleName}/TSV.all")
+		nuc=directory(homerDir + "/{sampleName}/TSV.nuc")
 #	params:
 #		name = "{sampleName}"
 	message:
@@ -429,10 +433,12 @@ rule make_bigwig_avg:
 ## Raw read count scale + spike-in scaled
 rule make_bigwig_scaled:
 	input:
+		all = splitDir + "/{sampleName}.all.ctr.bed.gz",
 		nfr = splitDir + "/{sampleName}.nfr.ctr.bed.gz",
 		nuc = splitDir + "/{sampleName}.nuc.ctr.bed.gz",
 		spikeinCnt = spikeinCntDir + "/spikein.txt"
 	output:
+		all = bigWigScaledDir + "/{sampleName}.all.ctr.bw",
 		nfr = bigWigScaledDir + "/{sampleName}.nfr.ctr.bw",
 		nuc = bigWigScaledDir + "/{sampleName}.nuc.ctr.bw"
 
@@ -449,6 +455,7 @@ rule make_bigwig_scaled:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
 		"""
@@ -463,9 +470,11 @@ def get_bigwig_scaled_input(sampleName, fragment):
 
 rule make_bigwig_scaled_subtract:
 	input:
+		all=lambda wildcards: get_bigwig_scaled_input(wildcards.sampleName,"all"),
 		nfr=lambda wildcards: get_bigwig_scaled_input(wildcards.sampleName,"nfr"),
 		nuc=lambda wildcards: get_bigwig_scaled_input(wildcards.sampleName,"nuc")
 	output:
+		all=bigWigScaledDir_sub + "/{sampleName}.all.scaled.subInput.bw",
 		nfr=bigWigScaledDir_sub + "/{sampleName}.nfr.scaled.subInput.bw",
 		nuc=bigWigScaledDir_sub + "/{sampleName}.nuc.scaled.subInput.bw"
 	message:
@@ -475,6 +484,7 @@ rule make_bigwig_scaled_subtract:
 	shell:
 		"""
 		module load CnR/1.0
+		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.all} {input.all}
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nfr} {input.nfr}
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
 		"""
@@ -558,3 +568,16 @@ rule make_bigwig_scaled_div_avg:
 		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
 		"""
 '''
+
+
+
+## Replicate-pooling -> bam file
+def get_bam_replicate(wildcards):
+	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
+	return map(lambda x: filteredDir + "/" + x + ".filtered.bam", repL)
+
+rule pool_replicate_bam:
+	input:
+		get_bam_replicate
+	output:
+		filteredDir + "/{groupName}.filtered.bam"

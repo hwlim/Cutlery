@@ -29,6 +29,10 @@ Options:
 		NULL if not applicable or no filtering
 Output:
 	** Output files are not sorted **
+	All reads
+	- <outPrefix>.all.sep.bed: seprate read 1/2
+	- <outPrefix>.all.con.bed: joined read 1/2 into single fragment
+	- <outPrefix>.all.ctr.bed: joing read 1/2 into single fragment then resized to fixed length
 	Read from nucleosome free regions
 	- <outPrefix>.nfr.sep.bed: seprate read 1/2
 	- <outPrefix>.nfr.con.bed: joined read 1/2 into single fragment
@@ -127,9 +131,14 @@ printBAM(){
 	fi
 }
 
+desAll=${outPrefix}.all.sep.bed.gz
+desAllCon=${outPrefix}.all.con.bed.gz
+desAllCtr=${outPrefix}.all.ctr.bed.gz
+
 desNfr=${outPrefix}.nfr.sep.bed.gz
 desNfrCon=${outPrefix}.nfr.con.bed.gz
 desNfrCtr=${outPrefix}.nfr.ctr.bed.gz
+
 desNuc=${outPrefix}.nuc.sep.bed.gz
 desNucCon=${outPrefix}.nuc.con.bed.gz
 desNucCtr=${outPrefix}.nuc.ctr.bed.gz
@@ -140,6 +149,10 @@ echo -e "Splitting $src" >&2
 echo -e "- SAM flag option = $optStr" >&2
 echo -e "- Center fragment size = $finalLen" >&2
 echo -e "- chrRegex = $chrRegex" >&2
+echo -e "- All reads" >&2
+echo -e "\t=> $desAll" >&2
+echo -e "\t=> $desAllCon" >&2
+echo -e "\t=> $desAllCtr" >&2
 echo -e "- Nucleosome free reads" >&2
 echo -e "\t=> $desNfr" >&2
 echo -e "\t=> $desNfrCon" >&2
@@ -150,6 +163,9 @@ echo -e "\t=> $desNucCon" >&2
 echo -e "\t=> $desNucCtr" >&2
 #echo -e "TMPDIR = $TMPDIR" >&2
 
+tmpAll=${TMPDIR}/__temp__.$$.all
+tmpAllCon=${TMPDIR}/__temp__.$$.allCon
+tmpAllCtr=${TMPDIR}/__temp__.$$.allCtr
 tmpNfr=${TMPDIR}/__temp__.$$.nfr
 tmpNfrCon=${TMPDIR}/__temp__.$$.nfrCon
 tmpNfrCtr=${TMPDIR}/__temp__.$$.nfrCtr
@@ -159,6 +175,9 @@ tmpNucCtr=${TMPDIR}/__temp__.$$.nucCtr
 
 printBAM $src \
 	| gawk 'BEGIN{
+			tmpAll="'$tmpAll'"
+			tmpAllCon="'$tmpAllCon'"
+			tmpAllCtr="'$tmpAllCtr'"
 			tmpNfr="'$tmpNfr'"
 			tmpNfrCon="'$tmpNfrCon'"
 			tmpNfrCtr="'$tmpNfrCtr'"
@@ -166,6 +185,9 @@ printBAM $src \
 			tmpNucCon="'$tmpNucCon'"
 			tmpNucCtr="'$tmpNucCtr'"
 
+			printf "" > tmpAll
+			printf "" > tmpAllCon
+			printf "" > tmpAllCtr
 			printf "" > tmpNfr
 			printf "" > tmpNfrCon
 			printf "" > tmpNfrCtr
@@ -177,6 +199,10 @@ printBAM $src \
 		$1 ~ /'$chrRegex'/ {
 			d=$6-$2
 			c=($6+$2)/2
+			printf "%s\t%d\t%d\tAll.%d_1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpAll
+			printf "%s\t%d\t%d\tAll.%d_2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpAll
+			printf "%s\t%d\t%d\tAll.%d\t0\t+\n", $1,$2,$6,NR >> tmpAllCon
+			printf "%s\t%d\t%d\tAll.%d\t0\t+\n", $1,c-hWid,c+hWid,NR >> tmpAllCtr
 			if( d < 120 ){
 				printf "%s\t%d\t%d\tNFR.%d_1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpNfr
 				printf "%s\t%d\t%d\tNFR.%d_2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpNfr
@@ -190,12 +216,18 @@ printBAM $src \
 			}
 		}'
 
+gzip $tmpAll
+gzip $tmpAllCon
+gzip $tmpAllCtr
 gzip $tmpNfr
 gzip $tmpNfrCon
 gzip $tmpNfrCtr
 gzip $tmpNuc
 gzip $tmpNucCon
 gzip $tmpNucCtr
+mv ${tmpAll}.gz $desAll
+mv ${tmpAllCon}.gz $desAllCon
+mv ${tmpAllCtr}.gz $desAllCtr
 mv ${tmpNfr}.gz $desNfr
 mv ${tmpNfrCon}.gz $desNfrCon
 mv ${tmpNfrCtr}.gz $desNfrCtr
