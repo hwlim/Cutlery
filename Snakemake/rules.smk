@@ -178,9 +178,22 @@ rule get_frag_autocor:
 		cnr.drawAutoCorFrag.r -o {fragAcorDir}/{wildcards.sampleName} {input}
 		"""
 
+
+def get_bam_input(wildcards):
+#	return dedupDir + "/" + wildcards.sampleName + ".dedup.bam" if doDedup else filteredDir + "/" + wildcards.sampleName + ".filtered.bam"
+	if doDedup:
+		return dedupDir + "/" + wildcards.sampleName + ".dedup.bam"
+	else:
+		if wildcards.sampleName in samples.Group.values:
+			return poolDir + "/" + wildcards.sampleName + ".filtered.bam"
+		else:
+			return filteredDir + "/" + wildcards.sampleName + ".filtered.bam"
+
+
 rule count_spikein:
 	input:
-		splitDir + "/{sampleName}.all.con.bed.gz"
+		get_bam_input
+#		filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		spikeinCntDir + "/{sampleName}.spikeCnt.txt"
 	message:
@@ -204,10 +217,10 @@ rule make_spikeintable:
 		makeSpikeCntTable.r -o {spikeinCntDir}/spikein {input}
 		"""
 
-
 rule split_bam:
 	input:
-		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
+		get_bam_input
+#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		expand(splitDir + "/{{sampleName}}.{group}.{proctype}.bed.gz",
 			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
@@ -570,7 +583,7 @@ rule make_bigwig_scaled_div_avg:
 '''
 
 
-
+'''
 ## Replicate-pooling -> bam file
 def get_bam_replicate(wildcards):
 	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
@@ -580,4 +593,12 @@ rule pool_replicate_bam:
 	input:
 		get_bam_replicate
 	output:
-		filteredDir + "/{groupName}.filtered.bam"
+		poolDir + "/{groupName}.filtered.bam"
+	message:
+		"Pooling replicates... [{wildcards.groupName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		ngs.concateBamFiles.sh -o {output} {input}
+		"""
+'''
