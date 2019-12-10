@@ -317,6 +317,18 @@ rule make_tagdir:
 #	else:
 #		return homerDir + "/" + ctrlName + "/TSV"
 
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_peakcall_input(sampleName, fragment, mode):
+	if mode=="replicate":		
+		ctrlName = samples.Ctrl[samples.Name == sampleName]
+	else:
+		ctrlName = samples.GroupCtrl[samples.Group == sampleName]
+	ctrlName = ctrlName.tolist()[0]
+	if ctrlName.upper() == "NULL":
+		return [ homerDir + "/" + sampleName + "/TSV." + fragment ]
+	else:
+		return [ homerDir + "/" + ctrlName + "/TSV." + fragment, homerDir + "/" + sampleName + "/TSV." + fragment ]
+
 def get_peakcall_factor_input(wildcards):
 	# return ordered [ctrl , target] list. if no ctrl, simply [target].
 	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
@@ -583,7 +595,6 @@ rule make_bigwig_scaled_div_avg:
 '''
 
 
-'''
 ## Replicate-pooling -> bam file
 def get_bam_replicate(wildcards):
 	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
@@ -601,4 +612,3 @@ rule pool_replicate_bam:
 		module load CnR/1.0
 		ngs.concateBamFiles.sh -o {output} {input}
 		"""
-'''
