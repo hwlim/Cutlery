@@ -4,111 +4,29 @@
 ### 
 ###		Written by Hee Woong Lim
 ########$$$$$$$###################################
+'''
+Required Variables
 
-rule trim_pe:
-	input:
-		fq1 = lambda wildcards: fastqDir + "/" + samples.Fq1[samples.Id == wildcards.sampleId],
-		fq2 = lambda wildcards: fastqDir + "/" + samples.Fq2[samples.Id == wildcards.sampleId]
-	output:
-		fq1 = trimDir + "/{sampleId}_1.trim.fq.gz",
-		fq2 = trimDir + "/{sampleId}_2.trim.fq.gz"
-	message:
-		"Trimming... [{wildcards.sampleId}]"
-	params:
-		adapter = adapter,
-		minLen = trim_minLen,
-		minQual = trim_minQual
-	log:
-		trimDir + "/{sampleId}.trim.log"
-	shell:
-		"""
-		# Note: Needs to be implemented as a quantum transaction
-		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} \
-			-o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2>&1 | tee {log}
-		mv __temp__.$$.1.fq.gz {output.fq1}
-		mv __temp__.$$.2.fq.gz {output.fq2} 
-		"""
+- bamDir
+- baseFreqDir
+- splitDir
+- fclDir
+- fragLenDir
+- fragAcorDir
+- homerDir
+- spikeinCntDir
+- bigWigDir / bigWigDir1bp / 
+- bigWigScaledDir / bigWigScaledDir_sub
+- peak_mask
+'''
 
-def get_fastq(wildcards):
-	if doTrim:
-		return [trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_1.trim.fq.gz",
-			trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_2.trim.fq.gz"]
-	else:
-		fq1=samples.Fq1[samples.Name == wildcards.sampleName].tolist()[0]
-		fq2=samples.Fq2[samples.Name == wildcards.sampleName].tolist()[0]
-		if(fq2=="NULL"):
-			return fastqDir + "/" + fq1
-		else:
-			return [fastqDir + "/" + fq1, fastqDir + "/" + fq2]
-
-
-rule align_pe:
-	input:
-		get_fastq
-		#fq1 = lambda wildcards: trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName] + "_1.trim.fq.gz",
-		#fq2 = lambda wildcards: trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName] + "_2.trim.fq.gz"
-	output:
-		alignDir+"/{sampleName}/align.bam"
-	message:
-		"Aligning... [{wildcards.sampleName}]"
-	params:
-		index=star_index,
-		option=star_option
-	log:
-		alignDir + "/{sampleName}/star.log"
-	threads:
-		cluster["align_pe"]["cpu"]
-	shell:
-		"""
-		module load CnR/1.0
-		star.align.sh -g {params.index} \
-			-o {alignDir}/{wildcards.sampleName}/align \
-			-t {threads} \
-			-p '{params.option}' \
-			{input}
-		"""
-#		STAR --runMode alignReads --genomeDir {params.index} \
-#			--genomeLoad NoSharedMemory \
-#			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
-#			--runThreadN {threads} \
-#			{params.option} \
-#			--outFileNamePrefix __temp__.$$ 2> {log}
-#		mv __temp__.$$Aligned.out.bam {output}"
-
-rule filter_align:
-	input:
-		alignDir+"/{sampleName}/align.bam"
-	output:
-		filteredDir + "/{sampleName}.filtered.bam"
-	message:
-		"Filtering... [{wildcards.sampleName}]"
-	shell:
-		"""
-		module load CnR/1.0
-		cnr.filterBam.sh  -o {output} -c "{chrRegexAll}" {input}
-		"""
-
-rule dedup_align:
-	input:
-		filteredDir + "/{sampleName}.filtered.bam"
-	output:
-		dedupDir + "/{sampleName}.dedup.bam"
-	message:
-		"Deduplicating... [{wildcards.sampleName}]"
-	params:
-		memory = "%dG" % ( cluster["dedup_align"]["memory"]/1000 - 1 )
-	shell:
-		"""
-		module load CnR/1.0
-		cnr.dedupBam.sh -m {params.memory} -o {output} -r {input}
-		"""
 
 rule check_baseFreq:
 	input:
-		filteredDir + "/{sampleName}.filtered.bam"
+		bamDir + "/{sampleName}.bam"
 	output:
-		read1 = baseFreqDir + "/{sampleName}.filtered.R1.freq.line.png",
-		read2 = baseFreqDir + "/{sampleName}.filtered.R2.freq.line.png"
+		read1 = baseFreqDir + "/{sampleName}.R1.freq.line.png",
+		read2 = baseFreqDir + "/{sampleName}.R2.freq.line.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
@@ -118,19 +36,6 @@ rule check_baseFreq:
 		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.filtered.R1.bed.gz
 		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.filtered.R2.bed.gz
 		"""
-
-#rule make_fragment:
-#	input:
-#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
-#	output:
-#		fragDir + "/{sampleName}.frag.bed.gz"
-#	message:
-#		"Making fragment bed files... [{wildcards.sampleName}]"
-#	shell:
-#		"""
-#		module load CnR/1.0
-#		bamToFragment.sh -o {output} -l -1 -s -m 5G {input}
-#		"""
 
 
 ## Fragment Center / Length file
@@ -178,21 +83,9 @@ rule get_frag_autocor:
 		cnr.drawAutoCorFrag.r -o {fragAcorDir}/{wildcards.sampleName} {input}
 		"""
 
-
-def get_bam_input(wildcards):
-#	return dedupDir + "/" + wildcards.sampleName + ".dedup.bam" if doDedup else filteredDir + "/" + wildcards.sampleName + ".filtered.bam"
-	if doDedup:
-		return dedupDir + "/" + wildcards.sampleName + ".dedup.bam"
-	else:
-		if wildcards.sampleName in samples.Group.values:
-			return poolDir + "/" + wildcards.sampleName + ".filtered.bam"
-		else:
-			return filteredDir + "/" + wildcards.sampleName + ".filtered.bam"
-
-
 rule count_spikein:
 	input:
-		get_bam_input
+		bamDir + "/{sampleName}.bam"
 #		filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		spikeinCntDir + "/{sampleName}.spikeCnt.txt"
@@ -219,7 +112,8 @@ rule make_spikeintable:
 
 rule split_bam:
 	input:
-		get_bam_input
+		bamDir + "/{sampleName}.bam"
+#		get_bam_input
 #		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		expand(splitDir + "/{{sampleName}}.{group}.{proctype}.bed.gz",
@@ -271,6 +165,7 @@ rule make_bigwig1bp:
 
 		"""
 
+'''
 rule make_bigwig_allfrag:
 	input:
 		splitDir + "/{sampleName}.all.con.bed.gz"
@@ -285,7 +180,7 @@ rule make_bigwig_allfrag:
 		module load CnR/1.0
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
 		"""
-
+'''
 
 rule make_tagdir:
 	input:
@@ -318,17 +213,15 @@ rule make_tagdir:
 #		return homerDir + "/" + ctrlName + "/TSV"
 
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
-def get_peakcall_input(sampleName, fragment, mode):
-	if mode=="replicate":		
-		ctrlName = samples.Ctrl[samples.Name == sampleName]
-	else:
-		ctrlName = samples.GroupCtrl[samples.Group == sampleName]
+def get_peakcall_input(sampleName, fragment):
+	ctrlName = samples.Ctrl[samples.Name == sampleName]
 	ctrlName = ctrlName.tolist()[0]
 	if ctrlName.upper() == "NULL":
 		return [ homerDir + "/" + sampleName + "/TSV." + fragment ]
 	else:
 		return [ homerDir + "/" + ctrlName + "/TSV." + fragment, homerDir + "/" + sampleName + "/TSV." + fragment ]
 
+'''
 def get_peakcall_factor_input(wildcards):
 	# return ordered [ctrl , target] list. if no ctrl, simply [target].
 	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
@@ -337,10 +230,12 @@ def get_peakcall_factor_input(wildcards):
 		return [ homerDir + "/" + wildcards.sampleName + "/TSV.nfr" ]
 	else:
 		return [ homerDir + "/" + ctrlName + "/TSV.nfr", homerDir + "/" + wildcards.sampleName + "/TSV.nfr" ]
+'''
 
 rule call_peaks_factor:
 	input:
-		get_peakcall_factor_input
+		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr")
+#		get_peakcall_factor_input
 	output:
 		homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed"
 	params:
@@ -355,6 +250,7 @@ rule call_peaks_factor:
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
+'''
 def get_peakcall_factor_input_allfrag(wildcards):
 	# return ordered [ctrl , target] list. if no ctrl, simply [target].
 	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
@@ -363,10 +259,12 @@ def get_peakcall_factor_input_allfrag(wildcards):
 		return [ homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
 	else:
 		return [ homerDir + "/" + ctrlName + "/TSV.all", homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
+'''
 
 rule call_peaks_factor_allfrag:
 	input:
-		get_peakcall_factor_input_allfrag
+		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
+#		get_peakcall_factor_input_allfrag
 	output:
 		homerDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed"
 	params:
@@ -381,6 +279,7 @@ rule call_peaks_factor_allfrag:
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
+'''
 def get_peakcall_histone_input(wildcards):
 	# return ordered [ctrl , target] list. if no ctrl, simply [target].
 	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
@@ -389,10 +288,12 @@ def get_peakcall_histone_input(wildcards):
 		return [ homerDir + "/" + wildcards.sampleName + "/TSV.nuc" ]
 	else:
 		return [ homerDir + "/" + ctrlName + "/TSV.nuc", homerDir + "/" + wildcards.sampleName + "/TSV.nuc" ]
+'''
 
 rule call_peaks_histone:
 	input:
-		get_peakcall_histone_input
+		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc")
+#		get_peakcall_histone_input
 	output:
 		homerDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed"
 	params:
@@ -407,35 +308,6 @@ rule call_peaks_histone:
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
-
-#####################################################
-## Rules for data pooling by "Group" column
-
-def get_bigwig_rep_nfr(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: bigWigDir + "/" + x + ".nfr.ctr.bw", repL)
-
-def get_bigwig_rep_nuc(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: bigWigDir + "/" + x + ".nuc.ctr.bw", repL)
-
-rule make_bigwig_avg:
-	input:
-		nfr = get_bigwig_rep_nfr,
-		nuc = get_bigwig_rep_nuc
-	output:
-		nfr = bigWigDir_avg + "/{groupName}.nfr.ctr.bw",
-		nuc = bigWigDir_avg + "/{groupName}.nuc.ctr.bw"
-	message:
-		"Making average bigWig files... [{wildcards.groupName}]"
-#	params:
-#		memory = "5G"
-	shell:
-		"""
-		module load CnR/1.0
-		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
-		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
-		"""
 
 
 #####################################################
@@ -594,21 +466,3 @@ rule make_bigwig_scaled_div_avg:
 		"""
 '''
 
-
-## Replicate-pooling -> bam file
-def get_bam_replicate(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: filteredDir + "/" + x + ".filtered.bam", repL)
-
-rule pool_replicate_bam:
-	input:
-		get_bam_replicate
-	output:
-		poolDir + "/{groupName}.filtered.bam"
-	message:
-		"Pooling replicates... [{wildcards.groupName}]"
-	shell:
-		"""
-		module load CnR/1.0
-		ngs.concateBamFiles.sh -o {output} {input}
-		"""

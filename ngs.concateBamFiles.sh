@@ -4,7 +4,7 @@ source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
-	echo -e "Usage: `basename $0` (options) [bam1] [bam2] ...
+	echo -e "Usage: `basename $0` (options) [bam1] ...
 Description:
 	Concatenate bam files. No sorting
 Options:
@@ -47,20 +47,19 @@ fi
 srcL=( $@ )
 
 
-if [ $# -lt 2 ];then
-	echo -e "Error: Requires at least two bam files as input" >&2
+if [ $# -lt 1 ];then
+	echo -e "Error: Requires at least one bam file as input" >&2
 	exit 1
 fi
-assertFileExist ${srcL[@]}
-
 
 if [ "$des" == "" ];then
 	echo -e "Error: destination file (-o) must be specified" >&2
 	exit 1
 fi
+
+assertFileExist ${srcL[@]}
 desDir=`dirname $des`
 mkdir -p $desDir
-
 
 echo -e "#######################################" >&2
 echo -e "Concatenating bam files" >&2
@@ -71,6 +70,13 @@ do
 	echo -e "\t- ${src}" >&2
 done
 
-samtools view -H ${srcL[0]} > ${TMPDIR}/__temp__.$$.hdr
-samtools cat -h ${TMPDIR}/__temp__.$$.hdr ${srcL[@]} > ${TMPDIR}/__temp__.$$.bam
-mv ${TMPDIR}/__temp__.$$.bam ${des}
+
+if [ $# -eq 1 ];then
+	echo -e "Warning: Only one file is given; simply copying" >&2
+	cp ${srcL[0]} $des
+else
+	samtools view -H ${srcL[0]} > ${TMPDIR}/__temp__.$$.hdr
+	samtools cat -h ${TMPDIR}/__temp__.$$.hdr ${srcL[@]} > ${TMPDIR}/__temp__.$$.bam
+	mv ${TMPDIR}/__temp__.$$.bam ${des}
+fi
+

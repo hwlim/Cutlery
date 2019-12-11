@@ -1,0 +1,131 @@
+########################
+## Basic parameters
+
+## Sample information file with five columns: Id / Name / Group / Fq1 / Fq2 / Ctrl / PeakMode
+src_sampleInfo	= "../sample.tsv"
+
+## Name / PeakMode / Ctrl columns for group analysis mimicking sample.tsv file
+## i.e. Name correspond to the Group column in sample.tsv
+src_groupInfo	= "group.tsv"
+
+## Genome folder depending on platform: CCHMC:HPC vs my desktop
+import socket
+hostname = socket.gethostname()	
+if( hostname == "EA19-00359" ):
+	# my desktop
+	genomeFa	= "/Users/limc8h/Research/Common_Data/hg38/genome/genome.fa"
+	chrom_size	= "/Users/limc8h/Research/Common_Data/hg38/chrom.sizes"
+	peak_mask	= "/Users/limc8h/Research/Common_Data/hg38/ENCODE-blacklist.bed"
+	baseDir		= "/Volumes"
+else:
+	# cluster system
+	genomeFa	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/genome.fa"
+	chrom_size	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/chrom.size"
+	peak_mask	= "/data/limlab/Resource/GenomeData/hg/hg38/hg38-blacklist.v2.bed"
+	baseDir		= "/data"
+
+## Other essential pameters
+#genome			= "hg38"
+#adapter			= "AGATCGGAAGAGC"	# illumina universal adapter
+#adapter			= "CTGTCTCTTATA"	# Nextera adapter for ATAC-seq or Cut&Tag
+#trim_maxLen=100	## Maximum read length after trimming. ** NOT YET IMPLEMENTED **
+#trim_minLen		= 20
+#trim_minQual	= 20
+chrRegexAll		= "^chr[0-9XY]+$|^dm-chr[0-9XYLR]+$"
+chrRegexTarget	= "^chr[0-9XY]+$"
+spikePrefix		= "dm-"
+
+
+#########################
+## Directories
+
+
+bamDir_rep	= "../1.2.Align.filtered"
+bamDir_pool	= "1.2.Align.pool"
+
+## Starting BAM file directory for downstream analysis
+bamDir		= bamDir_pool
+
+## Downstream analysis directories
+splitDir	= "1.3.Align.split"
+fclDir		= "1.4.Align.fcl"
+baseFreqDir = bamDir + "/BaseFreq"
+fragLenDir 	= splitDir + "/fragLenHist"
+fragAcorDir = fclDir + "/fragAutoCor"
+bigWigDir	= "2.1.BigWig"
+bigWigDir1bp = "2.3.BigWig.1bp"
+
+bigWigScaledDir = "3.1.BigWig.scaled"
+bigWigScaledDir_sub = "3.2.BigWig.scaled.subInput"
+homerDir	= "4.Homer"
+
+spikeinCntDir = "1.5.Spikein"
+bigWigDir_avg = "2.2.BigWig.avg"
+
+
+
+################################
+
+
+
+
+################################
+## Loading sample Information
+import pandas as pd
+import sys
+sampleAll = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
+if not sampleAll.Id.is_unique:
+	print( "Error: Id column in sample.tsv is not unique")
+	sys.exit()
+if not sampleAll.Name.is_unique:
+	print( "Error: Name column in sample.tsv is not unique")
+	sys.exit()
+
+samples = pd.read_csv(src_groupInfo, sep="\t", comment="#", na_filter=False)
+if not samples.Name.is_unique:
+	print( "Error: Id column in sample.tsv is not unique")
+	sys.exit()
+
+#################################
+## Cluster configuration file
+#cluster = json.load(open("./cluster.json"))
+import yaml
+with open('cluster.yml', 'r') as fh:
+	cluster = yaml.load(fh)
+#    cluster = yaml.full_load(fh)
+
+
+
+
+
+#########################
+## Rules start
+rule all:
+	input:
+		## output from check_baseFreq
+#		expand(filteredDir + "/BaseFreq/{sampleName}.filtered.R{read}.freq.line.png", sampleName=samples.Name.tolist(), read=[1,2]),
+		## output from make_bigwig
+		expand(bigWigDir + "/{sampleName}.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
+#		expand(bigWigDir1bp + "/{sampleName}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
+#		expand(bigWigDirAllFrag + "/{sampleName}.allFrag.bw", sampleName=samples.Name.tolist()),
+#		expand(bigWigDir_avg + "/{groupName}.{fragment}.ctr.bw", groupName=samples.Group.value_counts().index[ samples.Group.value_counts() > 1 ].tolist(), fragment=["nfr","nuc"]),
+#		expand(homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
+#		expand(homerDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
+		expand(homerDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),
+		## fragment bed file
+		#expand(fragDir + "/{sampleName}.frag.bed.gz", sampleName=samples.Name.tolist())
+		## fragment length distribution
+		expand(fragLenDir + "/{sampleName}.dist.png", sampleName=samples.Name.tolist()),
+		expand(fragAcorDir + "/{sampleName}.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
+		#expand(spikeinCntDir + "/{sampleName}.spikeCnt.txt", sampleName=samples.Name.tolist()),
+		spikeinCntDir + "/spikein.txt",
+		expand(bigWigScaledDir + "/{sampleName}.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
+		expand(bigWigScaledDir_sub + "/{sampleName}.{fragment}.scaled.subInput.bw", sampleName=samples.Name[samples.Ctrl != "NULL"].tolist(), fragment=["all","nfr","nuc"])
+
+
+		## homer tag dir
+		#expand(homerDir + "/{sampleName}/TSV.{fragment}", sampleName=samples.Name.tolist(), fragment=["nfr","nuc"])
+
+
+include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.post.smk"
+include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.pool/rules.smk"
