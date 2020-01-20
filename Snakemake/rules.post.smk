@@ -309,6 +309,23 @@ rule call_peaks_histone:
 		"""
 
 
+rule call_peaks_histone_allfrag:
+	input:
+		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
+#		get_peakcall_histone_input
+	output:
+		homerDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.homer.exBL.bed"
+	params:
+		mask = peak_mask,
+		peakDir = homerDir + "/{sampleName}/HomerPeak.histone.allFrag",
+		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
+	message:
+		"Peak calling using Homer... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		"""
 
 #####################################################
 ## Scaled BigWig by Spike-in using raw read counts (not RPM)
