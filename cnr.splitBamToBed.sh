@@ -199,18 +199,18 @@ printBAM $src \
 		$1 ~ /'$chrRegex'/ {
 			d=$6-$2
 			c=($6+$2)/2
-			printf "%s\t%d\t%d\tAll.%d_1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpAll
-			printf "%s\t%d\t%d\tAll.%d_2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpAll
+			printf "%s\t%d\t%d\tAll.%d/1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpAll
+			printf "%s\t%d\t%d\tAll.%d/2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpAll
 			printf "%s\t%d\t%d\tAll.%d\t0\t+\n", $1,$2,$6,NR >> tmpAllCon
 			printf "%s\t%d\t%d\tAll.%d\t0\t+\n", $1,c-hWid,c+hWid,NR >> tmpAllCtr
 			if( d < 120 ){
-				printf "%s\t%d\t%d\tNFR.%d_1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpNfr
-				printf "%s\t%d\t%d\tNFR.%d_2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpNfr
+				printf "%s\t%d\t%d\tNFR.%d/1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpNfr
+				printf "%s\t%d\t%d\tNFR.%d/2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpNfr
 				printf "%s\t%d\t%d\tNFR.%d\t0\t+\n", $1,$2,$6,NR >> tmpNfrCon
 				printf "%s\t%d\t%d\tNFR.%d\t0\t+\n", $1,c-hWid,c+hWid,NR >> tmpNfrCtr
 			}else if( d > 150 ){
-				printf "%s\t%d\t%d\tNUC.%d_1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpNuc
-				printf "%s\t%d\t%d\tNUC.%d_2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpNuc
+				printf "%s\t%d\t%d\tNUC.%d/1\t0\t%s\n", $1,$2,$3,NR,$9 >> tmpNuc
+				printf "%s\t%d\t%d\tNUC.%d/2\t0\t%s\n", $4,$5,$6,NR,$10 >> tmpNuc
 				printf "%s\t%d\t%d\tNUC.%d\t0\t+\n", $1,$2,$6,NR >> tmpNucCon
 				printf "%s\t%d\t%d\tNUC.%d\t0\t+\n", $1,c-hWid,c+hWid,NR >> tmpNucCtr
 			}
