@@ -12,6 +12,14 @@
 # => total 6 files are created
 #
 
+#########################
+# Not to considering for future revision
+# Currently, read1/read2 in a bed file are not actual Read1/Read2 from the origianl bam file
+# Instead, read1 is left side read and read2 is right side read after alignment.
+# We may need a minor revision to preserve Read1/Read2 information in the final bed file
+
+
+
 	
 source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
