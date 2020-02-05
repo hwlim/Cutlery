@@ -26,6 +26,8 @@ option_list <- list(
 parser <- OptionParser(usage = "%prog [options] <bam or bed.gz>",
 	description="Description:
 	Check and visualize fragment length distribution for a paired-end BAM file. Considers chromosomes starting with \"chr\" only
+Input:
+	Paired-end BAM file or fragment bed file
 Output:
 	- <outPrefix>.dist.txt
 	- <outPrefix>.dist.png",
