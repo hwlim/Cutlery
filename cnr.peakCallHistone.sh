@@ -168,4 +168,6 @@ fi
 
 N0=`cat ${peakBed} | wc -l`
 N1=`cat ${peakMasked} | wc -l`
-echo -e "Final peaks: $N1 (/$N0), > 1rpm(/all)" >&2
+echo -e "Final peaks:" >&2
+echo -e "  - Original = $N0" >&2
+echo -e "  - After filtering = $N1" >&2
