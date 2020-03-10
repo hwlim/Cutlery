@@ -66,7 +66,7 @@ rule get_fragLenHist:
 	shell:
 		"""
 		module load CnR/1.0
-		ngs.fragLenHist.r -o {fragLenDir}/{wildcards.sampleName} {input}
+		ngs.fragLenHist.r -o {fragLenDir}/{wildcards.sampleName} -n {wildcards.sampleName} {input}
 		"""
 
 rule get_frag_autocor:

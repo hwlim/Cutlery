@@ -16,8 +16,8 @@ source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 # command line option handling
 option_list <- list(
 	make_option(c("-o","--outPrefix"), default=NULL, help="Output prefix including path, default=<same with the src file excluding an extension under current directorys>"),
-	make_option(c("-m","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000")
-#	make_option(c("-f","--bamFlag"), default="0x2", help="flag for bam records. NULL is allowed to unset. Ignored for bed file. default=0x2 (concordant pairs only)"),
+	make_option(c("-m","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000"),
+	make_option(c("-n","--name"), default=NULL, help="Sample name to display at top. default=<input file name>")
 #	make_option(c("-F","--bamUnFlag"), default="0x400", help="flag for bam records to exclude, NULL is allowed to unset. Ignored for bed file. default=0x400 (exclude duplicates)")
 #	make_option(c("-t","--title"), default="Title", help="Main Title [default: Title]"),
 #	make_option(c("-s","--size"), default="600,600", help="Comma-separated figure size, xSize,ySize"),
@@ -52,6 +52,7 @@ outPrefix=opt$outPrefix
 #bamFlag=opt$bamFlag
 #bamUnFlag=opt$bamUnFlag
 maxLen=opt$maxLen
+name=opt$name
 assertFileExist(src)
 
 
@@ -60,6 +61,8 @@ if(FALSE){
 	maxLen=1000
 	outPrefix=NULL	
 }
+
+if(is.null(name)) name=src
 
 if(is.null(outPrefix)){
 	outPrefix = sub(".bed.gz|.bam","", src)
@@ -114,9 +117,9 @@ system(cmd)
 data.dist = read.delim(des.dist, header=TRUE)
 
 g1 = ggplot(data=data.dist, aes(x=fragLen, y=Cnt/1000)) + geom_line() +
-	labs(title="Fragment Length Distribution", x="Fragment Length", y="Frequency (x1000)")
+	labs(title=name, x="Fragment Length", y="Frequency (x1000)")
 g2 = ggplot(data=data.dist, aes(x=fragLen, y=log10(Cnt))) + geom_line() +
-	labs(title="Fragment Length Distribution", x="Fragment Length", y="log10(Frequency)")
+	labs(title=name, x="Fragment Length", y="log10(Frequency)")
 g = plot_grid(g1, g2, nrow=2)
 ggsave(des.hist, g, width=6, height=6)
 
