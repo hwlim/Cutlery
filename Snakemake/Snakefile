@@ -67,8 +67,11 @@ bigWigDir	= "2.BigWig"
 bigWigDir1bp = "2.BigWig.1bp"
 bigWigDirAllFrag = "2.BigWig.allFrag"
 bigWigDir_avg = "2.BigWig.avg"
+
 bigWigScaledDir = "3.1.BigWig.scaled"
 bigWigScaledDir_sub = "3.2.BigWig.scaled.subInput"
+bigWigAllFrag_scaled = "3.3.BigWig.allFrag.scaled"
+
 homerDir	= "4.Homer"
 
 spikeinCntDir = fragDir + "/spikeinCount"
@@ -124,6 +127,9 @@ rule all:
 		expand(bigWigDir + "/{sampleName}.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["nfr","nuc"]),
 		expand(bigWigDir1bp + "/{sampleName}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
 		expand(bigWigDirAllFrag + "/{sampleName}.allFrag.bw", sampleName=samples.Name.tolist()),
+
+		expand(bigWigAllFrag_scaled + "/{sampleName}.allFrag.scaled.bw", sampleName=samples.Name.tolist()),
+
 #		expand(bigWigDir_avg + "/{groupName}.{fragment}.ctr.bw", groupName=samples.Group.value_counts().index[ samples.Group.value_counts() > 1 ].tolist(), fragment=["nfr","nuc"]),
 		expand(homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
 		expand(homerDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),

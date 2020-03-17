@@ -165,7 +165,6 @@ rule make_bigwig1bp:
 
 		"""
 
-'''
 rule make_bigwig_allfrag:
 	input:
 		splitDir + "/{sampleName}.all.con.bed.gz"
@@ -180,7 +179,6 @@ rule make_bigwig_allfrag:
 		module load CnR/1.0
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
 		"""
-'''
 
 rule make_tagdir:
 	input:
@@ -375,6 +373,7 @@ rule make_bigwig_scaled:
 		"""
 
 
+
 def get_bigwig_scaled_input(sampleName, fragment):
 	# return ordered [ctrl , target] list.
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
@@ -402,6 +401,30 @@ rule make_bigwig_scaled_subtract:
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nfr} {input.nfr}
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
 		"""
+
+
+rule make_bigwig_allfrag_scaled:
+	input:
+		bed = splitDir + "/{sampleName}.all.con.bed.gz",
+		spikeinCnt = spikeinCntDir + "/spikein.txt"
+	output:
+		bigWigAllFrag_scaled + "/{sampleName}.allFrag.scaled.bw"
+	message:
+		"Making spike-in scaled allFrag bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "5G"
+	shell:
+		"""
+		module load CnR/1.0
+		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | cut -f 6`
+		if [ $scaleFactor == "" ];then
+			echo -e "Error: empty scale factor" >&2
+			exit 1
+		fi
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
+		"""
+
+
 
 #### Note: Rules below simply copied from ChIP-seq rules. Needs revision for CUT&Run
 '''
