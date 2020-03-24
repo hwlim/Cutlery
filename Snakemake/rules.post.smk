@@ -424,6 +424,26 @@ rule make_bigwig_allfrag_scaled:
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
 
+rule make_bigwig_allfrag_scaled_abs:
+	input:
+		bed = splitDir + "/{sampleName}.all.con.bed.gz",
+		spikeinCnt = spikeinCntDir + "/spikein.txt"
+	output:
+		bigWigAllFrag_scaled_abs + "/{sampleName}.allFrag.scaled.bw"
+	message:
+		"Making spike-in scaled allFrag bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "5G"
+	shell:
+		"""
+		module load CnR/1.0
+		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | gawk '{{ printf "%f", 100000/$3 }}'`
+		if [ $scaleFactor == "" ];then
+			echo -e "Error: empty scale factor" >&2
+			exit 1
+		fi
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
+		"""
 
 
 #### Note: Rules below simply copied from ChIP-seq rules. Needs revision for CUT&Run
