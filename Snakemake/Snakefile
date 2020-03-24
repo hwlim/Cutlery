@@ -70,7 +70,7 @@ bigWigDir_avg = "2.BigWig.avg"
 
 bigWigScaledDir = "3.1.BigWig.scaled"
 bigWigScaledDir_sub = "3.2.BigWig.scaled.subInput"
-bigWigAllFrag_scaled = "3.3.BigWig.allFrag.scaled"
+bigWigAllFrag_RPSM = "3.3.BigWig.allFrag.RPSM"
 
 homerDir	= "4.Homer"
 
@@ -128,7 +128,7 @@ rule all:
 		expand(bigWigDir1bp + "/{sampleName}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
 		expand(bigWigDirAllFrag + "/{sampleName}.allFrag.bw", sampleName=samples.Name.tolist()),
 
-		expand(bigWigAllFrag_scaled + "/{sampleName}.allFrag.scaled.bw", sampleName=samples.Name.tolist()),
+		expand(bigWigAllFrag_RPSM + "/{sampleName}.allFrag.rpsm.bw", sampleName=samples.Name.tolist()),
 
 #		expand(bigWigDir_avg + "/{groupName}.{fragment}.ctr.bw", groupName=samples.Group.value_counts().index[ samples.Group.value_counts() > 1 ].tolist(), fragment=["nfr","nuc"]),
 		expand(homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),

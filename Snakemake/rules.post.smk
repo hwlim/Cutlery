@@ -402,7 +402,7 @@ rule make_bigwig_scaled_subtract:
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
 		"""
 
-
+'''
 rule make_bigwig_allfrag_scaled:
 	input:
 		bed = splitDir + "/{sampleName}.all.con.bed.gz",
@@ -423,13 +423,14 @@ rule make_bigwig_allfrag_scaled:
 		fi
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
+'''
 
-rule make_bigwig_allfrag_scaled_abs:
+rule make_bigwig_allfrag_rpsm:
 	input:
 		bed = splitDir + "/{sampleName}.all.con.bed.gz",
 		spikeinCnt = spikeinCntDir + "/spikein.txt"
 	output:
-		bigWigAllFrag_scaled_abs + "/{sampleName}.allFrag.scaled.bw"
+		bigWigAllFrag_RPSM + "/{sampleName}.allFrag.rpsm.bw"
 	message:
 		"Making spike-in scaled allFrag bigWig files... [{wildcards.sampleName}]"
 #	params:
