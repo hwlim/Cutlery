@@ -97,6 +97,7 @@ else
 	if [ $toSort -gt 0 ];then
 		samtools sort -o $tmpSrt -T $tmpSrtPrefix -m $sortMem $tmpMerged
 		mv $tmpSrt $des
+		samtools index $des
 	else
 		mv $tmpMerged $des
 	fi
