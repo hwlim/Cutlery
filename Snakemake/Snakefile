@@ -63,9 +63,9 @@ fclDir		= "1.4.Align.fcl"
 baseFreqDir = filteredDir + "/BaseFreq"
 fragLenDir 	= fragDir + "/fragLenHist"
 fragAcorDir = fclDir + "/fragAutoCor"
-bigWigDir	= "2.BigWig"
-bigWigDir1bp = "2.BigWig.1bp"
-bigWigDirAllFrag = "2.BigWig.allFrag"
+bigWigDir	= "2.BigWig.RPM"
+bigWigDir1bp = "2.BigWig.1bp.RPM"
+bigWigDirAllFrag = "2.BigWig.allFrag.RPM"
 bigWigDir_avg = "2.BigWig.avg"
 
 bigWigScaledDir = "3.1.BigWig.scaled"
@@ -76,7 +76,6 @@ homerDir	= "4.Homer"
 
 spikeinCntDir = fragDir + "/spikeinCount"
 
-bigWigDir_avg = "2.BigWig.avg"
 
 ## CODE used in the initial version
 #def getfq(wildcards):
@@ -127,7 +126,6 @@ rule all:
 		expand(bigWigDir + "/{sampleName}.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["nfr","nuc"]),
 		expand(bigWigDir1bp + "/{sampleName}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
 		expand(bigWigDirAllFrag + "/{sampleName}.allFrag.bw", sampleName=samples.Name.tolist()),
-
 		expand(bigWigAllFrag_RPSM + "/{sampleName}.allFrag.rpsm.bw", sampleName=samples.Name.tolist()),
 
 #		expand(bigWigDir_avg + "/{groupName}.{fragment}.ctr.bw", groupName=samples.Group.value_counts().index[ samples.Group.value_counts() > 1 ].tolist(), fragment=["nfr","nuc"]),

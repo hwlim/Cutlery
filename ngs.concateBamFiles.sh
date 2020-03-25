@@ -8,7 +8,9 @@ function printUsage {
 Description:
 	Concatenate bam files. No sorting
 Options:
-	-o <out>: Output file prefix including pathr. required" >&2
+	-o <out>: Output file prefix including pathr. required
+	-m <mem>: Memory for sorting. default=5G
+	-s : If set, coordinate-sorted and indexed" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -20,10 +22,18 @@ fi
 ###################################
 ## option and input file handling
 des=""
-while getopts ":o:" opt; do
+sortMem=5G
+toSort=0
+while getopts ":o:m:s" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
+			;;
+		m)
+			sortMem=$OPTARG
+			;;
+		s)
+			toSort=1
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -64,19 +74,31 @@ mkdir -p $desDir
 echo -e "#######################################" >&2
 echo -e "Concatenating bam files" >&2
 echo -e "  des = $des" >&2
+echo -e "  sort = $toSort" >&2
+echo -e "  memory = $sortMem" >&2
 echo -e "  src =" >&2
 for src in ${srcL[@]}
 do
 	echo -e "\t- ${src}" >&2
 done
 
+tmpHdr=${TMPDIR}/__temp__.$$.hdr
+tmpMerged=${TMPDIR}/__temp__.$$.bam
+tmpSrt=${TMPDIR}/__temp__.$$.sorted.bam
+tmpSrtPrefix=${TMPDIR}/__temp__.$$.sorted
 
 if [ $# -eq 1 ];then
 	echo -e "Warning: Only one file is given; simply copying" >&2
 	cp ${srcL[0]} $des
 else
-	samtools view -H ${srcL[0]} > ${TMPDIR}/__temp__.$$.hdr
-	samtools cat -h ${TMPDIR}/__temp__.$$.hdr ${srcL[@]} > ${TMPDIR}/__temp__.$$.bam
-	mv ${TMPDIR}/__temp__.$$.bam ${des}
+	samtools view -H ${srcL[0]} > ${tmpHdr}
+	samtools cat -h ${tmpHdr} ${srcL[@]} > ${tmpMerged}
+
+	if [ $toSort -gt 0 ];then
+		samtools sort -o $tmpSrt -T $tmpSrtPrefix -m $sortMem $tmpMerged
+		mv $tmpSrt $des
+	else
+		mv $tmpMerged $des
+	fi
 fi
 

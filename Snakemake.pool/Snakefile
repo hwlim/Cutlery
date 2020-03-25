@@ -54,13 +54,15 @@ fragLenDir 	= splitDir + "/fragLenHist"
 fragAcorDir = fclDir + "/fragAutoCor"
 bigWigDir	= "2.1.BigWig"
 bigWigDir1bp = "2.3.BigWig.1bp"
+bigWigDirAllFrag = "2.BigWig.allFrag.RPM"
+bigWigDir_avg = "2.2.BigWig.avg"
 
 bigWigScaledDir = "3.1.BigWig.scaled"
 bigWigScaledDir_sub = "3.2.BigWig.scaled.subInput"
+bigWigAllFrag_RPSM = "3.3.BigWig.allFrag.RPSM"
 homerDir	= "4.Homer"
 
 spikeinCntDir = "1.5.Spikein"
-bigWigDir_avg = "2.2.BigWig.avg"
 
 
 
@@ -107,7 +109,8 @@ rule all:
 		## output from make_bigwig
 		expand(bigWigDir + "/{sampleName}.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
 #		expand(bigWigDir1bp + "/{sampleName}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
-#		expand(bigWigDirAllFrag + "/{sampleName}.allFrag.bw", sampleName=samples.Name.tolist()),
+		expand(bigWigDirAllFrag + "/{sampleName}.allFrag.bw", sampleName=samples.Name.tolist()),
+		expand(bigWigAllFrag_RPSM + "/{sampleName}.allFrag.rpsm.bw", sampleName=samples.Name.tolist()),
 #		expand(bigWigDir_avg + "/{groupName}.{fragment}.ctr.bw", groupName=samples.Group.value_counts().index[ samples.Group.value_counts() > 1 ].tolist(), fragment=["nfr","nuc"]),
 #		expand(homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
 #		expand(homerDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
