@@ -10,7 +10,7 @@ __default__:
     name        : "{rule}.{wildcards.sampleName}"
     output      : "logs/{rule}.{wildcards.sampleName}.out"
     error       : "logs/{rule}.{wildcards.sampleName}.err"
-    resource    : "\"span[ptile=1]\""
+    resource    : "\"span[hosts=1]\""
 
 trim_pe:
     name        : "{rule}.{wildcards.sampleId}"
