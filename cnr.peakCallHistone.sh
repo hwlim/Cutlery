@@ -169,8 +169,8 @@ else
 		| sort -k5,5nr \
 		> $peakMasked
 fi
-cp ${tmpPeakMasked} .
-cp ${tmpTagCount} .
+rm ${tmpPeakMasked} 
+rm ${tmpTagCount} 
 #if [ "$ctrl" != "NULL" ];then
 #	getPeakTags $peakMasked $ctrl -tagAdjust 0 -tbp 0 \
 #		| sort -k1,1 \
