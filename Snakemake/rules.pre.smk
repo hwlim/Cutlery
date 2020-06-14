@@ -17,7 +17,7 @@ Required Variables
 - sample [ Id, Name ]
 '''
 
-## default star module
+## default STAR module
 if 'star_module' not in locals():
 	star_module="STAR/2.5"
 
