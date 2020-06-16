@@ -17,6 +17,11 @@ Required Variables
 - sample [ Id, Name ]
 '''
 
+## default STAR module
+if 'star_module' not in locals():
+	star_module="STAR/2.5"
+
+
 rule trim_pe:
 	input:
 		fq1 = lambda wildcards: fastqDir + "/" + samples.Fq1[samples.Id == wildcards.sampleId],
@@ -65,7 +70,8 @@ rule align_pe:
 		"Aligning... [{wildcards.sampleName}]"
 	params:
 		index=star_index,
-		option=star_option
+		option=star_option,
+		star_module=star_module
 	log:
 		alignDir + "/{sampleName}/star.log"
 	threads:
@@ -73,6 +79,8 @@ rule align_pe:
 	shell:
 		"""
 		module load CnR/1.0
+		module load {params.star_module}
+
 		star.align.sh -g {params.index} \
 			-o {alignDir}/{wildcards.sampleName}/align \
 			-t {threads} \

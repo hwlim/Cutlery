@@ -44,9 +44,6 @@ if(length(arguments$args) == 0) {
 # Option handling
 opt=arguments$options
 
-#xLabel=opt$xlabel
-#yLabel=opt$ylabel
-#mainTitle=opt$title
 
 outPrefix=opt$outPrefix
 #bamFlag=opt$bamFlag
@@ -81,38 +78,21 @@ if(ext=="gz"){
 	stop(sprintf("Invalid file type: %s", ext))
 }
 
-#outPrefix=opt$outPrefix
-#if( is.null(outPrefix) ) outPrefix=basename
 
 write(sprintf("Checking fragment length distribution"), stderr())
-#if( mode=="bam" ){
-#	if(bamFlag=="NULL"){
-#		bamFlag=""
-#	}else{
-#		bamFlag=sprintf("-f %s", bamFlag)
-#		write(sprintf("  Filtering by SAM flag: %s", bamFlag), stderr())
-#	}
-#
-#	if(bamUnFlag=="NULL"){
-#		bamUnFlag=""
-#	}else{
-#		bamUnFlag=sprintf("-F %s", bamUnFlag)
-#		write(sprintf("  Filtering by SAM flag: %s", bamUnFlag), stderr())
-#	}
-#	if( bamFlag=="" && bamUnFlag=="" ) write(sprintf("  No filtering by SAM flag"), stderr())
-#	write("", stderr())
-#}
+
 
 system(sprintf("mkdir -p %s", desDir))
 des.dist = sprintf("%s.dist.txt", outPrefix)
 des.hist = sprintf("%s.dist.png", outPrefix)
 	
 write(sprintf("  - %s", src), stderr())
-if( mode=="bam" ){
-	cmd=sprintf("bamToBed -bedpe -i %s 2>&1 | grep ^chr | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ if($1==\".\" || $3==\".\") next; d=$6-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
-}else{
-	cmd=sprintf("zcat %s | grep ^chr | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ d=$3-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
-}
+#if( mode=="bam" ){
+#	cmd=sprintf("bamToBed -bedpe -i %s 2>&1 | grep ^chr | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ if($1==\".\" || $3==\".\") next; d=$6-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
+#}else{
+#	cmd=sprintf("zcat %s | grep ^chr | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ d=$3-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
+#}
+cmd=sprintf("ngs.getFragLenHist.sh -o %s -l %d %s", des.dist, maxLen, src)
 system(cmd)
 data.dist = read.delim(des.dist, header=TRUE)
 

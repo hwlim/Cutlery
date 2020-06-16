@@ -57,6 +57,9 @@ trimDir		= "0.Fastq.Trim"
 alignDir	= "1.1.Align"
 filteredDir	= "1.2.Align.filtered"
 dedupDir	= "1.3.Align.dedup"
+
+bamDir		= filteredDir
+
 splitDir	= "1.4.Align.split"
 fragDir		= "1.4.Align.allFrag"
 fclDir		= "1.4.Align.fcl"
