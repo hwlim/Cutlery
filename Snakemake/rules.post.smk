@@ -20,6 +20,17 @@ Required Variables
 - peak_mask
 '''
 
+#################################
+## bamDir is used to designated bam file directory for downstream analysis
+## Originally motivated for reuse or rule.post.smk in replicate pooling in Snakemake.pool
+## If bamDir is not defined, i.e. for simply processing individual replicates not pooling
+## dedupDir or filteredDir is selected 
+if "bamDir" not in locals():
+	if doDedup:
+		bamDir = dedupDir
+	else:
+		bamDir = filteredDir
+
 
 rule check_baseFreq:
 	input:
@@ -57,7 +68,6 @@ rule make_fcl_file:
 rule get_fragLenHist:
 	input:
 		splitDir + "/{sampleName}.all.con.bed.gz"
-		#fragDir + "/{sampleName}.frag.bed.gz"
 	output:
 		fragLenDir + "/{sampleName}.dist.txt",
 		fragLenDir + "/{sampleName}.dist.png"
