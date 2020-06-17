@@ -212,14 +212,6 @@ rule make_tagdir:
 		"""
 
 
-
-#def get_ctrl(wildcards):
-#	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-#	if ctrlName.tolist()[0].upper() == "NULL":
-#		return "NULL"
-#	else:
-#		return homerDir + "/" + ctrlName + "/TSV"
-
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
 def get_peakcall_input(sampleName, fragment):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
@@ -229,16 +221,6 @@ def get_peakcall_input(sampleName, fragment):
 	else:
 		return [ homerDir + "/" + ctrlName + "/TSV." + fragment, homerDir + "/" + sampleName + "/TSV." + fragment ]
 
-'''
-def get_peakcall_factor_input(wildcards):
-	# return ordered [ctrl , target] list. if no ctrl, simply [target].
-	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-	ctrlName = ctrlName.tolist()[0]
-	if ctrlName.upper() == "NULL":
-		return [ homerDir + "/" + wildcards.sampleName + "/TSV.nfr" ]
-	else:
-		return [ homerDir + "/" + ctrlName + "/TSV.nfr", homerDir + "/" + wildcards.sampleName + "/TSV.nfr" ]
-'''
 
 rule call_peaks_factor:
 	input:
@@ -258,16 +240,6 @@ rule call_peaks_factor:
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
-'''
-def get_peakcall_factor_input_allfrag(wildcards):
-	# return ordered [ctrl , target] list. if no ctrl, simply [target].
-	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-	ctrlName = ctrlName.tolist()[0]
-	if ctrlName.upper() == "NULL":
-		return [ homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
-	else:
-		return [ homerDir + "/" + ctrlName + "/TSV.all", homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
-'''
 
 rule call_peaks_factor_allfrag:
 	input:
@@ -287,16 +259,6 @@ rule call_peaks_factor_allfrag:
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
-'''
-def get_peakcall_histone_input(wildcards):
-	# return ordered [ctrl , target] list. if no ctrl, simply [target].
-	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-	ctrlName = ctrlName.tolist()[0]
-	if ctrlName.upper() == "NULL":
-		return [ homerDir + "/" + wildcards.sampleName + "/TSV.nuc" ]
-	else:
-		return [ homerDir + "/" + ctrlName + "/TSV.nuc", homerDir + "/" + wildcards.sampleName + "/TSV.nuc" ]
-'''
 
 rule call_peaks_histone:
 	input:
@@ -412,28 +374,6 @@ rule make_bigwig_scaled_subtract:
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
 		"""
 
-'''
-rule make_bigwig_allfrag_scaled:
-	input:
-		bed = splitDir + "/{sampleName}.all.con.bed.gz",
-		spikeinCnt = spikeinCntDir + "/spikein.txt"
-	output:
-		bigWigAllFrag_scaled + "/{sampleName}.allFrag.scaled.bw"
-	message:
-		"Making spike-in scaled allFrag bigWig files... [{wildcards.sampleName}]"
-#	params:
-#		memory = "5G"
-	shell:
-		"""
-		module load CnR/1.0
-		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | cut -f 6`
-		if [ $scaleFactor == "" ];then
-			echo -e "Error: empty scale factor" >&2
-			exit 1
-		fi
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
-		"""
-'''
 
 rule make_bigwig_allfrag_rpsm:
 	input:
@@ -457,6 +397,7 @@ rule make_bigwig_allfrag_rpsm:
 		"""
 
 
+#######################################################################################
 #### Note: Rules below simply copied from ChIP-seq rules. Needs revision for CUT&Run
 '''
 

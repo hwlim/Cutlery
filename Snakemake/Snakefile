@@ -37,6 +37,10 @@ spikePrefix		= "dm-"
 ## STAR index & options
 #star_index	= "/data/limlab/Resource/STAR_Index/hg38_allChr_v29_plusEcoliBL21/"
 star_index	= "/data/limlab/Resource/STAR_Index/hg38_allChr_v29_plusDm6"
+## STAR module for BMI HPC
+## Handling of protrusion needs 2.7.4 version. But many of previous data has been aligned using 2.5
+## For compatibility with previous data, 2.5 is used if star_module is not defined
+star_module	= "STAR/2.7.4"
 
 ## option string
 ## Note:

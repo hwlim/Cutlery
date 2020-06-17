@@ -8,16 +8,6 @@
 
 #####################################################
 ## Rules for averaging by "Group" column
-'''
-def get_bigwig_rep_nfr(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: bigWigDir + "/" + x + ".nfr.ctr.bw", repL)
-
-def get_bigwig_rep_nuc(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: bigWigDir + "/" + x + ".nuc.ctr.bw", repL)
-'''
-
 def get_bigwig_rep(groupName, fragment):
 	repL = samples.Name[samples.Group == groupName].tolist()
 	return map(lambda x: bigWigDir + "/" + x + "." + fragment ".ctr.bw", repL)
