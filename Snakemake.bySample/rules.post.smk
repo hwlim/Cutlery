@@ -1,32 +1,39 @@
-########$$$$$$$###################################
+################################################
 ### Snakemake rules for CUT&RUN Data Processing
 ### - except for "rule all"
 ### 
 ###		Written by Hee Woong Lim
-########$$$$$$$###################################
-'''
-Required Variables
-
-- bamDir
-- baseFreqDir
-- splitDir
-- fclDir
-- fragLenDir
-- fragAcorDir
-- homerDir
-- spikeinCntDir
-- bigWigDir / bigWigDir1bp / 
-- bigWigScaledDir / bigWigScaledDir_sub
-- peak_mask
-'''
+################################################
 
 
+
+#################################
+## Default values for undefined variables in Snakefile
+
+## bamDir is used to designated bam file directory for downstream analysis
+## Originally motivated for reuse or rule.post.smk in replicate pooling in Snakemake.pool
+## If bamDir is not defined, i.e. for simply processing individual replicates not pooling
+## dedupDir or filteredDir is selected 
+if "bamDir" not in locals():
+	if doDedup:
+		bamDir = dedupDir
+	else:
+		bamDir = filteredDir
+
+
+
+#################################
+## Rule Start
+
+
+## Nucleotide base frequence around 5'-ends of read 1 & 2
+## NEED REVISION for OUTPUT names & directories
 rule check_baseFreq:
 	input:
 		bamDir + "/{sampleName}.bam"
 	output:
-		read1 = baseFreqDir + "/{sampleName}.R1.freq.line.png",
-		read2 = baseFreqDir + "/{sampleName}.R2.freq.line.png"
+		sampleDir + "/{sampleName}/QC/base_freq.R1.line.png",
+		sampleDir + "/{sampleName}/QC/base_freq.R2.line.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
@@ -38,12 +45,29 @@ rule check_baseFreq:
 		"""
 
 
-## Fragment Center / Length file
+## BAM to fragment bed files: all / nfr / nuc
+## NEED REVISION for OUTPUT name
+rule split_bam:
+	input:
+		bamDir + "/{sampleName}.bam"
+	output:
+		expand(sampleDir + "/{{sampleName}}/Fragments/{group}.{proctype}.bed.gz",
+			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
+	message:
+		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.splitBamToBed.sh -o {sampleDir}/{wildcards.sampleName}/Fragments/ -c "{chrRegexTarget}" {input}
+		"""
+
+
+## FCL (Fragment Center / Length) file
 rule make_fcl_file:
 	input:
-		splitDir + "/{sampleName}.all.con.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/all.con.bed.gz"
 	output:
-		fclDir + "/{sampleName}.fcl.bed.gz"
+		sampleDir + "/{sampleName}/fcl.bed.gz"
 #	params:
 #		memory = "%dG" % ( cluster["make_fcl_file"]["memory"]/1000 - 1 )
 	message:
@@ -54,27 +78,29 @@ rule make_fcl_file:
 		fragmentToFCL.sh -o {output} -m 5G {input}
 		"""
 
+## Fragment length distribution
 rule get_fragLenHist:
 	input:
-		splitDir + "/{sampleName}.all.con.bed.gz"
-		#fragDir + "/{sampleName}.frag.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/all.con.bed.gz"
 	output:
-		fragLenDir + "/{sampleName}.dist.txt",
-		fragLenDir + "/{sampleName}.dist.png"
+		sampleDir + "/{sampleName}/QC/fragLen.dist.txt",
+		sampleDir + "/{sampleName}/QC/fragLen.dist.png"
 	message:
 		"Checking fragment length... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		ngs.fragLenHist.r -o {fragLenDir}/{wildcards.sampleName} -n {wildcards.sampleName} {input}
+		ngs.fragLenHist.r -o {sampleDir}/{wildcards.sampleName}/QC/fragLen -n {wildcards.sampleName} {input}
 		"""
 
+## Autocorrelation plot as Q/C
+## NEED REVISION for OUTPUT name
 rule get_frag_autocor:
 	input:
-		fclDir + "/{sampleName}.fcl.bed.gz"
+		sampleDir + "/{sampleName}/fcl.bed.gz"
 	output:
-		fragAcorDir + "/{sampleName}.acor.txt",
-		fragAcorDir + "/{sampleName}.acor.png"
+		sampleDir + "/{sampleName}/QC/acor.txt",
+		sampleDir + "/{sampleName}/QC/acor.png"
 	message:
 		"Checking fragment auto-correlation... [{wildcards.sampleName}]"
 	shell:
@@ -86,9 +112,8 @@ rule get_frag_autocor:
 rule count_spikein:
 	input:
 		bamDir + "/{sampleName}.bam"
-#		filteredDir + "/{sampleName}.filtered.bam"
 	output:
-		spikeinCntDir + "/{sampleName}.spikeCnt.txt"
+		sampleDir + "/{sampleName}/QC/spikeCnt.txt"
 	message:
 		"Counting spikein tags... [{wildcards.sampleName}]"
 	shell:
@@ -99,9 +124,9 @@ rule count_spikein:
 
 rule make_spikeintable:
 	input:
-		expand(spikeinCntDir + "/{sampleName}.spikeCnt.txt", sampleName=samples.Name.tolist())
+		expand(sampleDir + "/{sampleName}/QC/spikeCnt.txt", sampleName=samples.Name.tolist())
 	output:
-		spikeinCntDir + "/spikein.txt"
+		qcDir + "/spikein.txt"
 	message:
 		"Making spikein table..."
 	shell:
@@ -110,31 +135,15 @@ rule make_spikeintable:
 		makeSpikeCntTable.r -o {spikeinCntDir}/spikein {input}
 		"""
 
-rule split_bam:
-	input:
-		bamDir + "/{sampleName}.bam"
-#		get_bam_input
-#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
-	output:
-		expand(splitDir + "/{{sampleName}}.{group}.{proctype}.bed.gz",
-			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
-	message:
-		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
-	shell:
-		"""
-		module load CnR/1.0
-		cnr.splitBamToBed.sh -o {splitDir}/{wildcards.sampleName} -c "{chrRegexTarget}" {input}
-		"""
-
 rule make_bigwig:
 	input:
-		all = splitDir + "/{sampleName}.all.ctr.bed.gz",
-		nfr = splitDir + "/{sampleName}.nfr.ctr.bed.gz",
-		nuc = splitDir + "/{sampleName}.nuc.ctr.bed.gz"
+		all = sampleDir + "/{sampleName}/Fragments/all.ctr.bed.gz",
+		nfr = sampleDir + "/{sampleName}/Fragments/nfr.ctr.bed.gz",
+		nuc = sampleDir + "/{sampleName}/Fragments/nuc.ctr.bed.gz"
 	output:
-		all = bigWigDir + "/{sampleName}.all.ctr.bw",
-		nfr = bigWigDir + "/{sampleName}.nfr.ctr.bw",
-		nuc = bigWigDir + "/{sampleName}.nuc.ctr.bw"
+		all = sampleDir + "/{sampleName}/igv.all.ctr.bw",
+		nfr = sampleDir + "/{sampleName}/igv.nfr.ctr.bw",
+		nuc = sampleDir + "/{sampleName}/igv.nuc.ctr.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -147,13 +156,16 @@ rule make_bigwig:
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
+
+## 1bp-resolution bigwig files
+## NOTE: considering protrusion handling, it's better to use fragment file than seprate reads
+## 		Thus needs an update in command line
 rule make_bigwig1bp:
 	input:
-		splitDir + "/{sampleName}.all.sep.bed.gz"
-#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
+		sampleDir + "/{sampleName}/Fragments/all.sep.bed.gz"
 	output:
-		bigWigDir1bp + "/{sampleName}.plus.bw",
-		bigWigDir1bp + "/{sampleName}.minus.bw"
+		sampleDir + "/{sampleName}/igv.1bp.plus.bw",
+		sampleDir + "/{sampleName}/igv.1bp.minus.bw"
 	message:
 		"Making 1bp-resolution bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -162,14 +174,13 @@ rule make_bigwig1bp:
 		"""
 		module load CnR/1.0
 		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
-
 		"""
 
 rule make_bigwig_allfrag:
 	input:
-		splitDir + "/{sampleName}.all.con.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/all.con.bed.gz"
 	output:
-		bigWigDirAllFrag + "/{sampleName}.allFrag.bw"
+		sampleDir + "/{sampleName}/igv.allFrag.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -182,13 +193,13 @@ rule make_bigwig_allfrag:
 
 rule make_tagdir:
 	input:
-		all=splitDir + "/{sampleName}.all.ctr.bed.gz",
-		nfr=splitDir + "/{sampleName}.nfr.ctr.bed.gz",
-		nuc=splitDir + "/{sampleName}.nuc.ctr.bed.gz"
+		all = sampleDir + "/{sampleName}/Fragments/all.ctr.bed.gz",
+		nfr = sampleDir + "/{sampleName}/Fragments/nfr.ctr.bed.gz",
+		nuc = sampleDir + "/{sampleName}/Fragments/nuc.ctr.bed.gz"
 	output:
-		all=directory(homerDir + "/{sampleName}/TSV.all"),
-		nfr=directory(homerDir + "/{sampleName}/TSV.nfr"),
-		nuc=directory(homerDir + "/{sampleName}/TSV.nuc")
+		all=directory(sampleDir + "/{sampleName}/TSV.all"),
+		nfr=directory(sampleDir + "/{sampleName}/TSV.nfr"),
+		nuc=directory(sampleDir + "/{sampleName}/TSV.nuc")
 #	params:
 #		name = "{sampleName}"
 	message:
@@ -203,42 +214,24 @@ rule make_tagdir:
 
 
 
-#def get_ctrl(wildcards):
-#	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-#	if ctrlName.tolist()[0].upper() == "NULL":
-#		return "NULL"
-#	else:
-#		return homerDir + "/" + ctrlName + "/TSV"
-
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
 def get_peakcall_input(sampleName, fragment):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
 	ctrlName = ctrlName.tolist()[0]
 	if ctrlName.upper() == "NULL":
-		return [ homerDir + "/" + sampleName + "/TSV." + fragment ]
+		return [ sampleDir + "/" + sampleName + "/TSV." + fragment ]
 	else:
-		return [ homerDir + "/" + ctrlName + "/TSV." + fragment, homerDir + "/" + sampleName + "/TSV." + fragment ]
+		return [ sampleDir + "/" + ctrlName + "/TSV." + fragment, sampleDir + "/" + sampleName + "/TSV." + fragment ]
 
-'''
-def get_peakcall_factor_input(wildcards):
-	# return ordered [ctrl , target] list. if no ctrl, simply [target].
-	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-	ctrlName = ctrlName.tolist()[0]
-	if ctrlName.upper() == "NULL":
-		return [ homerDir + "/" + wildcards.sampleName + "/TSV.nfr" ]
-	else:
-		return [ homerDir + "/" + ctrlName + "/TSV.nfr", homerDir + "/" + wildcards.sampleName + "/TSV.nfr" ]
-'''
 
 rule call_peaks_factor:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr")
-#		get_peakcall_factor_input
 	output:
-		homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed"
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed"
 	params:
 		mask = peak_mask,
-		peakDir = homerDir + "/{sampleName}/HomerPeak.factor",
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
@@ -248,26 +241,15 @@ rule call_peaks_factor:
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
-'''
-def get_peakcall_factor_input_allfrag(wildcards):
-	# return ordered [ctrl , target] list. if no ctrl, simply [target].
-	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-	ctrlName = ctrlName.tolist()[0]
-	if ctrlName.upper() == "NULL":
-		return [ homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
-	else:
-		return [ homerDir + "/" + ctrlName + "/TSV.all", homerDir + "/" + wildcards.sampleName + "/TSV.all" ]
-'''
 
 rule call_peaks_factor_allfrag:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
-#		get_peakcall_factor_input_allfrag
 	output:
-		homerDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed"
+		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed"
 	params:
 		mask = peak_mask,
-		peakDir = homerDir + "/{sampleName}/HomerPeak.factor.allFrag",
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
@@ -277,26 +259,15 @@ rule call_peaks_factor_allfrag:
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
-'''
-def get_peakcall_histone_input(wildcards):
-	# return ordered [ctrl , target] list. if no ctrl, simply [target].
-	ctrlName = samples.Ctrl[samples.Name == wildcards.sampleName]
-	ctrlName = ctrlName.tolist()[0]
-	if ctrlName.upper() == "NULL":
-		return [ homerDir + "/" + wildcards.sampleName + "/TSV.nuc" ]
-	else:
-		return [ homerDir + "/" + ctrlName + "/TSV.nuc", homerDir + "/" + wildcards.sampleName + "/TSV.nuc" ]
-'''
 
 rule call_peaks_histone:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc")
-#		get_peakcall_histone_input
 	output:
-		homerDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed"
+		sampleDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed"
 	params:
 		mask = peak_mask,
-		peakDir = homerDir + "/{sampleName}/HomerPeak.histone",
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
@@ -310,12 +281,11 @@ rule call_peaks_histone:
 rule call_peaks_histone_allfrag:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
-#		get_peakcall_histone_input
 	output:
-		homerDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.homer.exBL.bed"
+		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.homer.exBL.bed"
 	params:
 		mask = peak_mask,
-		peakDir = homerDir + "/{sampleName}/HomerPeak.histone.allFrag",
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
@@ -342,6 +312,8 @@ rule call_peaks_histone_allfrag:
 ## This rule must be revised the command take spikein.txt as an input directly not using the get_scalefactor function
 #  
 
+
+## NOTE: this rule is deprecate. planning to use RPSM below
 ## Raw read count scale + spike-in scaled
 rule make_bigwig_scaled:
 	input:
@@ -353,7 +325,6 @@ rule make_bigwig_scaled:
 		all = bigWigScaledDir + "/{sampleName}.all.ctr.bw",
 		nfr = bigWigScaledDir + "/{sampleName}.nfr.ctr.bw",
 		nuc = bigWigScaledDir + "/{sampleName}.nuc.ctr.bw"
-
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -373,7 +344,7 @@ rule make_bigwig_scaled:
 		"""
 
 
-
+## NOTE: this rule is deprecate. planning to use RPSM below. needs revision for RPSM
 def get_bigwig_scaled_input(sampleName, fragment):
 	# return ordered [ctrl , target] list.
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
@@ -402,35 +373,13 @@ rule make_bigwig_scaled_subtract:
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
 		"""
 
-'''
-rule make_bigwig_allfrag_scaled:
-	input:
-		bed = splitDir + "/{sampleName}.all.con.bed.gz",
-		spikeinCnt = spikeinCntDir + "/spikein.txt"
-	output:
-		bigWigAllFrag_scaled + "/{sampleName}.allFrag.scaled.bw"
-	message:
-		"Making spike-in scaled allFrag bigWig files... [{wildcards.sampleName}]"
-#	params:
-#		memory = "5G"
-	shell:
-		"""
-		module load CnR/1.0
-		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | cut -f 6`
-		if [ $scaleFactor == "" ];then
-			echo -e "Error: empty scale factor" >&2
-			exit 1
-		fi
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
-		"""
-'''
 
 rule make_bigwig_allfrag_rpsm:
 	input:
-		bed = splitDir + "/{sampleName}.all.con.bed.gz",
-		spikeinCnt = spikeinCntDir + "/spikein.txt"
+		bed = sampleDir + "/{sampleName}/Fragments/all.ctr.bed.gz",
+		sampleDir + "/{sampleName}/QC/spikeCnt.txt"
 	output:
-		bigWigAllFrag_RPSM + "/{sampleName}.allFrag.rpsm.bw"
+		sampleDir + "/{sampleName}/igv.rpsm.allFrag.bw"
 	message:
 		"Making spike-in scaled allFrag bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -445,85 +394,4 @@ rule make_bigwig_allfrag_rpsm:
 		fi
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
-
-
-#### Note: Rules below simply copied from ChIP-seq rules. Needs revision for CUT&Run
-'''
-
-rule make_bigwig_scaled_divide:
-	input:
-		get_bigwig_scaled_input
-	output:
-		bigWigScaledDir_div + "/{sampleName}.scaled.divInput.bw",
-	message:
-		"Making bigWig files... [{wildcards.sampleName}]"
-	#params:
-	#	memory = "%dG" % (  cluster["make_bigwig_subtract"]["memory"]/1000 - 1 )
-	shell:
-		"""
-		module load CnR/1.0
-		bigWigDivide.sh -g {chrom_size} -m 5G -s log -a 1 -o {output} {input}
-		"""
-
-
-
-
-##### Average bigWig files
-def get_bigwig_rep_sub(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: bigWigDir_sub + "/" + x + ".subInput.bw", repL)
-
-rule make_bigwig_sub_avg:
-	input:
-		get_bigwig_rep_sub
-	output:
-		bigWigDir_sub_avg + "/{groupName}.subInput.avg.bw"
-	message:
-		"Making average bigWig files... [{wildcards.groupName}]"
-	params:
-		memory = "5G"
-	shell:
-		"""
-		module load CnR/1.0
-		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
-		"""
-
-def get_bigwig_rep_scaled_sub(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: bigWigScaledDir_sub + "/" + x + ".subInput.bw", repL)
-
-rule make_bigwig_scaled_sub_avg:
-	input:
-		get_bigwig_rep_scaled_sub
-	output:
-		bigWigScaledDir_sub_avg + "/{groupName}.scaled.subInput.avg.bw"
-	message:
-		"Making average bigWig files... [{wildcards.groupName}]"
-	params:
-		memory = "5G"
-	shell:
-		"""
-		module load CnR/1.0
-		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
-		"""
-
-def get_bigwig_rep_scaled_div(wildcards):
-	repL = samples.Name[samples.Group == wildcards.groupName].tolist()
-	return map(lambda x: bigWigScaledDir_div + "/" + x + ".divInput.bw", repL)
-
-rule make_bigwig_scaled_div_avg:
-	input:
-		get_bigwig_rep_scaled_div
-	output:
-		bigWigScaledDir_div_avg + "/{groupName}.scaled.divInput.avg.bw"
-	message:
-		"Making average bigWig files... [{wildcards.groupName}]"
-	params:
-		memory = "5G"
-	shell:
-		"""
-		module load CnR/1.0
-		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
-		"""
-'''
 

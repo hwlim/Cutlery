@@ -4,18 +4,7 @@
 ### 
 ###		Written by Hee Woong Lim
 ##################################################
-'''
-Required Variables
-- adapter
-- trim_minLen / trim_minQual
-- star_index / star_option
-- fastqDir
-- trimDir
-- alignDir
-- filteredDir
-- dedupDir
-- sample [ Id, Name ]
-'''
+
 
 ## default STAR module
 if 'star_module' not in locals():
@@ -62,16 +51,14 @@ def get_fastq(wildcards):
 rule align_pe:
 	input:
 		get_fastq
-		#fq1 = lambda wildcards: trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName] + "_1.trim.fq.gz",
-		#fq2 = lambda wildcards: trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName] + "_2.trim.fq.gz"
 	output:
-		alignDir+"/{sampleName}/align.bam"
+		alignDir + "/{sampleName}/align.bam"
 	message:
 		"Aligning... [{wildcards.sampleName}]"
 	params:
-		index=star_index,
-		option=star_option,
-		star_module=star_module
+		index = star_index,
+		option = star_option,
+		star_module = star_module
 	log:
 		alignDir + "/{sampleName}/star.log"
 	threads:
@@ -87,17 +74,11 @@ rule align_pe:
 			-p '{params.option}' \
 			{input}
 		"""
-#		STAR --runMode alignReads --genomeDir {params.index} \
-#			--genomeLoad NoSharedMemory \
-#			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
-#			--runThreadN {threads} \
-#			{params.option} \
-#			--outFileNamePrefix __temp__.$$ 2> {log}
-#		mv __temp__.$$Aligned.out.bam {output}"
+
 
 rule filter_align:
 	input:
-		alignDir+"/{sampleName}/align.bam"
+		alignDir + "/{sampleName}/align.bam"
 	output:
 		filteredDir + "/{sampleName}.bam"
 	message:
