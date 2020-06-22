@@ -40,7 +40,7 @@ Output:
 # Option handling
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) < 2){
-	write(sprintf("Error: Requires at bed and bigWig prefix: (%d)", length(arguments$args)), stderr())
+	write(sprintf("Error: Requires at bed and bigWig prefix"), stderr())
 	print_help(parser)
 	q()
 }else{
@@ -118,29 +118,23 @@ anchor.uniqName = data.frame( anchor.resized[,1:3], sprintf("anchor.%d", 1:nrow(
 ##	They are switched and flipped manually according to the direction in the next step. 
 write(sprintf("2) Extracting footprint signal"), stderr())
 #if( !all(file.exists( des.bwPlus, des.bwMinus )) ){
-	bed.profile = tempfile()
-	bed.ext = anchor.uniqName
-	bed.ext[,2] = bed.ext[,2] - margin
-	bed.ext[,3] = bed.ext[,3] + margin
-	bed.ext[,5] = 0
-	bed.ext[,6] = "+"
-	write.table(bed.ext[,1:6], bed.profile, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
-#	system(sprintf("cat %s | gawk '{ printf \"%%s\\t%%s\\t%%s\\t%%s\\t0\\t+\\n\", $1, $2-%d, $3+%d, $4 }' > %s",
-#		src.anchor, exoMargin, exoMargin, bed.profile))
-		
-	write(sprintf("\tplus = %s", des.bwPlus), stderr())
-	system(sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", bed.profile, src.bwPlus, des.bwPlus))
-	write(sprintf("\tminus = %s", des.bwMinus), stderr())
-	system(sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", bed.profile, src.bwMinus, des.bwMinus))
+bed.profile = tempfile()
+bed.ext = anchor.uniqName
+bed.ext[,2] = bed.ext[,2] - margin
+bed.ext[,3] = bed.ext[,3] + margin
+bed.ext[,5] = 0
+bed.ext[,6] = "+"
+write.table(bed.ext[,1:6], bed.profile, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
+	
+write(sprintf("\tplus = %s", des.bwPlus), stderr())
+cmd = sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", bed.profile, src.bwPlus, des.bwPlus)
+system(cmd)
+write(sprintf("\tminus = %s", des.bwMinus), stderr())
+cmd = sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", bed.profile, src.bwMinus, des.bwMinus)
+system(cmd)
+unlink(bed.profile)
 
-	unlink(bed.profile)
-	#unlink(des.bwPlus)
-	#unlink(des.bwMinus)
-#}else{
-#	write(sprintf("\t- Profile data files already exists, skip"), stderr())
-#}
 data.profileL = readExoProfile2(srcPlus=des.bwPlus, srcMinus=des.bwMinus, direc=data.anchor[,6])
-
 
 idx.anchor = (margin + 1):(margin+anchorSize)
 idx.flank = c( 1:margin, (margin+anchorSize+1):(2*margin+anchorSize) )
@@ -170,9 +164,3 @@ title(xlab=sprintf("Flanking average signal (%d bp)", margin),
 	ylab=sprintf("Anchor average signal (%d bp)", anchorSize),
 	main="Footprint Contrast")
 dev.off()
-
-### Selection of maximum contrast per 4th column id
-#tf.uniq = unifyList(data.final[,4], data.final$Contrast)
-#data.uniq = data.final[tf.uniq,]
-#write.table(data.uniq, sprintf("%s.uniq.txt", outPrefix), row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
-#write.table(data.uniq, sprintf("%s.uniq.bed", outPrefix), row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")

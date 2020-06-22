@@ -1,0 +1,24 @@
+# 1-order Markov frequencies from file hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+# seqs: 1000    min: 200    max: 200    avg: 200.0    sum: 200000    alph: DNA
+# order 0
+A 2.698e-01
+C 2.302e-01
+G 2.302e-01
+T 2.698e-01
+# order 1
+AA 8.579e-02
+AC 4.667e-02
+AG 7.946e-02
+AT 5.789e-02
+CA 7.247e-02
+CC 6.557e-02
+CG 1.269e-02
+CT 7.946e-02
+GA 6.416e-02
+GC 5.379e-02
+GG 6.557e-02
+GT 4.667e-02
+TA 4.735e-02
+TC 6.416e-02
+TG 7.247e-02
+TT 8.579e-02

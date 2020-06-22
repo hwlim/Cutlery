@@ -1,0 +1,134 @@
+Invoking:
+  getsize hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa 1> $metrics
+Finished invoke:
+  name: count_seqs  status: 0  time: 0.087386
+Invoking:
+  fasta-most -min 50 < hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa 1> $metrics
+Finished invoke:
+  name: most_seqs  status: 0  time: 0.099586
+Invoking:
+  fasta-shuffle-letters hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/seqs-shuffled -kmer 2 -tag -dinuc -dna -seed 1
+Finished invoke:
+  name: shuffle_seqs  status: 0  time: 0.07565
+Invoking:
+  fasta-get-markov -nostatus -nosummary -dna -m 1 hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background
+Finished invoke:
+  name: bg  status: 0  time: 0.079897
+Invoking:
+  meme hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out -mod zoops -nmotifs 10 -minw 6 -maxw 30 -bfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -dna -p 4 -revcomp -nostatus
+Finished invoke:
+  name: meme  status: 0  time: 957.642377
+Invoking:
+  dreme -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out -png -dna -p hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa -n hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/seqs-shuffled
+Finished invoke:
+  name: dreme  status: 0  time: 161.077467
+Invoking:
+  centrimo -seqlen 200 -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/centrimo_out -bfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: centrimo  status: 0  time: 13.970424
+Invoking:
+  tomtom -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: meme_tomtom  status: 0  time: 123.474441
+Invoking:
+  tomtom -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_tomtom_out -min-overlap 5 -dist pearson -evalue -thresh 1 -no-ssc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: dreme_tomtom  status: 0  time: 5.726232
+Invoking:
+  tomtom -verbosity 1 -text -thresh 0.1 hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/combined.meme hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/combined.meme 1> hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/motif_alignment.txt
+Finished invoke:
+  name: align  status: 0  time: 3.23067
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_1 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary ADRACAAWRGV hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo1  status: 0  time: 2.064306
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_2 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary RRRRGGRGGHGGGGV hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo2  status: 0  time: 1.796342
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_3 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary ATGYADA hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo3  status: 0  time: 1.548977
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_4 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary TCCWATCACTMAGGAAATTCCAAGKGYTT hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo4  status: 0  time: 1.919452
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_5 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary ADGAATG hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo5  status: 0  time: 1.456456
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_6 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary CTATTCTCTCTGAAGSCTGCTACCTAKRRG hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo6  status: 0  time: 1.795564
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_7 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary GACMCYTTTAAARGTCTGAAAAGRAACAWT hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo7  status: 0  time: 1.946351
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_8 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary GTRAATR hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo8  status: 0  time: 1.398835
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_9 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary AGGGCAGCCACTATGAGACTTCAAAAGAAC hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo9  status: 0  time: 1.671696
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_10 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary ARCCAATC hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo10  status: 0  time: 1.500798
+Invoking:
+  spamo -verbosity 1 -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/spamo_out_11 -bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background -keepprimary -primary CAGSAGGA hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme
+Finished invoke:
+  name: spamo11  status: 0  time: 1.403504
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_1 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif ADRACAAWRGV hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo1  status: 0  time: 0.505653
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_2 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif RRRRGGRGGHGGGGV hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo2  status: 0  time: 0.367821
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_3 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif ATGYADA hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo3  status: 0  time: 0.134576
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_4 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif TCCWATCACTMAGGAAATTCCAAGKGYTT hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo4  status: 0  time: 0.383157
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_5 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif ADGAATG hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo5  status: 0  time: 0.19856
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_6 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif CTATTCTCTCTGAAGSCTGCTACCTAKRRG hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo6  status: 0  time: 0.452434
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_7 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif GACMCYTTTAAARGTCTGAAAAGRAACAWT hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo7  status: 0  time: 0.441467
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_8 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif GTRAATR hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo8  status: 0  time: 0.164499
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_9 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif AGGGCAGCCACTATGAGACTTCAAAAGAAC hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme_out/meme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo9  status: 0  time: 0.442751
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_10 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif ARCCAATC hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo10  status: 0  time: 0.174902
+Invoking:
+  fimo --parse-genomic-coord --verbosity 1 --oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/fimo_out_11 --bgfile hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/background --motif CAGSAGGA hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/dreme_out/dreme.xml hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/__temp__runMemeChip.4343.fa
+Finished invoke:
+  name: fimo11  status: 0  time: 0.139542
+Writing output
+Invoking:
+  meme-chip_html_to_tsv hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/meme-chip.html hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1/summary.tsv "meme-chip -oc hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.zoops.200bp.c0.W30.top1k.1 -db /data/limlab/Resource/meme_motif_db/Merged_By_Lim.meme -meme-mod zoops -meme-nmotifs 10 -ccut 0 -meme-maxw 30 -meme-p 4 /scratch/limc8h/__temp__runMemeChip.4343.fa" 5.0.5 "Mon Mar 18 20\:12\:19 2019 -0700"
+Finished invoke:
+  name: summary  status: 0  time: 0.550407
+Done
