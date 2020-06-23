@@ -9,6 +9,7 @@ suppressPackageStartupMessages(library('optparse', quiet=TRUE))
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/commonR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/motifR.r", Sys.getenv("COMMON_LIB_BASE")))
+source(sprintf("%s/genomeR.r", Sys.getenv("COMMON_LIB_BASE")))
 
 # command line option handling
 option_list <- list(
@@ -46,7 +47,7 @@ if(FALSE){
 	bwPrefix="TestData/hESC_Sox2"
 }
 
-motifDir=sprintf("%s/homerResults", motifDir)
+motifDir=sprintf("%s/homerResults", src.motifDir)
 assertDirExist(motifDir)
 assertFileExist(src.peak)
 assertFileExist(sprintf("%s.%s.bw", bwPrefix, c("plus","minus")))
@@ -143,28 +144,35 @@ N.motif = length(motifL)
 
 ## Function to measure footprint contrast
 ## i.e. MNase digestion within anchor region vs flanking margins
-getFootprintContrast=function(anchor, margin){
+getFootprintContrast=function(anchor, margin, bwPrefix, pseudo=0.1){
 
-	anchor.uniqName = data.frame( anchor[,1:3], sprintf("anchor.%d", 1:nrow(anchor)), anchor[,c(5,6,4)] )
-	anchor.ext = anchor.uniqName
-	anchor.ext[,2] = bed.anchor[,2] - margin
-	anchor.ext[,3] = bed.anchor[,3] + margin
+	if( length(unique(anchor[,4])) != nrow(anchor) ){
+		anchor = data.frame( anchor[,1:3], sprintf("%s:%d", anchor[,4], 1:nrow(anchor)), anchor[,c(5,6,4)] )
+	}
+	anchor.ext = anchor
+	anchor.ext[,2] = anchor[,2] - margin
+	anchor.ext[,3] = anchor[,3] + margin
 	anchor.ext[,5] = 0
 	anchor.ext[,6] = "+"
+	anchorSize=anchor[1,3] - anchor[1,2]
+	src.bwPlus=sprintf("%s.plus.bw", bwPrefix)
+	src.bwMinus=sprintf("%s.minus.bw", bwPrefix)
 
+	profileL = extractBigWigDataStranded1bp(anchor.ext[,1:6], bwPrefix, desPrefix=NULL)
+	stopifnot(all(rownames(profileL[[1]])==anchor[,4]))
+	stopifnot(all(rownames(profileL[[2]])==anchor[,4]))
+	#src.tmpBed = tempfile()
+	#write.table(anchor.ext[,1:6], src.tmpBed, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
+	#write(sprintf("\tplus = %s", des.bwPlus), stderr())
+	#cmd = sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", src.tmpBed, src.bwPlus, src.bwPlus)
+	#system(cmd)
+	#write(sprintf("\tminus = %s", des.bwMinus), stderr())
+	#cmd = sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", src.tmpBed, src.bwMinus, des.bwMinus)
+	#system(cmd)
+	#unlink(src.tmpBed)
+	#profileL = readExoProfile2(srcPlus=des.bwPlus, srcMinus=des.bwMinus, direc=anchor.ext[,6])
 
-	src.tmpBed = tempfile()
-	write.table(anchor.ext[,1:6], src.tmpBed, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
-	write(sprintf("\tplus = %s", des.bwPlus), stderr())
-	cmd = sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", src.tmpBed, src.bwPlus, des.bwPlus)
-	system(cmd)
-	write(sprintf("\tminus = %s", des.bwMinus), stderr())
-	cmd = sprintf("bwtool extract bed -fill=0 -decimals=5 -tabs %s %s /dev/stdout | cut -f 4,8- | gzip -c > %s", src.tmpBed, src.bwMinus, des.bwMinus)
-	system(cmd)
-	unlink(src.tmpBed)
-	profileL = readExoProfile2(srcPlus=des.bwPlus, srcMinus=des.bwMinus, direc=anchor.ext[,6])
-
-
+	stopifnot(all(rownames(profileL[[1]])==
 	idx.anchor = (margin + 1):(margin+anchorSize)
 	idx.flank = c( 1:margin, (margin+anchorSize+1):(2*margin+anchorSize) )
 
@@ -174,27 +182,35 @@ getFootprintContrast=function(anchor, margin){
 
 	### All data
 	colnames(anchor) = c("Chr","Start","End","Name","Null","Direc")
-	data.final = data.frame(anchor,
+	result = data.frame(anchor,
 					Anchor = signal.anchor,
 					Flank = signal.flank,
 					Contrast = log2( (signal.flank + pseudo) / (signal.anchor + pseudo) )
 				)
+	return(result)
 }
 
 
+write(sprintf("Checking footprint contrast"), stderr())
 margin=20
 for( i in 1:N.motif ){
+	# i=1
 	motifName =  motifL[i]
 	src.anchor = sprintf("%s.scan.bed", motifName)
+	src.anchorSelect = sprintf("%s.scan.select.bed", motifName)
 
+	write(sprintf("  - %s", motifName), stderr())
 	anchor = data.scan[data.scan[,4]==motifName,]
-	write.table(bed.select, src.anchor, row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
+	anchor[,4] = sprintf("%s:%d", anchor[,4], 1:nrow(anchor))
+	write.table(anchor, src.anchor, row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
 
 	## Contrast
-	contrast = getFootprintContrast(anchor, margin)
-	write.table(contrast, src.anchor, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
+	contrast = getFootprintContrast(anchor, margin, bwPrefix, pseudo=0.1)
+	anchor.select = contrast[contrast$Contrast > 0, ]
+	write.table(anchor.select, src.anchorSelect, row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
 
-	##
+	## Visualize
+	cmd=sprintf("idom.visualizeExoBed.r  -o test -g homer_hg19 -f -s Motif01_SOX15.scan.select.bed TestData/hESC_Sox2")
 }
 
 
