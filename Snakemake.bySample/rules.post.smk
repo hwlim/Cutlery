@@ -39,33 +39,34 @@ rule check_baseFreq:
 	shell:
 		"""
 		module load CnR/1.0
-		bamToBed.separate.sh -o {baseFreqDir} {input}
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
+		bamToBed.separate.sh -o {sampleDir}/{wildcards.sampleName}/tmp {input}
+		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R1 {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
+		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R2 {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
+		rm {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
+		rm {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
 		"""
 
 
 ## BAM to fragment bed files: all / nfr / nuc
-## NEED REVISION for OUTPUT name
 rule split_bam:
 	input:
 		bamDir + "/{sampleName}.bam"
 	output:
-		expand(sampleDir + "/{{sampleName}}/Fragments/{group}.{proctype}.bed.gz",
+		expand(sampleDir + "/{{sampleName}}/Fragments/frag.{group}.{proctype}.bed.gz",
 			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
 	message:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.splitBamToBed.sh -o {sampleDir}/{wildcards.sampleName}/Fragments/ -c "{chrRegexTarget}" {input}
+		cnr.splitBamToBed.sh -o {sampleDir}/{wildcards.sampleName}/Fragments/frag -c "{chrRegexTarget}" {input}
 		"""
 
 
 ## FCL (Fragment Center / Length) file
 rule make_fcl_file:
 	input:
-		sampleDir + "/{sampleName}/Fragments/all.con.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/fcl.bed.gz"
 #	params:
@@ -81,7 +82,7 @@ rule make_fcl_file:
 ## Fragment length distribution
 rule get_fragLenHist:
 	input:
-		sampleDir + "/{sampleName}/Fragments/all.con.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/QC/fragLen.dist.txt",
 		sampleDir + "/{sampleName}/QC/fragLen.dist.png"
@@ -94,19 +95,18 @@ rule get_fragLenHist:
 		"""
 
 ## Autocorrelation plot as Q/C
-## NEED REVISION for OUTPUT name
 rule get_frag_autocor:
 	input:
 		sampleDir + "/{sampleName}/fcl.bed.gz"
 	output:
-		sampleDir + "/{sampleName}/QC/acor.txt",
-		sampleDir + "/{sampleName}/QC/acor.png"
+		sampleDir + "/{sampleName}/QC/enrich.acor.txt",
+		sampleDir + "/{sampleName}/QC/enrich.acor.png"
 	message:
 		"Checking fragment auto-correlation... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.drawAutoCorFrag.r -o {fragAcorDir}/{wildcards.sampleName} {input}
+		cnr.drawAutoCorFrag.r -o {sampleDir}/{wildcards.sampleName}/QC/enrich {input}
 		"""
 
 rule count_spikein:
@@ -137,9 +137,9 @@ rule make_spikeintable:
 
 rule make_bigwig:
 	input:
-		all = sampleDir + "/{sampleName}/Fragments/all.ctr.bed.gz",
-		nfr = sampleDir + "/{sampleName}/Fragments/nfr.ctr.bed.gz",
-		nuc = sampleDir + "/{sampleName}/Fragments/nuc.ctr.bed.gz"
+		all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz",
+		nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
+		nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz"
 	output:
 		all = sampleDir + "/{sampleName}/igv.all.ctr.bw",
 		nfr = sampleDir + "/{sampleName}/igv.nfr.ctr.bw",
@@ -162,7 +162,7 @@ rule make_bigwig:
 ## 		Thus needs an update in command line
 rule make_bigwig1bp:
 	input:
-		sampleDir + "/{sampleName}/Fragments/all.sep.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/igv.1bp.plus.bw",
 		sampleDir + "/{sampleName}/igv.1bp.minus.bw"
@@ -173,12 +173,12 @@ rule make_bigwig1bp:
 	shell:
 		"""
 		module load CnR/1.0
-		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
+		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 		"""
 
 rule make_bigwig_allfrag:
 	input:
-		sampleDir + "/{sampleName}/Fragments/all.con.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/igv.allFrag.bw"
 	message:
@@ -193,9 +193,9 @@ rule make_bigwig_allfrag:
 
 rule make_tagdir:
 	input:
-		all = sampleDir + "/{sampleName}/Fragments/all.ctr.bed.gz",
-		nfr = sampleDir + "/{sampleName}/Fragments/nfr.ctr.bed.gz",
-		nuc = sampleDir + "/{sampleName}/Fragments/nuc.ctr.bed.gz"
+		all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz",
+		nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
+		nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz"
 	output:
 		all=directory(sampleDir + "/{sampleName}/TSV.all"),
 		nfr=directory(sampleDir + "/{sampleName}/TSV.nfr"),
@@ -312,7 +312,7 @@ rule call_peaks_histone_allfrag:
 ## This rule must be revised the command take spikein.txt as an input directly not using the get_scalefactor function
 #  
 
-
+'''
 ## NOTE: this rule is deprecate. planning to use RPSM below
 ## Raw read count scale + spike-in scaled
 rule make_bigwig_scaled:
@@ -376,7 +376,7 @@ rule make_bigwig_scaled_subtract:
 
 rule make_bigwig_allfrag_rpsm:
 	input:
-		bed = sampleDir + "/{sampleName}/Fragments/all.ctr.bed.gz",
+		bed = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz",
 		sampleDir + "/{sampleName}/QC/spikeCnt.txt"
 	output:
 		sampleDir + "/{sampleName}/igv.rpsm.allFrag.bw"
@@ -395,3 +395,4 @@ rule make_bigwig_allfrag_rpsm:
 		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
 
+'''

@@ -36,16 +36,18 @@ rule check_baseFreq:
 	input:
 		bamDir + "/{sampleName}.bam"
 	output:
-		read1 = baseFreqDir + "/{sampleName}.R1.freq.line.png",
-		read2 = baseFreqDir + "/{sampleName}.R2.freq.line.png"
+		read1 = baseFreqDir + "/{sampleName}.R1.freq.png",
+		read2 = baseFreqDir + "/{sampleName}.R2.freq.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		bamToBed.separate.sh -o {baseFreqDir} {input}
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
-		checkBaseFreq.plot.sh -g {genomeFa} -o {baseFreqDir} {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
+		bamToBed.separate.sh -o {baseFreqDir}/{wildcards.sampleName} {input}
+		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {baseFreqDir}/{wildcards.sampleName}.R1 {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
+		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {baseFreqDir}/{wildcards.sampleName}.R2 {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
+		rm {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
+		rm {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
 		"""
 
 
