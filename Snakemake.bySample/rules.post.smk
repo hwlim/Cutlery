@@ -32,8 +32,8 @@ rule check_baseFreq:
 	input:
 		bamDir + "/{sampleName}.bam"
 	output:
-		sampleDir + "/{sampleName}/QC/base_freq.R1.line.png",
-		sampleDir + "/{sampleName}/QC/base_freq.R2.line.png"
+		sampleDir + "/{sampleName}/QC/base_freq.R1.freq.png",
+		sampleDir + "/{sampleName}/QC/base_freq.R2.freq.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
