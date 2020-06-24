@@ -2,44 +2,44 @@
 ## Basic parameters
 
 ## Sample information file with five columns: id / name / group / fq1 / fq2
-src_sampleInfo	= "./sample.tsv"
+src_sampleInfo	= "../sample.tsv"
 
 ## Genome folder depending on platform: CCHMC:HPC vs my desktop
 import socket
 hostname = socket.gethostname()	
 if( hostname == "EA19-00359" ):
 	# my desktop
-	genomeFa	= "/Users/limc8h/Research/Common_Data/hg38/genome/genome.fa"
-	chrom_size	= "/Users/limc8h/Research/Common_Data/hg38/chrom.sizes"
-	peak_mask	= "/Users/limc8h/Research/Common_Data/hg38/ENCODE-blacklist.bed"
+	genomeFa	= "/Users/limc8h/Research/Common_Data/hg19/genome/genome.fa"
+	chrom_size	= "/Users/limc8h/Research/Common_Data/hg19/chrom.sizes"
+	peak_mask	= "/Users/limc8h/Research/Common_Data/hg19/ENCODE-blacklist.bed"
 	baseDir		= "/Volumes"
 else:
 	# cluster system
-	genomeFa	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/genome.fa"
-	chrom_size	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/chrom.size"
-	peak_mask	= "/data/limlab/Resource/GenomeData/hg/hg38/hg38-blacklist.v2.bed"
+	genomeFa	= "/data/limlab/Resource/GenomeData/hg/hg19/Genome/genome.fa"
+	chrom_size	= "/data/limlab/Resource/GenomeData/hg/hg19/Genome/chrom.size"
+	peak_mask	= "/data/limlab/Resource/GenomeData/hg/hg19/ENCODE-blacklist.bed"
 	baseDir		= "/data"
 
 ## Other essential pameters
-genome			= "hg38"
+genome			= "hg19"
 adapter			= "AGATCGGAAGAGC"	# illumina universal adapter
 #adapter			= "CTGTCTCTTATA"	# Nextera adapter for ATAC-seq or Cut&Tag
 #trim_maxLen=100	## Maximum read length after trimming. ** NOT YET IMPLEMENTED **
 trim_minLen		= 20
 trim_minQual	= 20
 ## Regular expression to filter-out non-regular chromosomes such as random/scaffolds
-chrRegexAll		= "^chr[0-9XY]+$|^dm-chr[0-9XYLR]+$"
+chrRegexAll		= "^chr[0-9XY]+$"
 ## Regular expression for target organism to exclude spike-in genome
 chrRegexTarget	= "^chr[0-9XY]+$"
-spikePrefix		= "dm-"
+spikePrefix		= "NULL"
 
 ########################
 ## STAR index & options
-#star_index	= "/data/limlab/Resource/STAR_Index/hg38_allChr_v29_plusEcoliBL21/"
-star_index	= "/data/limlab/Resource/STAR_Index/hg38_allChr_v29_plusDm6"
+star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/hg19_allChr_v19"
+star_module	= "STAR/2.7.4"
 
 ## ChIP-seq / ATAC-seq / Cut&Run
-star_option	= "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 2000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None"
+star_option	= "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 1000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None --alignEndsProtrude 2 ConcordantPair"
 ## Note:
 ## Additoinal star_option to prevent soft-clipping: "--alignEndsType EndToEnd"
 ## BAM sort by "--outSAMtype" is handled by the star.align.sh by -s option.
@@ -54,14 +54,15 @@ doDedup		= False
 ## Directories
 fastqDir	= baseDir + "/limlab/project/0.Fastq"
 trimDir		= "0.Fastq.Trim"
-alignDir	= "1.1.Align"
-filteredDir	= "1.2.Align.filtered"
-dedupDir	= "1.3.Align.dedup"
+alignDir	= "../Protrusion2/1.1.Align"
+filteredDir	= "../Protrusion2/1.2.Align.filtered"
+dedupDir	= "../Protrusion2/1.3.Align.dedup"
 splitDir	= "1.4.Align.split"
 qcDir		= "2.1.QualityControl"
 
 sampleDir	= "3.Sample"
 
+'''
 fclDir		= "1.4.Align.fcl"
 baseFreqDir = filteredDir + "/BaseFreq"
 fragLenDir 	= fragDir + "/fragLenHist"
@@ -78,7 +79,7 @@ bigWigScaledDir_sub = "3.2.BigWig.scaled.subInput"
 bigWigAllFrag_RPSM = "3.3.BigWig.allFrag.RPSM"
 
 homerDir	= "4.Homer"
-
+'''
 
 
 ## CODE used in the initial version
@@ -104,9 +105,9 @@ if not samples.Name.is_unique:
 	sys.exit(1)
 
 ## Group column must not overlap with Name column
-if not len(set(samples.Group).intersection(set(samples.Name)))==0:
-	print( "Error: Sample Group name must not overlap with Name" )
-	sys.exit(1)
+#if not len(set(samples.Group).intersection(set(samples.Name)))==0:
+#	print( "Error: Sample Group name must not overlap with Name" )
+#	sys.exit(1)
 
 #################################
 ## Cluster configuration file
@@ -124,17 +125,19 @@ with open('cluster.yml', 'r') as fh:
 rule all:
 	input:
 		## QC output
-		expand(fragLenDir + "/{sampleName}.dist.png", sampleName=samples.Name.tolist()),
-		expand(fragAcorDir + "/{sampleName}.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
-		spikeinCntDir + "/spikein.txt"
+		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
+		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
+		expand(sampleDir + "/{sampleName}/QC/base_freq.{read}.freq.png",  sampleName=samples.Name.tolist(), read=["R1","R2"]),
+		#spikeinCntDir + "/spikein.txt"
 		## bigWig files	
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
 		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(),
 																strand=["plus","minus"]),
-		expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=samples.Name.tolist())
+		expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=samples.Name.tolist()),
 		## peak files
-		expand(homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		expand(homerDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist())
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
+		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html", sampleName=samples.Name[samples.PeakMode=="factor"].tolist())
 
 
 include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"

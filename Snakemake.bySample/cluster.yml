@@ -4,7 +4,7 @@
 #
 #
 __default__:
-    cpu         : 1
+    cpu         : 2
     memory      : 5000
     walltime    : "12:00"
     name        : "{rule}.{wildcards.sampleName}"
@@ -21,7 +21,6 @@ align_pe:
     cpu         : 4
     memory      : 50000
     walltime    : "24:00"
-    resource    : "\"span[hosts=1]\""
 
 check_baseFreq:
     memory      : 6000
@@ -52,4 +51,6 @@ make_bigwig_avg:
     output      : "logs/{rule}.{wildcards.groupName}.out"
     error       : "logs/{rule}.{wildcards.groupName}.err"
 
-
+run_homermotif:
+    cpu         : 4
+    memory      : 10000
