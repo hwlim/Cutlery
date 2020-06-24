@@ -308,6 +308,23 @@ rule run_homermotif:
 		runHomerMotif.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor {input}
 		"""
 
+
+rule draw_peak_heatmap_factor:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+	output:
+		sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png"
+	params:
+		workDir = sampleDir + "/{sampleName}"
+	message:
+		"Running Homer motif search... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		drawBigWigHeatmap.r -t {wildcards.sampleName} -w 2000 -c NFR,NUC -s 3,6 -o {params.workDir}/HomerPeak.factor/heatmap.exBL.1rpm
+			{input} {params.workDir}/igv.nfr.ctr.bw {params.workDir}/igv.nuc.ctr.bw
+		"""
+
 #####################################################
 ## Scaled BigWig by Spike-in using raw read counts (not RPM)
 #def get_scalefactor(wildcards):

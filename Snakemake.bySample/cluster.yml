@@ -53,4 +53,8 @@ make_bigwig_avg:
 
 run_homermotif:
     cpu         : 4
+    memory      : 5000
+
+draw_peak_heatmap_factor:
+    cpu         : 2
     memory      : 10000
