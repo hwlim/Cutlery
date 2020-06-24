@@ -321,7 +321,7 @@ rule draw_peak_heatmap_factor:
 	shell:
 		"""
 		module load CnR/1.0
-		drawBigWigHeatmap.r -t {wildcards.sampleName} -w 2000 -c NFR,NUC -s 3,6 -o {params.workDir}/HomerPeak.factor/heatmap.exBL.1rpm
+		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -c NFR,NUC -s 3,6 -o {params.workDir}/HomerPeak.factor/heatmap.exBL.1rpm
 			{input} {params.workDir}/igv.nfr.ctr.bw {params.workDir}/igv.nuc.ctr.bw
 		"""
 
