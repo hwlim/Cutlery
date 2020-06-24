@@ -229,7 +229,7 @@ rule call_peaks_factor:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr")
 #		get_peakcall_factor_input
 	output:
-		homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed"
+		homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	params:
 		mask = peak_mask,
 		peakDir = homerDir + "/{sampleName}/HomerPeak.factor",
@@ -248,7 +248,7 @@ rule call_peaks_factor_allfrag:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
 #		get_peakcall_factor_input_allfrag
 	output:
-		homerDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed"
+		homerDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
 		mask = peak_mask,
 		peakDir = homerDir + "/{sampleName}/HomerPeak.factor.allFrag",
@@ -267,7 +267,7 @@ rule call_peaks_histone:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc")
 #		get_peakcall_histone_input
 	output:
-		homerDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed"
+		homerDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed"
 	params:
 		mask = peak_mask,
 		peakDir = homerDir + "/{sampleName}/HomerPeak.histone",
@@ -286,7 +286,7 @@ rule call_peaks_histone_allfrag:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
 #		get_peakcall_histone_input
 	output:
-		homerDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.homer.exBL.bed"
+		homerDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
 		mask = peak_mask,
 		peakDir = homerDir + "/{sampleName}/HomerPeak.histone.allFrag",

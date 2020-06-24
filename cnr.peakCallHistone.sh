@@ -15,9 +15,9 @@ function printUsage {
 	echo -e "Usage: `basename $0` (options) [taget tagDir]
 Description: Make Homer data directory from BED file
 Output:
-	- <outDir>/peak.homer.txt              Homer peak calling result
-	- <outDir>/peak.homer.bed              Homer peak in bed format
-	- <outDir>/peak.homer.exBL.bed         After blacklist filtering
+	- <outDir>/peak.txt              Homer peak calling result
+	- <outDir>/peak.bed              Homer peak in bed format
+	- <outDir>/peak.exBL.bed         After blacklist filtering
 Options:
 	-o <outDir>: Destination tag directory, required
 	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
@@ -26,7 +26,7 @@ Options:
 		to internally pre-set option: \"-style histone -tbp 0 -norm 1000000 -strand both\"
 		such as -size or -minDist
 		\"-fragLength 100\" is recommended as an additiona option considering the input bed length" >&2
-#	- <outDir>/peak.homer.exBL.1rpm.bed    > 1rpm after filtering
+#	- <outDir>/peak.exBL.1rpm.bed    > 1rpm after filtering
 #	echo -e "\t-l <fragLen,peakWidth>: Comma-separated fragment length and peak width, default=NULL,NULL" >&2
 #        echo -e "\t-g <genome>: genome, default=NULL" >&2
 #        echo -e "\t-h: Print help" >&2
@@ -104,7 +104,7 @@ fi
 
 ###################################
 ## main code
-log=${desDir}/peak.homer.log
+log=${desDir}/peak.log
 echo -e "Homer peak-calling" >&2
 echo -e "  - target = $target" >&2
 echo -e "  - ctrl = $ctrl" >&2
@@ -113,10 +113,10 @@ echo -e "  - TTC = $ttc" >&2
 echo -e "  - optStr = $optStr" >&2
 echo -e "" >&2
 
-peak0=${desDir}/peak.homer.txt
-peakBed=${desDir}/peak.homer.bed
-peakMasked=${desDir}/peak.homer.exBL.bed
-#peak1rpm=${desDir}/peak.homer.exBL.1rpm.bed
+peak0=${desDir}/peak.txt
+peakBed=${desDir}/peak.bed
+peakMasked=${desDir}/peak.exBL.bed
+#peak1rpm=${desDir}/peak.exBL.1rpm.bed
 tmpPeakMasked=${TMPDIR}/__temp__.$$.bed
 tmpTagCount=${TMPDIR}/__temp__.$$.target
 

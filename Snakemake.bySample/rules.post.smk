@@ -228,7 +228,7 @@ rule call_peaks_factor:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr")
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed"
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	params:
 		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
@@ -246,7 +246,7 @@ rule call_peaks_factor_allfrag:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.homer.exBL.1rpm.bed"
+		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
 		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag",
@@ -264,7 +264,7 @@ rule call_peaks_histone:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc")
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed"
+		sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed"
 	params:
 		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone",
@@ -282,7 +282,7 @@ rule call_peaks_histone_allfrag:
 	input:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.homer.exBL.bed"
+		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
 		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag",
@@ -295,6 +295,11 @@ rule call_peaks_histone_allfrag:
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
+rule run_homermotif:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+	output:
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html
 #####################################################
 ## Scaled BigWig by Spike-in using raw read counts (not RPM)
 #def get_scalefactor(wildcards):

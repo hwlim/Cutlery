@@ -128,8 +128,8 @@ rule all:
 		expand(bigWigDirAllFrag + "/{sampleName}.allFrag.bw", sampleName=samples.Name.tolist()),
 		expand(bigWigAllFrag_RPSM + "/{sampleName}.allFrag.rpsm.bw", sampleName=samples.Name.tolist()),
 
-		expand(homerDir + "/{sampleName}/HomerPeak.factor/peak.homer.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		expand(homerDir + "/{sampleName}/HomerPeak.histone/peak.homer.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),
+		expand(homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
+		expand(homerDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),
 		## fragment length distribution
 		expand(fragLenDir + "/{sampleName}.dist.png", sampleName=samples.Name.tolist()),
 		expand(fragAcorDir + "/{sampleName}.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
