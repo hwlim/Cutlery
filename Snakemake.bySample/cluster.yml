@@ -58,3 +58,8 @@ run_homermotif:
 draw_peak_heatmap_factor:
     cpu         : 2
     memory      : 10000
+
+make_align_stat_table:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"

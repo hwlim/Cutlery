@@ -75,6 +75,19 @@ rule align_pe:
 			{input}
 		"""
 
+rule make_align_stat_table:
+	input:
+		alignDir=expand(alignDir+"/{sampleName}", sampleName=samples.Name.tolist()),
+		alignBam=expand(alignDir+"/{sampleName}/align.bam", sampleName=samples.Name.tolist())
+	output:
+		alignDir + "/alignStat.txt"
+	message:
+		"Creating alignment stat file"
+	shell:
+		"""
+		module load ChIPseq/1.0
+		star.getAlignStats.r {input.alignDir} > {output}
+		"""
 
 rule filter_align:
 	input:
