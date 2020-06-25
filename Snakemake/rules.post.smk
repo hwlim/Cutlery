@@ -316,6 +316,7 @@ rule call_peaks_histone_allfrag:
 ## This rule must be revised the command take spikein.txt as an input directly not using the get_scalefactor function
 #  
 
+'''
 ## Raw read count scale + spike-in scaled
 rule make_bigwig_scaled:
 	input:
@@ -347,7 +348,6 @@ rule make_bigwig_scaled:
 		"""
 
 
-
 def get_bigwig_scaled_input(sampleName, fragment):
 	# return ordered [ctrl , target] list.
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
@@ -375,7 +375,36 @@ rule make_bigwig_scaled_subtract:
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nfr} {input.nfr}
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
 		"""
+'''
 
+rule make_bigwig_rpsm:
+	input:
+		all = splitDir + "/{sampleName}.all.ctr.bed.gz",
+		nfr = splitDir + "/{sampleName}.nfr.ctr.bed.gz",
+		nuc = splitDir + "/{sampleName}.nuc.ctr.bed.gz",
+		spikeinCnt = spikeinCntDir + "/spikein.txt"
+	output:
+		all = bigWig_RPSM + "/{sampleName}.all.ctr.bw",
+		nfr = bigWig_RPSM + "/{sampleName}.nfr.ctr.bw",
+		nuc = bigWig_RPSM + "/{sampleName}.nuc.ctr.bw"
+
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "%dG" % ( cluster["make_bigwig"]["memory"]/1000 - 1 ),
+#		scaleFactor = get_scalefactor
+	shell:
+		"""
+		module load CnR/1.0
+		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | gawk '{{ printf "%f", 100000/$3 }}'`
+		if [ $scaleFactor == "" ];then
+			echo -e "Error: empty scale factor" >&2
+			exit 1
+		fi
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
+		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
+		"""
 
 rule make_bigwig_allfrag_rpsm:
 	input:
