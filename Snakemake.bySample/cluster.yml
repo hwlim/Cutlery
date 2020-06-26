@@ -38,7 +38,7 @@ make_bigwig_allfrag:
     memory      : 10000
 
 make_fragment:
-    memory      : 6000
+    memory      : 10000
 
 make_spikeintable:
     name        : "{rule}"

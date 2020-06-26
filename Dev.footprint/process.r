@@ -41,6 +41,7 @@ if(FALSE){
 	## Homer motif dir
 	src.motifDir="TestData/hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.bed.all.noBG/"
 	src.peak="TestData/hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.bed"
+	outPrefix="./footprint"
 	minTargetPercent = 10
 	maxMotifCount = 10
 	genome="hg19"
