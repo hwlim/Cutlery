@@ -1,0 +1,66 @@
+Warning message:
+package ‘S4Vectors’ was built under R version 3.6.3 
+=================================
+Visualizing ChIP-exo data
+=================================
+Title = footprint.2.01.Motif01_SOX15.select
+Genome = homer_hg19
+Anchor Bed = TestOut/footprint.2.01.Motif01_SOX15.select.bed
+BigWig Prefix = TestData/hESC_Sox2
+yMax = 0.000 / 0.000
+
+1) Extracting genomie DNA sequences:
+	seqMargin = 20
+	des = TestOut/footprint.3.01.Motif01_SOX15/CnR.fa
+
+	Extracting sequences from directory: /Users/hwlim/Program/Homer/.//data/genomes/hg19/
+	Extracting 2197 sequences from chr1
+	Extracting 2231 sequences from chr2
+	Extracting 1967 sequences from chr3
+	Extracting 1657 sequences from chr4
+	Extracting 1711 sequences from chr5
+	Extracting 1686 sequences from chr6
+	Extracting 1520 sequences from chr7
+	Extracting 1267 sequences from chr8
+	Extracting 1068 sequences from chr9
+	Extracting 1208 sequences from chr10
+	Extracting 1218 sequences from chr11
+	Extracting 1287 sequences from chr12
+	Extracting 861 sequences from chr13
+	Extracting 771 sequences from chr14
+	Extracting 715 sequences from chr15
+	Extracting 612 sequences from chr16
+	Extracting 611 sequences from chr17
+	Extracting 686 sequences from chr18
+	Extracting 353 sequences from chr19
+	Extracting 512 sequences from chr20
+	Extracting 239 sequences from chr21
+	Extracting 322 sequences from chr22
+	Extracting 812 sequences from chrX
+	Extracting 45 sequences from chrY
+2) Extracting ChIP-exo profile:
+	exoMargin = 50
+	plus = TestOut/footprint.3.01.Motif01_SOX15/CnR.profile.plus.gz
+	minus = TestOut/footprint.3.01.Motif01_SOX15/CnR.profile.minus.gz
+	- Sorting by ChIP-exo signal (not by xcor but by signal sum)
+3) Drawing
+null device 
+          1 
+
+Attaching package: ‘gplots’
+
+The following object is masked from ‘package:IRanges’:
+
+    space
+
+The following object is masked from ‘package:S4Vectors’:
+
+    space
+
+The following object is masked from ‘package:stats’:
+
+    lowess
+
+null device 
+          1 
+Converting PDF to PNG

@@ -1,0 +1,65 @@
+Warning message:
+package ‘S4Vectors’ was built under R version 3.6.3 
+=================================
+Visualizing ChIP-exo data
+=================================
+Title = footprint.2.04.Motif04_CTCF.select
+Genome = homer_hg19
+Anchor Bed = TestOut/footprint.2.04.Motif04_CTCF.select.bed
+BigWig Prefix = TestData/hESC_Sox2
+yMax = 0.000 / 0.000
+
+1) Extracting genomie DNA sequences:
+	seqMargin = 20
+	des = TestOut/footprint.3.04.Motif04_CTCF/CnR.fa
+
+	Extracting sequences from directory: /Users/hwlim/Program/Homer/.//data/genomes/hg19/
+	Extracting 306 sequences from chr1
+	Extracting 242 sequences from chr2
+	Extracting 225 sequences from chr3
+	Extracting 178 sequences from chr4
+	Extracting 183 sequences from chr5
+	Extracting 219 sequences from chr6
+	Extracting 165 sequences from chr7
+	Extracting 120 sequences from chr8
+	Extracting 131 sequences from chr9
+	Extracting 138 sequences from chr10
+	Extracting 145 sequences from chr11
+	Extracting 175 sequences from chr12
+	Extracting 90 sequences from chr13
+	Extracting 121 sequences from chr14
+	Extracting 100 sequences from chr15
+	Extracting 83 sequences from chr16
+	Extracting 110 sequences from chr17
+	Extracting 64 sequences from chr18
+	Extracting 75 sequences from chr19
+	Extracting 89 sequences from chr20
+	Extracting 28 sequences from chr21
+	Extracting 43 sequences from chr22
+	Extracting 70 sequences from chrX
+2) Extracting ChIP-exo profile:
+	exoMargin = 50
+	plus = TestOut/footprint.3.04.Motif04_CTCF/CnR.profile.plus.gz
+	minus = TestOut/footprint.3.04.Motif04_CTCF/CnR.profile.minus.gz
+	- Sorting by ChIP-exo signal (not by xcor but by signal sum)
+3) Drawing
+null device 
+          1 
+
+Attaching package: ‘gplots’
+
+The following object is masked from ‘package:IRanges’:
+
+    space
+
+The following object is masked from ‘package:S4Vectors’:
+
+    space
+
+The following object is masked from ‘package:stats’:
+
+    lowess
+
+null device 
+          1 
+Converting PDF to PNG

@@ -18,7 +18,8 @@ option_list <- list(
 	make_option(c("-t","--minTargetPercent"), default=10, help="Minimum target % for motif selection, default=10"),
 	make_option(c("-n","--motifCnt"), default=10, help="Maximum motif count to consider, default=10"),
 	make_option(c("-g","--genome"), default=NULL, help="Genome for Homer. If not specified, parameters from Homer motif directory (motifFindingParameters.txt) is retrieved."),
-	make_option(c("-b","--bwPrefix"), default=NULL, help="BigWig file prefix assuming <prefix>.{plus,minus}.bw, Required")
+	make_option(c("-b","--bwPrefix"), default=NULL, help="BigWig file prefix assuming <prefix>.{plus,minus}.bw, Required"),
+	make_option(c("-p","--parallel"), default=1, help="Number of thread to use for parallel processing for visualization, default=1")
 )
 parser <- OptionParser(usage = "%prog [options] <bed> <Homer motif dir>", option_list=option_list)
 arguments <- parse_args(parser, positional_arguments = TRUE)
@@ -26,26 +27,32 @@ if(length(arguments$args) == 0) {
 	print_help(parser)
 	stop("Error: Requires a data file")
 } else {
-	dataFile <- arguments$args[1]
+	src.peak = arguments$args[1]
+	src.motifdir = = arguments$args[2]
 }
 
 # Option handling
 opt=arguments$options
 
-xLabel=opt$xlabel
-yLabel=opt$ylabel
-mainTitle=opt$title
+outPrefix=opt$outPrefix
+name=opt$name
+minTargetPercent=opt$minTargetPercent
+maxMotifCount=opt$maxMotifCount
+genome=opt$genome
+bwPrefix=opt$bwPrefix
+parallel=opt$parallel
 
 
 if(FALSE){
-	## Homer motif dir
-	src.motifDir="TestData/hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.bed.all.noBG/"
 	src.peak="TestData/hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.bed"
-	outPrefix="./footprint"
+	src.motifDir="TestData/hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.bed.all.noBG/"
+	outPrefix="TestOut/footprint"
+	name="hESC_SOX2"
 	minTargetPercent = 10
 	maxMotifCount = 10
-	genome="hg19"
+	genome=NULL
 	bwPrefix="TestData/hESC_Sox2"
+	parallel=2
 }
 
 motifDir=sprintf("%s/homerResults", src.motifDir)
@@ -59,6 +66,15 @@ if(is.null(genome)){
 	assertFileExist(sprintf("%s/motifFindingParameters.txt", src.motifDir))
 	tmp = read.delim(sprintf("%s/motifFindingParameters.txt", src.motifDir), header=FALSE, sep=" ", stringsAsFactors=FALSE)
 	genome = tmp[1,4]
+}
+
+## number of core to use
+library("foreach")
+library("doParallel")
+N.core = detectCores()
+if(parallel > N.core){
+	write(sprintf("Warning: only %d cores available, reduce parallel from %d to %d", N.core, parallel, N.core), stderr())
+	parallel = N.core
 }
 
 desDir=dirname(outPrefix)
@@ -149,7 +165,7 @@ for( i in 1:maxMotifCount ){
 ###############################
 ## Motif scan
 ## Retain motif loci only; Discard peak annotation result
-cmd=sprintf("annotatePeaks.pl %s %s -m %s -noann -nogene -mbed %s > /dev/null", src.peak, genome, src.motifCollection, src.motifLoci)
+cmd=sprintf("annotatePeaks.pl %s %s -m %s -noann -nogene -mbed %s -cpu %d > /dev/null", src.peak, genome, src.motifCollection, src.motifLoci, parallel)
 system(cmd)
 data.scan = read.delim(src.motifLoci, header=FALSE, skip=1, stringsAsFactors=FALSE)
 motifL = unique(data.scan[,4])
@@ -161,18 +177,23 @@ N.motif = length(motifL)
 
 ## Function to measure footprint contrast
 ## i.e. MNase digestion within anchor region vs flanking margins
+## NOTE: This routin assums all the anchor regions are the same size
+## PLAN: allow variable sized anchor windows
 getFootprintContrast=function(anchor, margin, bwPrefix, pseudo=0.1){
 
 	## check if 4th column contains unique id. If not, reasign
 	if( length(unique(anchor[,4])) != nrow(anchor) ){
 		anchor = data.frame( anchor[,1:3], sprintf("%s:%d", anchor[,4], 1:nrow(anchor)), anchor[,c(5,6,4)] )
 	}
+	## anchor window size check if all the same
+	anchorSize=anchor[1,3] - anchor[1,2]
+	if(any(anchor[,3]-anchor[,2] != anchorSize)) stop("Window size are not the same")
+
 	anchor.ext = anchor
 	anchor.ext[,2] = anchor[,2] - margin
 	anchor.ext[,3] = anchor[,3] + margin
 	anchor.ext[,5] = 0
 	anchor.ext[,6] = "+"
-	anchorSize=anchor[1,3] - anchor[1,2]
 	src.bwPlus=sprintf("%s.plus.bw", bwPrefix)
 	src.bwMinus=sprintf("%s.minus.bw", bwPrefix)
 
@@ -203,13 +224,11 @@ srcL.selectedAnchor=list()
 for( i in 1:N.motif ){
 	# i=1
 	motifName =  motifL[i]
-	#src.anchor = sprintf("%s.%02d.%s.1.scan.bed", outPrefix, i, motifName)
 	src.selectedAnchor = sprintf("%s.2.%02d.%s.select.bed", outPrefix, i, motifName)
 
 	write(sprintf("  - Checking %s", motifName), stderr())
 	anchor = data.scan[data.scan[,4]==motifName,]
 	anchor[,4] = sprintf("%s:%d", anchor[,4], 1:nrow(anchor))
-	#write.table(anchor, src.anchor, row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
 
 	## Contrast
 	contrast = getFootprintContrast(anchor, margin, bwPrefix, pseudo=0.1)
@@ -224,14 +243,38 @@ for( i in 1:N.motif ){
 ####################################
 ## Footprint visualization
 write(sprintf("Visualizing footprint"), stderr())
-for( i in 1:N.motif ){
-	# i=1
-	motifName = motifL[i]
-	if( ! motifName %in% names(srcL.selectAnchor) ) next
-	src.selectedAnchor = srcL.selectedAnchor[i]
 
-	write(sprintf("  - Processing %s: %s", motifName, src.selectedAnchor), stderr())
-	cmd=sprintf("idom.visualizeExoBed.r -o %s.3.%02d.%s -g homer_%s -f -s %s %s", outPrefix, i, motifname, genome, src.selectedAnchor, bwPrefix)
-	write(sprintf("\t%s", cmd, stderr())
-	system(cmd)
+if(parallel > 1){
+	write(sprintf("Processing in parallel: N=%d", parallel), stderr())
+	registerDoParallel(parallel)  # use multicore, set to the number of our cores
+
+	foreach( i=1:N.motif ) %dopar% {
+		motifName = motifL[i]
+		if( ! motifName %in% names(srcL.selectedAnchor) ) next
+		src.selectedAnchor = srcL.selectedAnchor[i]
+
+		write(sprintf("  - Processing %s: %s", motifName, src.selectedAnchor), stderr())
+		vizPrefix=sprintf("%s.3.%02d.%s/CnR", outPrefix, i, motifName)
+		system(sprintf("mkdir -p %s.3.%02d.%s", outPrefix, i, motifName))
+		cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -f -s %s %s 2>&1 | tee %s.log", vizPrefix, genome, src.selectedAnchor, bwPrefix, vizPrefix)
+		write(sprintf("\t%s", cmd), stderr())
+		system(cmd)
+	}
+}else{
+	write(sprintf("Processing in serial"), stderr())
+
+	for( i in 1:N.motif ){
+		motifName = motifL[i]
+		if( ! motifName %in% names(srcL.selectedAnchor) ) next
+		src.selectedAnchor = srcL.selectedAnchor[i]
+
+		write(sprintf("  - Processing %s: %s", motifName, src.selectedAnchor), stderr())
+		vizPrefix=sprintf("%s.3.%02d.%s/CnR", outPrefix, i, motifName)
+		system(sprintf("mkdir -p %s.3.%02d.%s", outPrefix, i, motifName))
+		cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -f -s %s %s 2>&1 | tee %s.log", vizPrefix, genome, src.selectedAnchor, bwPrefix, vizPrefix)
+		write(sprintf("\t%s", cmd), stderr())
+		system(cmd)
+	}
 }
+
+
