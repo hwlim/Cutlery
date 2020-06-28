@@ -28,7 +28,7 @@ if(length(arguments$args) == 0) {
 	stop("Error: Requires a data file")
 } else {
 	src.peak = arguments$args[1]
-	src.motifdir = = arguments$args[2]
+	src.motifDir = arguments$args[2]
 }
 
 # Option handling
@@ -277,4 +277,7 @@ if(parallel > 1){
 	}
 }
 
+q()
 
+cmd=sprintf("idom.visualizeExoBed.r -o test.system -g homer_hg19 -f -s TestData/test.bed TestData/hESC_Sox2")
+ret = system(cmd)
