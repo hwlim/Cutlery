@@ -16,8 +16,8 @@ option_list <- list(
 	make_option(c("-o","--outPrefix"), default="cnr_footprint", help="Output prefix, default=cnr_footprint"),
 	make_option(c("-n","--name"), default="NULL", help="Data name, default=<peak file name without suffix>"),
 	make_option(c("-t","--minTargetPercent"), default=10, help="Minimum target % for motif selection, default=10"),
-	make_option(c("-n","--motifCnt"), default=10, help="Maximum motif count to consider, default=10"),
-	make_option(c("-g","--genome"), default=NULL, help="Genome for Homer. If not specified, parameters from Homer motif directory (motifFindingParameters.txt) is retrieved."),
+	make_option(c("-m","--maxMotifCount"), default=10, help="Maximum motif count to consider, default=10"),
+	make_option(c("-g","--genome"), default=NULL, help="Genome for Homer. e.g. hg38 or mm10. If not specified, parameters from Homer motif directory (motifFindingParameters.txt) is retrieved."),
 	make_option(c("-b","--bwPrefix"), default=NULL, help="BigWig file prefix assuming <prefix>.{plus,minus}.bw, Required"),
 	make_option(c("-p","--parallel"), default=1, help="Number of thread to use for parallel processing for visualization, default=1")
 )
@@ -128,6 +128,8 @@ parseHomerMotifHeader=function(hdr){
 
 ###############################
 ## Select motif sets for footprint visualization from Homer motif directory
+write(sprintf("Collect motifs to scan:\n\tN = %d\n\tMin. target %% > %d %%", maxMotifCount, minTargetPercent), stderr())
+
 append=FALSE
 motifNameSelectL=NULL
 for( i in 1:maxMotifCount ){
@@ -165,6 +167,7 @@ for( i in 1:maxMotifCount ){
 ###############################
 ## Motif scan
 ## Retain motif loci only; Discard peak annotation result
+write(sprintf("Scanning motifs"), stderr())
 cmd=sprintf("annotatePeaks.pl %s %s -m %s -noann -nogene -mbed %s -cpu %d > /dev/null", src.peak, genome, src.motifCollection, src.motifLoci, parallel)
 system(cmd)
 data.scan = read.delim(src.motifLoci, header=FALSE, skip=1, stringsAsFactors=FALSE)
@@ -178,7 +181,8 @@ N.motif = length(motifL)
 ## Function to measure footprint contrast
 ## i.e. MNase digestion within anchor region vs flanking margins
 ## NOTE: This routin assums all the anchor regions are the same size
-## PLAN: allow variable sized anchor windows
+## PLAN:
+##	- allow variable sized anchor windows
 getFootprintContrast=function(anchor, margin, bwPrefix, pseudo=0.1){
 
 	## check if 4th column contains unique id. If not, reasign
@@ -218,6 +222,9 @@ getFootprintContrast=function(anchor, margin, bwPrefix, pseudo=0.1){
 
 ####################################
 ## Filtering by footprint contrast
+## PLAN:
+##	- parallelize
+
 write(sprintf("Checking footprint contrast"), stderr())
 margin=20
 srcL.selectedAnchor=list()
@@ -243,14 +250,14 @@ for( i in 1:N.motif ){
 ####################################
 ## Footprint visualization
 write(sprintf("Visualizing footprint"), stderr())
-
+stopifnot(all(names(srcL.selectedAnchor) %in% motifL))
+ind.select = match(names(srcL.selectedAnchor), motifL)
 if(parallel > 1){
 	write(sprintf("Processing in parallel: N=%d", parallel), stderr())
 	registerDoParallel(parallel)  # use multicore, set to the number of our cores
 
-	foreach( i=1:N.motif ) %dopar% {
+	ret = foreach( i=ind.select ) %dopar% {
 		motifName = motifL[i]
-		if( ! motifName %in% names(srcL.selectedAnchor) ) next
 		src.selectedAnchor = srcL.selectedAnchor[i]
 
 		write(sprintf("  - Processing %s: %s", motifName, src.selectedAnchor), stderr())
@@ -260,12 +267,12 @@ if(parallel > 1){
 		write(sprintf("\t%s", cmd), stderr())
 		system(cmd)
 	}
+	retL = unlist(ret)
 }else{
 	write(sprintf("Processing in serial"), stderr())
-
-	for( i in 1:N.motif ){
+	retL = NULL
+	for( i in 1:ind.selet ){
 		motifName = motifL[i]
-		if( ! motifName %in% names(srcL.selectedAnchor) ) next
 		src.selectedAnchor = srcL.selectedAnchor[i]
 
 		write(sprintf("  - Processing %s: %s", motifName, src.selectedAnchor), stderr())
@@ -273,9 +280,11 @@ if(parallel > 1){
 		system(sprintf("mkdir -p %s.3.%02d.%s", outPrefix, i, motifName))
 		cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -f -s %s %s 2>&1 | tee %s.log", vizPrefix, genome, src.selectedAnchor, bwPrefix, vizPrefix)
 		write(sprintf("\t%s", cmd), stderr())
-		system(cmd)
+		ret = system(cmd)
+		retL = c(retL, ret)
 	}
 }
+
 
 q()
 
