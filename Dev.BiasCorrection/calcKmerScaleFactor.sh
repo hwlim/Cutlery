@@ -10,7 +10,7 @@ function printUsage {
 	echo -e "Usage: `basename $0` <k-mer count file>
 Description: Calculate scaling factor based on given kmer counts
 Options:
-	-g: genomic k-mer counts file
+	-g: genomic k-mer counts file, two columns (kmer / count)
 	-p: pseudo count, default=1
 	-v: Verbose mode
 Input:
@@ -58,7 +58,7 @@ while getopts ":g:p:v" opt; do
 done
 
 shift $((OPTIND-1))
-if [ $# -lt 2 ];then
+if [ $# -lt 1 ];then
 	printUsage
 	exit 1
 fi
@@ -67,15 +67,17 @@ src_kmer=$1
 assertFileExist $src_kmer $src_kmer_genome
 
 ## k-mer length validation
+set +o pipefail
 kmer_len_sample=`head -n 1 $src_kmer | gawk '{ printf "%d", length($1) }'`
-kmer_len_genome=`head -n 1 $src_kmer_genome | gawk '{ printf "%d", length($2) }'`
+kmer_len_genome=`head -n 1 $src_kmer_genome | gawk '{ printf "%d", length($1) }'`
+set -o pipefail
 if [ $kmer_len_sample -ne $kmer_len_genome ];then
 	echo -e "Error: k-mer length does not match between input file vs genome" >&2
-	exi 1
+	exit 1
 fi
 
 ## Total k-mer counts in genome
-ttcGennome=`cat $src_kmer_genome | gawk 'BEGIN{s=0}{ s = s + $3 + $4 }END{ printf "%d", s }'`
+ttcGenome=`cat $src_kmer_genome | gawk 'BEGIN{s=0}{ s = s + $2 }END{ printf "%d", s }'`
 
 ## Number of k-mers
 N_kmer=`cat $src_kmer_genome | grep -v ^$ | wc -l`
@@ -90,18 +92,19 @@ if [ "${verbose}" = "TRUE" ];then
 	echo -e "  - k-mer count = $src_kmer" >&2
 	echo -e "  - Genomic k-mer count = $src_kmer_genome" >&2
 	echo -e "  - k-mer length = $kmer_len_sample" >&2
+	echo -e "  - pseudo count = $pseudo" >&2
 fi
 
 ## src_kmer_genome file contents
-# 1	AAAAAA	5328209	5076870
+## kmer / count
 cat $src_kmer_genome \
 	| gawk 'BEGIN{
-			while(getline < "'${kmerCnt}'"){ cntDic[$1]=$2 }
+			while(getline < "'${src_kmer}'"){ cntDic[$1]=$2 }
 			ttc='$ttc'; ttcGenome='$ttcGenome'; pseudo='$pseudo';
 		}
 		{
-			kmer=$2
-			cntGenome = $3 + $4
+			kmer=$1
+			cntGenome = $2
 			if( kmer in cntDic ){
 				cnt = cntDic[kmer] + pseudo
 			}else{

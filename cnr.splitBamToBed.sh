@@ -13,9 +13,13 @@
 
 #########################
 # Not to considering for future revision
-# Currently, read1/read2 in a bed file are not actual Read1/Read2 from the origianl bam file
-# Instead, read1 is left side read and read2 is right side read after alignment.
-# We may need a minor revision to preserve Read1/Read2 information in the final bed file
+# - Currently, read1/read2 in a bed file are not actual Read1/Read2 from the origianl bam file
+#	Instead, read1 is left side read and read2 is right side read after alignment.
+# 	We may need a minor revision to preserve Read1/Read2 information in the final bed file
+# - Protrusion handling
+#	Currently, protrusion is appropriately handled in making fragment bed file
+#	However, it is not being handled in creating seprate (sep) bed file
+#	Each read (R1/R2) files start/end coordinate should be correced in consistent with fragments
 
 
 
