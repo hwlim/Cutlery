@@ -4,7 +4,7 @@
 ########################################################################################
 # Calculate average base frequency in background reads for both of ChIP-exo and seq
 
-trap 'if [ `ls -1 __temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
+trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPIR}/__temp__.$$.*; fi' EXIT
 source commonBash.sh
 
 

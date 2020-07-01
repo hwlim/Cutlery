@@ -3,29 +3,44 @@
 ###########################################################
 # Scale factor calculation using k-mer count from ChIP-exo data & genomewide count
 trap 'if [ `ls -1 __temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
-source $MYBASHLIB/commonBash.sh
-# kmerCnt
-# kmerCntGenome
-# scaleFactor
-
+source $COMMON_LIB_BASE/commonBash.sh
 
 
 function printUsage {
-	echo -e "Usage: `basename $0` <kmerCntGenome> <kmerCnt>" >&2
-	echo -e "Description: Calculate scaling factor based on given kmer counts" >&2
-	echo -e "Options:" >&2
-	echo -e "\t-v : Verbose mode" >&2
-	echo -e "Output:" >&2
-	echo -e "\tFour column output (kmer / scale factor / exo-Kmer / genome-Kmer) in STDOUT" >&2
+	echo -e "Usage: `basename $0` <k-mer count file>
+Description: Calculate scaling factor based on given kmer counts
+Options:
+	-g: genomic k-mer counts file
+	-p: pseudo count, default=1
+	-v: Verbose mode
+Input:
+	Two column text file containing:
+	1. k-mer sequence (in all upper case)
+	2. k-mer count
+	without header
+Output:
+	Four column output to STDOUT without header
+	1. k-mer
+	2. scale factor (for multiply)
+	3. sample k-mer count
+	4. genomic k-mer count" >&2
 }
 
 
 
 ###################################
 ## option and input file handling
+src_kmer_genome=NULL
+pseudo=1
 verbose=FALSE
-while getopts ":v" opt; do
+while getopts ":g:p:v" opt; do
 	case $opt in
+		g)
+			src_kmer_genome=$OPTARG
+			;;
+		p)
+			pseudo=$OPTARG
+			;;
 		v)
 			verbose=TRUE
 			;;
@@ -48,43 +63,54 @@ if [ $# -lt 2 ];then
 	exit 1
 fi
 
-kmerCntGenome=$1
-kmerCnt=$2
+src_kmer=$1
+assertFileExist $src_kmer $src_kmer_genome
 
-assertFileExist $kmerCnt $kmerCntGenome
-
-
-pseudo=1
-
-ttcGen=`cat $kmerCntGenome | gawk 'BEGIN{s=0}{ s=s+$3 }END{ printf "%d", s }'`
-N_kmer=`cat $kmerCntGenome | wc -l`
-ttcExo=`cat $kmerCnt | grep -v N | gawk 'BEGIN{s=0}{ s=s+$2 }END{ printf "%d", s + '${N_kmer}'*'${pseudo}' }'`
-# Pseudo-count 1 is added for each frequency value of k-mer
-
-if [ "${verbose}" = "TRUE" ];then
-	echo -e "==============================================">&2
-	echo -e "Calculating scale factors by K-mer Total Counts" >&2
-	echo -e "  Exo = $ttcExo" >&2
-	echo -e "  Genome = $ttcGen" >&2
+## k-mer length validation
+kmer_len_sample=`head -n 1 $src_kmer | gawk '{ printf "%d", length($1) }'`
+kmer_len_genome=`head -n 1 $src_kmer_genome | gawk '{ printf "%d", length($2) }'`
+if [ $kmer_len_sample -ne $kmer_len_genome ];then
+	echo -e "Error: k-mer length does not match between input file vs genome" >&2
+	exi 1
 fi
 
-## kmerCntGenome file contents
+## Total k-mer counts in genome
+ttcGennome=`cat $src_kmer_genome | gawk 'BEGIN{s=0}{ s = s + $3 + $4 }END{ printf "%d", s }'`
+
+## Number of k-mers
+N_kmer=`cat $src_kmer_genome | grep -v ^$ | wc -l`
+
+## Total k-mer counts from sample; pseudo counts are added in calculating total read counts except for k-mers containing 'N'
+ttc=`cat $src_kmer | grep -v -e N | gawk 'BEGIN{s=0}{ s=s+$2 }END{ printf "%d", s + '${N_kmer}'*'${pseudo}' }'`
+
+if [ "${verbose}" = "TRUE" ];then
+	echo -e "================================================">&2
+	echo -e "Calculating k-mer scale factors" >&2
+	echo -e "  - Total read counts = $ttc" >&2
+	echo -e "  - k-mer count = $src_kmer" >&2
+	echo -e "  - Genomic k-mer count = $src_kmer_genome" >&2
+	echo -e "  - k-mer length = $kmer_len_sample" >&2
+fi
+
+## src_kmer_genome file contents
 # 1	AAAAAA	5328209	5076870
-cat $kmerCntGenome \
+cat $src_kmer_genome \
 	| gawk 'BEGIN{
 			while(getline < "'${kmerCnt}'"){ cntDic[$1]=$2 }
-			ttcExo='$ttcExo'; ttcGen='$ttcGen';
+			ttc='$ttc'; ttcGenome='$ttcGenome'; pseudo='$pseudo';
 		}
 		{
-			if( $2 in cntDic ){
-				cnt = cntDic[$2] + '${pseudo}'
+			kmer=$2
+			cntGenome = $3 + $4
+			if( kmer in cntDic ){
+				cnt = cntDic[kmer] + pseudo
 			}else{
-				cnt = '${pseudo}'
+				cnt = pseudo
 			}
-			exo=cnt/ttcExo
-			gen=$3/ttcGen
-			factor= gen / exo
-			printf "%s\t%.6f\t%d\t%d\n", $2, factor, cnt, $3
 
+			ratioSample = cnt / ttc
+			ratioGenome = cntGenome / ttcGenome
+			scaleFactor = ratioGenome / ratioSample
+			printf "%s\t%.6f\t%d\t%d\n", kmer, scaleFactor, cnt, cntGenome
 		}'
 
