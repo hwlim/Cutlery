@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+trap 'if [ `ls -1 __temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm __temp__.$$.*; fi' EXIT
+source $MYBASHLIB/commonBash.sh
+
+##############################################################
+# Extract k-mer sequences around 5'-end of aligned reads
+# and calculate frequency of unique k-mers
+# If mask bed file is given, reads within the mask regions are considred only.
+
+
+function printUsage {
+	echo -e "Usage: `basename $0` (options) <input file>" >&2
+	echo -e "Input:" >&2
+	echo -e "\tgzipped bed file or \"stdin\" to use /dev/stdin" >&2
+	echo -e "Options:" >&2
+	echo -e "\t-k <k_up,k_down>: Comma-separated k_up and k_down" >&2
+	echo -e "\t-g <genome>: Genome" >&2
+	echo -e "\t-v : Verbose mode" >&2
+	echo -e "Output:" >&2
+	echo -e "\tTwo column output (kmer and count) in STDOUT, sorted by k-mers" >&2
+}
+
+
+###################################
+## option and input file handling
+kmerStr=""
+genome=NULL
+verbose=FALSE
+while getopts ":k:g:v" opt; do
+	case $opt in
+		k)
+			kmerStr=$OPTARG
+			;;
+		g)
+			genome=$OPTARG
+			;;
+		v)
+			verbose=TRUE
+			;;
+		\?)
+			echo "Invalid options: -$OPTARG" >&2
+			printUsage
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			printUsage
+			exit 1
+			;;
+	esac
+done
+
+shift $((OPTIND-1))
+if [ $# -eq 0 ];then
+	printUsage
+	exit 1
+fi
+
+
+src=$1
+if [ "${src}" = "stdin" ];then
+	src=/dev/stdin
+else
+	assertFileExist ${src}
+fi
+chromSize=~/Research/Common_Data/${genome}/chrom.sizes
+genomeFa=~/Research/Common_Data/${genome}/Genome/genome.fa
+assertFileExist $chromSize $genomeFa
+
+
+N_k=`echo $kmerStr | gawk -F "," '{ print NF }'`
+if [ "$kmerStr" = "" ] || [ $N_k -ne 2 ];then
+	echo "Error: Incorrerct k-mer format ($kmerStr)" >&2
+	exit 1
+fi
+kmer_up=`echo $kmerStr | cut -d "," -f 1`
+kmer_dn=`echo $kmerStr | cut -d "," -f 2`
+kmer=`echo -e "${kmer_up}\t${kmer_dn}" | gawk '{ print $1 + $2 }'`
+
+
+
+if [ "${verbose}" = "TRUE" ];then
+	echo -e "==============================================">&2
+	echo -e "Count K-mers at 5'-end" >&2
+	echo -e "  Input = $src" >&2
+	echo -e "  k-mer = $kmer_up / $kmer_dn" >&2
+	echo -e "  genome = ${genome}" >&2
+fi
+
+
+cmdCat=zcat
+if [ "$src" = "/dev/stdin" ];then
+	cmdCat=cat
+fi
+
+$cmdCat $src \
+	| gawk '{ if($6=="+"){ c=$2 }else{ c=$3 } if(c!=0) printf "%s\t%d\t%d\t%s\t%s\t%s\n", $1,c,c,$4,$5,$6 }' \
+	| slopBed -i stdin -g $chromSize -s -l ${kmer_up} -r ${kmer_dn} \
+	| gawk '$3-$2=='$kmer'' \
+	| bedtools getfasta -fi $genomeFa -bed stdin -fo /dev/stdout -s -tab -name \
+	| cut -f 2 \
+	| tr '[a-z]' '[A-Z]' \
+	| gawk '{
+			if( $1 in cntDic ){
+				cntDic[$1] = cntDic[$i] + 1
+			}else{
+				cntDic[$1] = 1
+			}
+		}
+		END{
+			for( seq in cntDic ) printf "%s\t%d\n", seq, cntDic[seq]
+		}' \
+	| sort -k1,1 
