@@ -6,6 +6,12 @@
 ################################################
 
 
+################################################
+## TODO:
+##	1. required file validataion
+##	2, required variables validation
+
+
 
 #################################
 ## Default values for undefined variables in Snakefile
@@ -179,6 +185,45 @@ rule make_bigwig1bp:
 		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -c "{chrRegexTarget}" -m 5G {input}
 		"""
 #		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
+
+
+
+## Count k-mer frequency & Calculate k-mer correction scale factor
+rule calc_kmer_scale:
+	input:
+		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+	output:
+		freq = sampleDir + "/{sampleName}/QC/kmer.freq.txt",
+		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.txt"
+	message:
+		"Checking baseFrequency... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		countKmersFromAlign.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -f -v {input} > {output.freq}
+		calcKmerScaleFactor.sh -g {kmer_genome} -p {kmer_pseudo} -v > {output.scale}
+		"""
+
+
+rule make_bigwig1bp_corrected:
+	input:
+		sampleDir + "/{sampleName}/igv.1bp.plus.bw",
+		sampleDir + "/{sampleName}/igv.1bp.minus.bw",
+		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.txt"
+	output:
+		sampleDir + "/{sampleName}/igv.1bp.corrected.plus.bw",
+		sampleDir + "/{sampleName}/igv.1bp.corrected.minus.bw"
+	message:
+		"Making 1bp-resolution bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "5G"
+	shell:
+		"""
+		module load CnR/1.0
+		correctKmerBiasBW.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -k {input.scale} \
+			-o {sampleDir}/{wildcards.sampleName}/igv.1bp.corrected \
+			{sampleDir}/{wildcards.sampleName}/igv.1bp
+		"""
 
 rule make_bigwig_allfrag:
 	input:

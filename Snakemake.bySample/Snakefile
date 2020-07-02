@@ -62,6 +62,13 @@ qcDir		= "2.1.QualityControl"
 
 sampleDir	= "3.Sample"
 
+#########################################
+## Parameters for k-mer bias correction
+kmer_genome	= "<file containing genomewide k-mer counts>"
+kmer_pseudo	= 1
+
+
+
 '''
 fclDir		= "1.4.Align.fcl"
 baseFreqDir = filteredDir + "/BaseFreq"
@@ -131,8 +138,8 @@ rule all:
 		#spikeinCntDir + "/spikein.txt"
 		## bigWig files	
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
-		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(),
-																strand=["plus","minus"]),
+		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
+		expand(sampleDir + "/{sampleName}/igv.1bp.corrected.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
 		expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=samples.Name.tolist()),
 		## peak files
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
