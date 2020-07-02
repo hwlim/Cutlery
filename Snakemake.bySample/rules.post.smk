@@ -27,7 +27,6 @@ if "bamDir" not in locals():
 		bamDir = filteredDir
 
 
-
 #################################
 ## Rule Start
 
