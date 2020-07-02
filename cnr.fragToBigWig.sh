@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# command-line application template
+## PLAN
+## -c chrRegex option for chromosome selection
 
 source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT

@@ -135,6 +135,8 @@ rule make_spikeintable:
 		makeSpikeCntTable.r -o {spikeinCntDir}/spikein {input}
 		"""
 
+## NOTE: input fragments are already chromosome-filtered in split step
+##	However, planning to add chrRegex option to cnr.fragToBigWig for better readibility & compatibility
 rule make_bigwig:
 	input:
 		all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz",
@@ -162,7 +164,8 @@ rule make_bigwig:
 ## 		Thus needs an update in command line
 rule make_bigwig1bp:
 	input:
-		sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
+		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/igv.1bp.plus.bw",
 		sampleDir + "/{sampleName}/igv.1bp.minus.bw"
@@ -173,8 +176,9 @@ rule make_bigwig1bp:
 	shell:
 		"""
 		module load CnR/1.0
-		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
+		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -c "{chrRegexTarget}" -m 5G {input}
 		"""
+#		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
 rule make_bigwig_allfrag:
 	input:
