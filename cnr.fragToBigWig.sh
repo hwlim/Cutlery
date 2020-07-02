@@ -11,7 +11,7 @@ Description: Make a bigWig file from a fragment BED file in RPM scale (default) 
 **Note that this only considers chromosome names starting with chr
 Options:
 	-o <outFile>: Destination directory. required
-	-g <genome>: genome or chromosome size file, default=NULL
+	-g <chromSIze>: chromosome size file, required
 	-m <memory>: memory size for sorting bedGraph file, default=5G
 	-s <scale factor>: Manual scaling factor. This value is multiplied to \"raw read count\" primarily for spike-in based scaling.
 			If 0, RPM normalized. default=0" >&2
@@ -75,11 +75,7 @@ if [ "$des" == "NULL" ];then
 	exit 1
 fi
 
-if [ -f $genome ];then
-	chrom=${genome}
-else
-	chrom=~/Research/Common_Data/${genome}/chrom.sizes
-fi
+assertFileExist $genome
 
 ###################################
 ## main code
@@ -96,7 +92,6 @@ printBed(){
 	fi
 }
 
-assertFileExist $chrom
 
 desDir=`dirname $des`
 mkdir -p $desDir
@@ -107,7 +102,7 @@ tmpBW=${TMPDIR}/__temp__.$$.bw
 echo -e "Creating BigWig file from a fragment bed file" >&2
 echo -e "- src = $src" >&2
 echo -e "- des = $des" >&2
-echo -e "- genome = $genome" >&2
+echo -e "- chromSize = $genome" >&2
 
 if [ $scaleFactor == "0" ];then
 	echo -e "  1) Calculating scale factor for RPM normalization" >&2
@@ -122,11 +117,11 @@ fi
 echo -e "  2) Making bedGraph file" >&2
 printBed $src \
 	| sort -S $memory -k1,1 -k2,2n -k3,3n \
-	| genomeCoverageBed -bg -scale $scaleFactor -g $chrom -i stdin \
+	| genomeCoverageBed -bg -scale $scaleFactor -g $genome -i stdin \
 	| gawk '{ printf "%s\t%s\t%s\t%.5f\n", $1,$2,$3,$4 }' \
 	> $tmpBG
 
 echo -e "  3) Converting to bigWig file" >&2
-bedGraphToBigWig ${tmpBG} $chrom ${tmpBW}
+bedGraphToBigWig ${tmpBG} $genome ${tmpBW}
 mv ${tmpBW} ${des}
 
