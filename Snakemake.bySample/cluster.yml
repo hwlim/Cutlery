@@ -34,22 +34,20 @@ make_bigwig:
 make_bigwig1bp:
     memory      : 10000
 
-make_bigwig_allfrag:
-    memory      : 10000
+calc_kmer_scale:
+    cpu         : 3
 
-make_fragment:
+make_bigwig1bp_corrected:
+    memory      : 10000
+    cpu         : 3
+
+make_bigwig_allfrag:
     memory      : 10000
 
 make_spikeintable:
     name        : "{rule}"
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
-
-make_bigwig_avg:
-    memory      : 30000
-    name        : "{rule}.{wildcards.groupName}"
-    output      : "logs/{rule}.{wildcards.groupName}.out"
-    error       : "logs/{rule}.{wildcards.groupName}.err"
 
 run_homermotif:
     cpu         : 4

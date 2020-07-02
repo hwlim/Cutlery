@@ -38,18 +38,15 @@ make_bigwig1bp:
 make_bigwig_allfrag:
     memory      : 10000
 
-make_fragment:
-    memory      : 10000
-
 make_spikeintable:
     name        : "{rule}"
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
 
-make_bigwig_avg:
-    memory      : 30000
-    name        : "{rule}.{wildcards.groupName}"
-    output      : "logs/{rule}.{wildcards.groupName}.out"
-    error       : "logs/{rule}.{wildcards.groupName}.err"
+#make_bigwig_avg:
+#    memory      : 30000
+#    name        : "{rule}.{wildcards.groupName}"
+#    output      : "logs/{rule}.{wildcards.groupName}.out"
+#    error       : "logs/{rule}.{wildcards.groupName}.err"
 
 
