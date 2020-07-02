@@ -12,7 +12,8 @@ function printUsage {
 	echo -e "Usage: `basename $0` (options) <input file>
 Description:
 	Count k-mer frequencies at 5'-ends of reads (alignment) and print to STDIO
-	-----|--k_up--|--k_dn--|----
+	     |--k_up--|--k_dn--|
+	      ---------------->
 	               ================>
 	               ^
 	               5'-end
@@ -26,9 +27,23 @@ Options:
 	-c <chrRegex>: chromosomes to consider in regular expression format, default=^chr[0-9XY]+$
 	-g <genome>: genome fasta file, required
 	-s <chromSize>: chromosome size file, required
+	-f : Fragment mode to check both of 5'- and 3'-end
+	     Assume that fragment bed file is all (+) stranded
+	     3-end is check for minus strand sequence (i.e. for CUT&RUN fragment)
+	       |--k_dn--|--k_up--|
+	        <----------------
+	  =============>
+	               ^
+	               3'-end
 	-v : Verbose mode
 Output:
-	Two column output (k-mer and count) in STDOUT
+	If -f is not set: Two column output
+	k-mer / count (5'-end only) in STDOUT
+
+	If -f is set: Four column output
+	k-mer / 5'-end count / 3'-end count / total count
+
+Note:
 	- Sorted by k-mers
 	- Possibly some k-mer missing, i.e. meaning no zero count" >&2
 }
@@ -45,8 +60,9 @@ k_dn=0
 chrRegex="^chr[0-9XY]+$"
 genome=NULL
 chromSize=NULL
+fragMode=FALSE
 verbose=FALSE
-while getopts ":l:r:c:g:s:v" opt; do
+while getopts ":l:r:c:g:s:fv" opt; do
 	case $opt in
 		l)
 			k_up=$OPTARG
@@ -62,6 +78,9 @@ while getopts ":l:r:c:g:s:v" opt; do
 			;;
 		s)
 			chromSize=$OPTARG
+			;;
+		f)
+			fragMode=TRUE
 			;;
 		v)
 			verbose=TRUE
@@ -125,6 +144,7 @@ if [ "${verbose}" = "TRUE" ];then
 	echo -e "  genome = ${genome}" >&2
 	echo -e "  chromSize = ${chromSize}" >&2
 	echo -e "  chrRegex = ${chrRegex}" >&2
+	[ "$fragMode" = "TRUE" ] && echo -e "  ** Fragment mode is on. Checking both ends (minus sequence for 3'-end)" >&2
 fi
 
 
@@ -150,6 +170,11 @@ else
 fi
 
 
+tmpPlus=${TMPDIR}/__temp__.$$.plus.txt
+tmpMinus=${TMPDIR}/__temp__.$$.minus.txt
+
+## Checking 5'-ends
+[ "$verbose" = "TRUE" ] && echo -e "Checking 5'-ends" >&2
 $cmdCat $src \
 	| gawk '$1 ~ /'$chrRegex'/ { if($6=="+"){ c=$2 }else{ c=$3 } if(c!=0) printf "%s\t%d\t%d\t%s\t0\t%s\n", $1,c,c,$4,$6 }' \
 	| slopBed -i stdin -g $chromSize -s -l ${k_up} -r ${k_dn} \
@@ -168,4 +193,39 @@ $cmdCat $src \
 		END{
 			for( seq in cntDic ) printf "%s\t%d\n", seq, cntDic[seq]
 		}' \
-	| sort -k1,1 
+	| sort -k1,1  \
+	> $tmpPlus
+
+if [ "$fragMode" = "TRUE" ];then
+	## Fragment mode (-f) is ON
+	## Assume all fragment regions are (+)
+	## Checking 3'-ends
+	[ "$verbose" = "TRUE" ] && echo -e "Fragment mode is on; checking 3'-ends" >&2
+	$cmdCat $src \
+		| gawk '$1 ~ /'$chrRegex'/ { c=$3; if(c!=0) printf "%s\t%d\t%d\t%s\t0\t-\n", $1,c,c,$4 }' \
+		| slopBed -i stdin -g $chromSize -s -l ${k_up} -r ${k_dn} \
+		| gawk '$3-$2=='$kmerLen'' \
+		| bedtools getfasta -fi $genome -bed stdin -fo /dev/stdout -s -tab -name \
+		| cut -f 2 \
+		| tr '[a-z]' '[A-Z]' \
+		| grep -v N \
+		| gawk '{
+				if( $1 in cntDic ){
+					cntDic[$1] = cntDic[$i] + 1
+				}else{
+					cntDic[$1] = 1
+				}
+			}
+			END{
+				for( seq in cntDic ) printf "%s\t%d\n", seq, cntDic[seq]
+			}' \
+		| sort -k1,1  \
+		> $tmpMinus
+	
+	## Joing and print to STDIO
+	join -a 1 -a 2 -t $'\t' -e 0 -o 0 1.2 2.2 $tmpPlus $tmpMinus \
+		| gawk '{ printf "%s\t%d\t%d\t%d\n", $1,$2,$3,$2+$3 }'
+else
+	cat $tmpPlus
+	rm $tmpPlus
+fi
