@@ -37,6 +37,7 @@ Output:
 
 ###################################
 ## option and input file handling
+outPrefix=NULL
 k_up=0
 k_dn=0
 src_scaleFactor=NULL
@@ -114,7 +115,7 @@ if [ $k_up -eq 0 ] && [ $k_dn -eq 0 ];then
 	echo -e "Both k_up and k_dn cannot be zero. Total k-mer length must be > 0" >&2
 	exit 1
 fi
-
+kmerLen=`echo -e "${k_up}\t${k_dn}" | gawk '{ print $1 + $2 }'`
 ## output validation
 if [ "$outPrefix" = "NULL" ];then
 	echo -e "Error: outPrefix (-o) must be specified" >&2
@@ -137,35 +138,34 @@ if [ "$verbose" = "TRUE" ];then
 	echo -e "==============================================" >&2
 	echo -e "Bias correction" >&2
 	echo -e "  bwPrefix = $bwPrefix" >&2
-	echo -e "  K-mer = $k_up / $k_dn" >&2
+	echo -e "  K-mer = $kmerLen bp, ($k_up / $k_dn)" >&2
 	echo -e "  genome = $genome" >&2
-	echo -e "  desPrefix = $desPrefix" >&2
-	echo -e "  scaleFactor = $scaleFactor" >&2
-	echo -e "==============================================" >&2
+	echo -e "  outPrefix = $outPrefix" >&2
+	echo -e "  scaleFactor = $src_scaleFactor" >&2
 fi
 
 desDir=`dirname ${outPrefix}`
 mkdir -p $desDir
 
 
-
+## Function to correct bias
 correctBias(){
 	local src=$1
 	local des=$2
 	local strand=$3
 
 	## Temporary files
-	tmpKmerBed=${TMPDIR}/__temp__.$$.kmerBed.txt
-	tmpCorrected=${TMPDIR}/__temp__.$$.corrected.txt
-	tmpBg=${TMPDIR}/__temp__.$$.bg
-	tmpBw=${TMPDIR}/__temp__.$$.bw
+	local tmpKmerBed=${TMPDIR}/__temp__.$$.kmerBed.txt
+	local tmpCorrected=${TMPDIR}/__temp__.$$.corrected.txt
+	local tmpBg=${TMPDIR}/__temp__.$$.bg
+	local tmpBw=${TMPDIR}/__temp__.$$.bw
 
 
 	## k-mer region extraction
 	## 6-column bed format output
-	## 5th column is bigWig signal value
+	## 4th column is bigWig signal value
 	## bedtools cannot handle chr:0-0, so explicitly filtering out
-	[ "$verbose" = "TRUE" ] && echo -e "  - Making $bed_kmer" >&2
+	[ "$verbose" = "TRUE" ] && echo -e "  - Making k-mer bed file from bigWig" >&2
 	if [ "$strand" = "plus" ];then
 		gawkStr='{ if($2<1) next; for( i=$2; i<$3; i=i+1 ) printf "%s\t%d\t%d\t%s\t0\t+\n", $1, i, i, $4 }'
 	elif [ "$strand" = "minus" ];then
@@ -177,7 +177,7 @@ correctBias(){
 	bigWigToBedGraph $src /dev/stdout \
 		| gawk "$gawkStr" \
 		| slopBed -g $chromSize -s -l ${k_up} -r ${k_dn} \
-		| gawk '$3-$2=='$kmer'' \
+		| gawk '$3-$2=='$kmerLen'' \
 		> $tmpKmerBed
 	#if [ "$strand" = "plus" ];then
 	#	bigWigToBedGraph $src /dev/stdout \
@@ -199,20 +199,20 @@ correctBias(){
 
 
 	## k-mer extraction & signal correction
+	## bedtools fasta output example: > Name(+)	NNNNNNNNNN
 	[ "$verbose" = "TRUE" ] && echo -e "  - Correcting values" >&2
 	bedtools getfasta -bed $tmpKmerBed -fi $genome -fo /dev/stdout -name -tab -s \
-		| sed 's/::/\t/' \
-		| cut -f 1,3 \
+		| sed 's/(.)//' \
 		| tr '[a-z]' '[A-Z]' \
 		| gawk 'BEGIN{  while(getline < "'${src_scaleFactor}'"){ scaleDic[$1]=$2 }  }
 			{
-				printf "%s\t%.3f\n", $2, $1*scaleDic[$2]
+				printf "%s\t%.5f\n", $2, $1*scaleDic[$2]
 			}' \
 		> $tmpCorrected
 	
 
 	## Reconstraction of a corrected bedGraph file
-	[ "$verbose" = "TRUE" ] && echo -e "  Creating bedGraph file" >&2
+	[ "$verbose" = "TRUE" ] && echo -e "  - Creating bedGraph file" >&2
 	if [ "$strand" = "plus" ];then
 		gawkStr='{ c=$2+'${k_up}'; printf "%s\t%d\t%d\t%s\n", $1,c,c+1,$8 }'
 	elif [ "$strand" = "minus" ];then
@@ -220,11 +220,11 @@ correctBias(){
 	else
 		echo -e "Error: Invalid strand: $strand" >&2
 	fi
-	paste ${tmpKmerBed} ${kmerCorrected} \
+	paste ${tmpKmerBed} ${tmpCorrected} \
 		| gawk "$gawkStr" \
 		> $tmpBg
 	rm $tmpKmerBed
-	rm $kmerCorrected
+	rm $tmpCorrected
 
 	#echo -e "  - Making $bg_corrected" >&2
 	#if [ "$strand" = "plus" ];then
@@ -241,13 +241,17 @@ correctBias(){
 	#mv $tmp $bg_corrected
 
 	## bedGraph to bigWig
-	[ "$verbose" = "TRUE" ] && echo -e "  - Making $bw_corrected" >&2
+	[ "$verbose" = "TRUE" ] && echo -e "  - Converting to bigWig file" >&2
 	bedGraphToBigWig $tmpBg ${chromSize} $tmpBw
 	mv $tmpBw $des
 	rm $tmpBg
+
+	[ "$verbose" = "TRUE" ] && echo -e "  - Done" >&2
 }
 
-
+[ "$verbose" = "TRUE" ] && echo -e "Processing $bwPlus" >&2
 correctBias $bwPlus ${desPlus} plus
+
+[ "$verbose" = "TRUE" ] && echo -e "Processing $bwMinus" >&2
 correctBias $bwMinus ${desMinus} minus
 
