@@ -151,9 +151,9 @@ rule make_bigwig:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 
@@ -188,7 +188,7 @@ rule make_bigwig_allfrag:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
 		"""
 
 rule make_tagdir:
@@ -369,9 +369,9 @@ rule make_bigwig_scaled:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
 		"""
 
 
@@ -423,7 +423,7 @@ rule make_bigwig_allfrag_rpsm:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
 
 '''

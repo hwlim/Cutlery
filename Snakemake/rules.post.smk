@@ -32,6 +32,8 @@ if "bamDir" not in locals():
 		bamDir = filteredDir
 
 
+## Nucleotide frequence around MNase cutting sites
+## PLAN: Use fragment file (all.con.bed.gz) instead of BAM file
 rule check_baseFreq:
 	input:
 		bamDir + "/{sampleName}.bam"
@@ -50,6 +52,21 @@ rule check_baseFreq:
 		rm {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
 		"""
 
+rule split_bam:
+	input:
+		bamDir + "/{sampleName}.bam"
+#		get_bam_input
+#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
+	output:
+		expand(splitDir + "/{{sampleName}}.{group}.{proctype}.bed.gz",
+			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
+	message:
+		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.splitBamToBed.sh -o {splitDir}/{wildcards.sampleName} -c "{chrRegexTarget}" {input}
+		"""
 
 ## Fragment Center / Length file
 rule make_fcl_file:
@@ -122,22 +139,8 @@ rule make_spikeintable:
 		makeSpikeCntTable.r -o {spikeinCntDir}/spikein {input}
 		"""
 
-rule split_bam:
-	input:
-		bamDir + "/{sampleName}.bam"
-#		get_bam_input
-#		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
-	output:
-		expand(splitDir + "/{{sampleName}}.{group}.{proctype}.bed.gz",
-			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
-	message:
-		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
-	shell:
-		"""
-		module load CnR/1.0
-		cnr.splitBamToBed.sh -o {splitDir}/{wildcards.sampleName} -c "{chrRegexTarget}" {input}
-		"""
-
+## NOTE: all the input bed files are already chromosome-filtered by chrRegexTarget from split_bam
+##	But may need to explicitly incorporate -c option for chrRegexTarget for readibility and compatibility
 rule make_bigwig:
 	input:
 		all = splitDir + "/{sampleName}.all.ctr.bed.gz",
@@ -154,14 +157,15 @@ rule make_bigwig:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 rule make_bigwig1bp:
 	input:
-		splitDir + "/{sampleName}.all.sep.bed.gz"
+		splitDir + "/{sampleName}.all.con.bed.gz"
+#		splitDir + "/{sampleName}.all.sep.bed.gz"
 #		dedupDir + "/{sampleName}.dedup.bam" if doDedup else filteredDir + "/{sampleName}.filtered.bam"
 	output:
 		bigWigDir1bp + "/{sampleName}.plus.bw",
@@ -173,9 +177,9 @@ rule make_bigwig1bp:
 	shell:
 		"""
 		module load CnR/1.0
-		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
-
+		cnr.fragToBigWigStranded1bp.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -c "{chrRegexTarget}" -m 5G {input}
 		"""
+#		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
 rule make_bigwig_allfrag:
 	input:
@@ -189,7 +193,7 @@ rule make_bigwig_allfrag:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
 		"""
 
 rule make_tagdir:
@@ -342,9 +346,9 @@ rule make_bigwig_scaled:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
 		"""
 
 
@@ -401,9 +405,9 @@ rule make_bigwig_rpsm:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
 		"""
 
 rule make_bigwig_allfrag_rpsm:
@@ -424,7 +428,7 @@ rule make_bigwig_allfrag_rpsm:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
-		cnr.bedToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
 
 
