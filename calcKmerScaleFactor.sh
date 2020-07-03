@@ -76,6 +76,10 @@ if [ $kmer_len_sample -ne $kmer_len_genome ];then
 	exit 1
 fi
 
+###### Input data format
+## src_kmer file contents	: kmer / plus count / minus count / total count
+## src_kmer_genome file contents: kmer / count
+
 ## Total k-mer counts in genome
 ttcGenome=`cat $src_kmer_genome | gawk 'BEGIN{s=0}{ s = s + $2 }END{ printf "%d", s }'`
 
@@ -83,7 +87,7 @@ ttcGenome=`cat $src_kmer_genome | gawk 'BEGIN{s=0}{ s = s + $2 }END{ printf "%d"
 N_kmer=`cat $src_kmer_genome | grep -v ^$ | wc -l`
 
 ## Total k-mer counts from sample; pseudo counts are added in calculating total read counts except for k-mers containing 'N'
-ttc=`cat $src_kmer | grep -v -e N | gawk 'BEGIN{s=0}{ s=s+$2 }END{ printf "%d", s + '${N_kmer}'*'${pseudo}' }'`
+ttc=`cat $src_kmer | grep -v -e N | gawk 'BEGIN{s=0}{ s=s+$4 }END{ printf "%d", s + '${N_kmer}'*'${pseudo}' }'`
 
 if [ "${verbose}" = "TRUE" ];then
 	echo -e "================================================">&2
@@ -95,11 +99,9 @@ if [ "${verbose}" = "TRUE" ];then
 	echo -e "  - pseudo count = $pseudo" >&2
 fi
 
-## src_kmer_genome file contents
-## kmer / count
 cat $src_kmer_genome \
 	| gawk 'BEGIN{
-			while(getline < "'${src_kmer}'"){ cntDic[$1]=$2 }
+			while(getline < "'${src_kmer}'"){ cntDic[$1]=$4 }
 			ttc='$ttc'; ttcGenome='$ttcGenome'; pseudo='$pseudo';
 		}
 		{
