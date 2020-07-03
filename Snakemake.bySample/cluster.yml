@@ -61,3 +61,4 @@ make_align_stat_table:
     name        : "{rule}"
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
+
