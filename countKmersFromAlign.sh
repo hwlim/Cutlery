@@ -23,7 +23,7 @@ Input:
 	- \"stdin\" to use /dev/stdin
 Options:
 	-l <k_up>: Upstream k-mer length, default=0
-	-r <k_dn>: Downstream k-mer lengt includg 5'-end, default=0
+	-r <k_dn>: Downstream k-mer lengt including 5'-end, default=0
 	-c <chrRegex>: chromosomes to consider in regular expression format, default=^chr[0-9XY]+$
 	-g <genome>: genome fasta file, required
 	-s <chromSize>: chromosome size file, required
