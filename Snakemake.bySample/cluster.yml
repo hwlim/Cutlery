@@ -34,7 +34,7 @@ make_bigwig:
 make_bigwig1bp:
     memory      : 10000
 
-calc_kmer_scale:
+count_kmers:
     cpu         : 3
 
 make_bigwig1bp_corrected:

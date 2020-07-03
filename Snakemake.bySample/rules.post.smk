@@ -188,39 +188,48 @@ rule make_bigwig1bp:
 
 
 ## Count k-mer frequency & Calculate k-mer correction scale factor
-rule calc_kmer_scale:
+rule count_kmers:
 	input:
 		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
 	output:
-		freq = sampleDir + "/{sampleName}/QC/kmer.freq.txt",
-		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.txt"
+		sampleDir + "/{sampleName}/QC/kmer.freq.txt"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		countKmersFromAlign.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -f -v {input} > {output.freq}
-		calcKmerScaleFactor.sh -g {kmer_genome} -p {kmer_pseudo} -v {output.freq} > {output.scale}
+		countKmersFromAlign.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -f -v {input} > {output}
+		"""
+
+rule calc_kmer_scale:
+	input:
+		sampleDir + "/{sampleName}/QC/kmer.freq.txt",
+	output:
+		sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo%d.txt" %  kmer_pseudo
+	message:
+		"Checking baseFrequency... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		calcKmerScaleFactor.sh -g {kmer_genome} -p {kmer_pseudo} -v {input} > {output}
 		"""
 
 
 rule make_bigwig1bp_corrected:
 	input:
-		sampleDir + "/{sampleName}/igv.1bp.plus.bw",
-		sampleDir + "/{sampleName}/igv.1bp.minus.bw",
-		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.txt"
+		plus = sampleDir + "/{sampleName}/igv.1bp.plus.bw",
+		minus = sampleDir + "/{sampleName}/igv.1bp.minus.bw",
+		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo%d.txt" % kmer_pseudo
 	output:
 		sampleDir + "/{sampleName}/igv.1bp.corrected.plus.bw",
 		sampleDir + "/{sampleName}/igv.1bp.corrected.minus.bw"
 	message:
 		"Making 1bp-resolution bigWig files... [{wildcards.sampleName}]"
-#	params:
-#		memory = "5G"
 	shell:
 		"""
 		module load CnR/1.0
 		correctKmerBiasBW.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -k {input.scale} \
-			-o {sampleDir}/{wildcards.sampleName}/igv.1bp.corrected \
+			-o {sampleDir}/{wildcards.sampleName}/igv.1bp.corrected -v \
 			{sampleDir}/{wildcards.sampleName}/igv.1bp
 		"""
 
