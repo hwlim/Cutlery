@@ -200,7 +200,7 @@ rule calc_kmer_scale:
 		"""
 		module load CnR/1.0
 		countKmersFromAlign.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -f -v {input} > {output.freq}
-		calcKmerScaleFactor.sh -g {kmer_genome} -p {kmer_pseudo} -v > {output.scale}
+		calcKmerScaleFactor.sh -g {kmer_genome} -p {kmer_pseudo} -v {output.freq} > {output.scale}
 		"""
 
 
