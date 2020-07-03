@@ -173,16 +173,36 @@ fi
 tmpPlus=${TMPDIR}/__temp__.$$.plus.txt
 tmpMinus=${TMPDIR}/__temp__.$$.minus.txt
 
-if [ "$fragMode" = "FALSE" ];then
-	## Checking 5'-ends
-	[ "$verbose" = "TRUE" ] && echo -e "Checking 5'-ends" >&2
+## Checking 5'-ends
+[ "$verbose" = "TRUE" ] && echo -e "Checking 5'-ends" >&2
+$cmdCat $src \
+	| gawk '$1 ~ /'$chrRegex'/ { if($6=="+"){ c=$2 }else{ c=$3 } if(c!=0) printf "%s\t%d\t%d\t%s\t0\t%s\n", $1,c,c,$4,$6 }' \
+	| slopBed -i stdin -g $chromSize -s -l ${k_up} -r ${k_dn} \
+	| gawk '$3-$2=='$kmerLen'' \
+	| bedtools getfasta -fi $genome -bed stdin -fo /dev/stdout -s -tab -name \
+	| cut -f 2 \
+	| tr '[a-z]' '[A-Z]' \
+	| grep -v N \
+	| gawk '{
+			if( $1 in cntDic ){
+				cntDic[$1] = cntDic[$i] + 1
+			}else{
+				cntDic[$1] = 1
+			}
+		}
+		END{
+			for( seq in cntDic ) printf "%s\t%d\n", seq, cntDic[seq]
+		}' \
+	| sort -k1,1  \
+	> $tmpPlus
+
+if [ "$fragMode" = "TRUE" ];then
+	## Fragment mode (-f) is ON
+	## Assume all fragment regions are (+)
+	## Checking 3'-ends
+	[ "$verbose" = "TRUE" ] && echo -e "Fragment mode is on; checking 3'-ends" >&2
 	$cmdCat $src \
-		| gawk '{
-				if($1 ~ /'$chrRegex'/ && $2>0){
-					if($6=="+"){ c=$2 }else{ c=$3 }
-					printf "%s\t%d\t%d\tName\t0\t%s\n", $1,c,c,$6
-				}
-			}' \
+		| gawk '$1 ~ /'$chrRegex'/ { c=$3; if(c!=0) printf "%s\t%d\t%d\t%s\t0\t-\n", $1,c,c,$4 }' \
 		| slopBed -i stdin -g $chromSize -s -l ${k_up} -r ${k_dn} \
 		| gawk '$3-$2=='$kmerLen'' \
 		| bedtools getfasta -fi $genome -bed stdin -fo /dev/stdout -s -tab -name \
@@ -199,41 +219,13 @@ if [ "$fragMode" = "FALSE" ];then
 			END{
 				for( seq in cntDic ) printf "%s\t%d\n", seq, cntDic[seq]
 			}' \
-		| sort -k1,1
+		| sort -k1,1  \
+		> $tmpMinus
+	
+	## Joing and print to STDIO
+	join -a 1 -a 2 -t $'\t' -e 0 -o 0 1.2 2.2 $tmpPlus $tmpMinus \
+		| gawk '{ printf "%s\t%d\t%d\t%d\n", $1,$2,$3,$2+$3 }'
 else
-	## Fragment mode (-f) is ON
-	## Ignore fragment direction
-	## Checking both ends treating 5'-ends as (+) and 3'-ends as (-)
-	## exract fasta format: Name(+)	NNNNN
-	[ "$verbose" = "TRUE" ] && echo -e "Fragment mode is on; checking both ends" >&2
-	$cmdCat $src \
-		| gawk '{
-				if($1 ~ /'$chrRegex'/ && $2>0){
-					printf "%s\t%d\t%d\tName\t0\t+\n", $1,$2,$2;
-					printf "%s\t%d\t%d\tName\t0\t-\n", $1,$3,$3;
-				}
-			}' \
-		| slopBed -i stdin -g $chromSize -s -l ${k_up} -r ${k_dn} \
-		| gawk '$3-$2=='$kmerLen'' \
-		| bedtools getfasta -fi $genome -bed stdin -fo /dev/stdout -s -tab -name  \
-		| sed -e 's/(/\t/' -e 's/)//' \
-		| cut -f 2,3 \
-		| tr '[a-z]' '[A-Z]' \
-		| grep -v N \
-		| gawk '{
-				if( ! ( $2 in kmerL ) ) kmerL[$2]=1
-				if( $1 == "+" ){
-					cntDic[$2,1] = cntDic[$2,1] + 1
-				}else{
-					cntDic[$2,2] = cntDic[$2,2] + 1
-				}
-			}
-			END{
-				for( kmer in kmerL ){ 
-					cnt_p = cntDic[kmer,1] == "" ? 0 : cntDic[kmer,1]
-					cnt_m = cntDic[kmer,2] == "" ? 0 : cntDic[kmer,2]
-					printf "%s\t%d\t%d\t%d\n", kmer, cnt_p, cnt_m, cnt_p + cnt_m
-				}
-			}' \
-		| sort -k1,1
+	cat $tmpPlus
+	rm $tmpPlus
 fi
