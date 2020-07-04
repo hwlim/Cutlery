@@ -62,3 +62,7 @@ make_align_stat_table:
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
 
+analyze_footprint_homer:
+    cpu         : 4
+    memory      : 10000
+

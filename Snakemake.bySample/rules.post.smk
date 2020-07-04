@@ -383,6 +383,29 @@ rule draw_peak_heatmap_factor:
 			{input} {params.workDir}/igv.nfr.ctr.bw {params.workDir}/igv.nuc.ctr.bw
 		"""
 
+rule analyze_footprint_homer:
+	input:
+		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
+		motif = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html",
+		bwPlus = sampleDir + "/{sampleName}/igv.1bp.plus.bw",
+		bwMinus = sampleDir + "/{sampleName}/igv.1bp.minus.bw"
+	output:
+		sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete
+	params:
+		outPrefix = sampleDir + "/{sampleName}/Footprint.Homer.default/cnr",
+		motifDir = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG",
+		bwPrefix = sampleDir + "/{sampleName}/igv.1bp",
+		cpu = cluster["analyze_footprint_homer"]["cpu"]
+	message:
+		"Analyzing CUT&RUN footprints... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.analyzeFootprintBatch.r -o {params.outPrefix} -n {wildcards.sampleName} -g {genome} -b {params.bwPrefix} -p {params.cpu} \
+			{input.peak} {params.motifDir}
+		"""
+
+
 #####################################################
 ## Scaled BigWig by Spike-in using raw read counts (not RPM)
 #def get_scalefactor(wildcards):
