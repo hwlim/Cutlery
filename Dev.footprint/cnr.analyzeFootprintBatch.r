@@ -139,11 +139,9 @@ parseHomerMotifNativeHeader=function(hdr){
 	return(result)
 }
 
-
 ###############################
 ## Select motif sets for footprint visualization from Homer motif directory
 write(sprintf("Collect motifs to scan:\n\tN = %d\n\tMin. target %% > %d %%", maxMotifCount, minTargetPercent), stderr())
-
 append=FALSE
 motifNameSelectL=NULL
 for( i in 1:maxMotifCount ){
@@ -177,6 +175,9 @@ for( i in 1:maxMotifCount ){
 	if(!append) append=TRUE
 	system(sprintf("cat %s | grep -v \"^>\" >> %s", src.motif, src.motifCollection))
 }
+write(sprintf(""), stderr())
+
+
 
 ###############################
 ## Motif scan
@@ -272,12 +273,12 @@ stopifnot(all(names(srcL.selectedAnchor) %in% motifL))
 ## Command line generation
 indexL.select = which(cntL.anchor > 0) #match(names(srcL.selectedAnchor), motifL)
 cmdL=NULL
-for( i in 1:indexL.selet ){
+for( i in indexL.select ){
 	motifName = motifL[i]
 	src.selectedAnchor = srcL.selectedAnchor[motifName]
-	mainTitle= sprintf("%s (N=%d)", motifName, cntL.anchor[i])
+	#mainTitle= sprintf("%s (N=%d)", motifName, cntL.anchor[i])
 	vizPrefix=sprintf("%s.3.%02d.%s/CnR", outPrefix, i, motifName)
-	cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -t %s -f -s %s %s", vizPrefix, genome, mainTitle, src.selectedAnchor, bwPrefix)
+	cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -t %s -f -s %s %s", vizPrefix, genome, motifName, src.selectedAnchor, bwPrefix)
 	cmdL = c(cmdL, cmd)
 }
 
