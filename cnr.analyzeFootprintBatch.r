@@ -26,8 +26,8 @@ Input:
 Output:
 	- <outPrefix>.0.selectedMotif.motif	: selected motif for scan
 	- <outPrefix>.1.motifScan.bed		: motif scan result
-	- <outPrefix>.2.<motif #>.<motif name>.select.bed	: filtered motif scan by footprint contrast
-	- <outPrefix>.3.<motif #>.<motif name>/CnR.<suffix>	: footprint visualization for the filtered regions including
+	- <outPrefix>.2.<motif name>.select.bed	: filtered motif scan by footprint contrast
+	- <outPrefix>.3.<motif name>/CnR.<suffix>	: footprint visualization for the filtered regions including
 		*.sorted.fa
 		*.logo.<pdf/png>
 		*.viz.png
@@ -248,7 +248,7 @@ cntL.anchor = NULL
 for( i in 1:N.motif ){
 	# i=1
 	motifName =  motifL[i]
-	src.selectedAnchor = sprintf("%s.2.%02d.%s.select.bed", outPrefix, i, motifName)
+	src.selectedAnchor = sprintf("%s.2.%s.select.bed", outPrefix, motifName)
 
 	write(sprintf("  - Checking %s", motifName), stderr())
 	anchor = data.scan[data.scan[,4]==motifName,]
@@ -277,7 +277,7 @@ for( i in indexL.select ){
 	motifName = motifL[i]
 	src.selectedAnchor = srcL.selectedAnchor[motifName]
 	#mainTitle= sprintf("%s (N=%d)", motifName, cntL.anchor[i])
-	vizPrefix=sprintf("%s.3.%02d.%s/CnR", outPrefix, i, motifName)
+	vizPrefix=sprintf("%s.3.%s/CnR", outPrefix, motifName)
 	cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -t %s -f -s %s %s", vizPrefix, genome, motifName, src.selectedAnchor, bwPrefix)
 	cmdL = c(cmdL, cmd)
 }
