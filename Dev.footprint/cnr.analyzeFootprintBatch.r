@@ -1,11 +1,7 @@
 #!/usr/bin/env Rscript
 
-#suppressPackageStartupMessages(library('geneplotter', quiet=TRUE))
 suppressPackageStartupMessages(library('RColorBrewer', quiet=TRUE))
-#suppressPackageStartupMessages(library('MASS', quiet=TRUE))
-#suppressPackageStartupMessages(library('robustbase', quiet=TRUE))
 suppressPackageStartupMessages(library('optparse', quiet=TRUE))
-#suppressPackageStartupMessages(library('KernSmooth', quiet=TRUE))
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/commonR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/motifR.r", Sys.getenv("COMMON_LIB_BASE")))
@@ -21,7 +17,24 @@ option_list <- list(
 	make_option(c("-b","--bwPrefix"), default=NULL, help="BigWig file prefix assuming <prefix>.{plus,minus}.bw, Required"),
 	make_option(c("-p","--parallel"), default=1, help="Number of thread to use for parallel processing for visualization, default=1")
 )
-parser <- OptionParser(usage = "%prog [options] <bed> <Homer motif dir>", option_list=option_list)
+parser <- OptionParser(usage = "%prog [options] <bed> <Homer motif dir>", option_list=option_list,
+	description="Description:
+	Perform CUT&RUN footprint analysis using given peak file and Homer motif result directory
+Input:
+	- BED file containing motif scan regions, not necessarily fixed size
+	- Homer motif results directory
+Output:
+	- <outPrefix>.0.selectedMotif.motif	: selected motif for scan
+	- <outPrefix>.1.motifScan.bed		: motif scan result
+	- <outPrefix>.2.<motif #>.<motif name>.select.bed	: filtered motif scan by footprint contrast
+	- <outPrefix>.3.<motif #>.<motif name>/CnR.<suffix>	: footprint visualization for the filtered regions including
+		*.sorted.fa
+		*.logo.<pdf/png>
+		*.viz.png
+		*.viz.avg.<pdf/png>
+		*.sorted.bed
+		*.sorted.fa
+	- <outPrefix>.4.complete		: flag file to show that analysis is successful and complete")
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) == 0) {
 	print_help(parser)
@@ -90,18 +103,19 @@ src.motifLoci = sprintf("%s.1.motifScan.bed", outPrefix)
 
 
 
-## Parse homer motif header line (1st line) and return following information
+## Parse homer motif NATIVE header line (1st line) and return following information
+## Native --> direct output of Homer findMotifsGenome.pl
 ## - Best guess name
 ## - Motif score threshold
 ## - log(p-value)
 ## - p-value
 ## - Target %
 ## - Background %
-parseHomerMotifHeader=function(hdr){
+parseHomerMotifNativeHeader=function(hdr){
 	element = strsplit(hdr, "\t")[[1]]
 	result=list()
 
-	## Usual Homer motif name field format examples: 
+	## Usual Homer motif name field (2nd field) format examples: 
 	##	1-AWRACAAWRG,BestGuess:SOX15/MA1152.1/Jaspar(0.974)
 	##		Normal, simply cut by : and /
 	##	2-TTGTTATGCAAA,BestGuess:Pou5f1::Sox2/MA0142.1/Jaspar(0.933)
@@ -139,7 +153,7 @@ for( i in 1:maxMotifCount ){
 	write(sprintf("Processing motif #%d\n  - %s", i, src.motif), stderr())
 
 	hdr = readLines(src.motif, n=1)
-	hdr.parsed = parseHomerMotifHeader(hdr)
+	hdr.parsed = parseHomerMotifNativeHeader(hdr)
 	write(sprintf("  best guess = %s", hdr.parsed[["name"]]), stderr())
 	write(sprintf("  score = %s", hdr.parsed[["score"]]), stderr())
 	write(sprintf("  p-value = %s", hdr.parsed[["pvalue"]]), stderr())
@@ -169,7 +183,8 @@ for( i in 1:maxMotifCount ){
 ## Retain motif loci only; Discard peak annotation result
 write(sprintf("Scanning motifs"), stderr())
 cmd=sprintf("annotatePeaks.pl %s %s -m %s -noann -nogene -mbed %s -cpu %d > /dev/null", src.peak, genome, src.motifCollection, src.motifLoci, parallel)
-system(cmd)
+ret = system(cmd)
+if(ret > 0) stop("Homer motif scan filed")
 data.scan = read.delim(src.motifLoci, header=FALSE, skip=1, stringsAsFactors=FALSE)
 motifL = unique(data.scan[,4])
 N.motif = length(motifL)
@@ -228,6 +243,7 @@ getFootprintContrast=function(anchor, margin, bwPrefix, pseudo=0.1){
 write(sprintf("Checking footprint contrast"), stderr())
 margin=20
 srcL.selectedAnchor=list()
+cntL.anchor = NULL
 for( i in 1:N.motif ){
 	# i=1
 	motifName =  motifL[i]
@@ -244,6 +260,7 @@ for( i in 1:N.motif ){
 		write.table(anchor.select, src.selectedAnchor, row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
 		srcL.selectedAnchor[[motifName]] = src.selectedAnchor
 	}
+	cntL.anchor = c(cntL.anchor, nrow(anchor.select))
 }
 
 
@@ -251,42 +268,49 @@ for( i in 1:N.motif ){
 ## Footprint visualization
 write(sprintf("Visualizing footprint"), stderr())
 stopifnot(all(names(srcL.selectedAnchor) %in% motifL))
-ind.select = match(names(srcL.selectedAnchor), motifL)
+
+## Command line generation
+indexL.select = which(cntL.anchor > 0) #match(names(srcL.selectedAnchor), motifL)
+cmdL=NULL
+for( i in 1:indexL.selet ){
+	motifName = motifL[i]
+	src.selectedAnchor = srcL.selectedAnchor[motifName]
+	mainTitle= sprintf("%s (N=%d)", motifName, cntL.anchor[i])
+	vizPrefix=sprintf("%s.3.%02d.%s/CnR", outPrefix, i, motifName)
+	cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -t %s -f -s %s %s", vizPrefix, genome, mainTitle, src.selectedAnchor, bwPrefix)
+	cmdL = c(cmdL, cmd)
+}
+
+## EXecute commands
 if(parallel > 1){
+	## Parallel processing
 	write(sprintf("Processing in parallel: N=%d", parallel), stderr())
 	registerDoParallel(parallel)  # use multicore, set to the number of our cores
-
-	ret = foreach( i=ind.select ) %dopar% {
-		motifName = motifL[i]
-		src.selectedAnchor = srcL.selectedAnchor[i]
-
-		write(sprintf("  - Processing %s: %s", motifName, src.selectedAnchor), stderr())
-		vizPrefix=sprintf("%s.3.%02d.%s/CnR", outPrefix, i, motifName)
-		system(sprintf("mkdir -p %s.3.%02d.%s", outPrefix, i, motifName))
-		cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -f -s %s %s 2>&1 | tee %s.log", vizPrefix, genome, src.selectedAnchor, bwPrefix, vizPrefix)
-		write(sprintf("\t%s", cmd), stderr())
-		system(cmd)
+	ret = foreach( i=1:length(cmdL) ) %dopar% {
+		write(sprintf("Visualizing %s", motifL[indexL.select[i]]), stderr())
+		write(sprintf("\t%s", cmdL[i]), stderr())
+		system(cmdL[i])
 	}
 	retL = unlist(ret)
 }else{
+	## Serial processing
 	write(sprintf("Processing in serial"), stderr())
 	retL = NULL
-	for( i in 1:ind.selet ){
-		motifName = motifL[i]
-		src.selectedAnchor = srcL.selectedAnchor[i]
-
-		write(sprintf("  - Processing %s: %s", motifName, src.selectedAnchor), stderr())
-		vizPrefix=sprintf("%s.3.%02d.%s/CnR", outPrefix, i, motifName)
-		system(sprintf("mkdir -p %s.3.%02d.%s", outPrefix, i, motifName))
-		cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -f -s %s %s 2>&1 | tee %s.log", vizPrefix, genome, src.selectedAnchor, bwPrefix, vizPrefix)
-		write(sprintf("\t%s", cmd), stderr())
-		ret = system(cmd)
+	for( i in 1:length(cmdL) ){
+		write(sprintf("Visualizing %s", motifL[indexL.select[i]]), stderr())
+		write(sprintf("\t%s", cmdL[i]), stderr())
+		ret = system(cmdL[i])
 		retL = c(retL, ret)
 	}
 }
 
-
-q()
-
-cmd=sprintf("idom.visualizeExoBed.r -o test.system -g homer_hg19 -f -s TestData/test.bed TestData/hESC_Sox2")
-ret = system(cmd)
+## Write a flag file to tell analysis complete
+if(any(retL > 0)){
+	indL.fail = which(retL > 0)
+	write("Error: Footprint visualization failed for:", stderr())
+	for( i in indL.fail ) write(sprintf("  - %s", motifL[i]), stderr())
+	q(1)
+}else{
+	write("Footprint visualization complete", stderr())
+	write("", sprintf("%s.4.complete", outPrefix))
+}
