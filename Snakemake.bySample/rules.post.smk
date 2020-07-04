@@ -205,7 +205,7 @@ rule calc_kmer_scale:
 	input:
 		sampleDir + "/{sampleName}/QC/kmer.freq.txt",
 	output:
-		sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo%d.txt" %  kmer_pseudo
+		sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo{kmer_pseudo}.txt"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
@@ -219,17 +219,17 @@ rule make_bigwig1bp_corrected:
 	input:
 		plus = sampleDir + "/{sampleName}/igv.1bp.plus.bw",
 		minus = sampleDir + "/{sampleName}/igv.1bp.minus.bw",
-		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo%d.txt" % kmer_pseudo
+		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo{kmer_pseudo}.txt"
 	output:
-		sampleDir + "/{sampleName}/igv.1bp.corrected.plus.bw",
-		sampleDir + "/{sampleName}/igv.1bp.corrected.minus.bw"
+		sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.plus.bw",
+		sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.minus.bw"
 	message:
 		"Making 1bp-resolution bigWig files... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
 		correctKmerBiasBW.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -k {input.scale} \
-			-o {sampleDir}/{wildcards.sampleName}/igv.1bp.corrected -v \
+			-o {sampleDir}/{wildcards.sampleName}/igv.1bp.corrected{kmer_pseudo} -v \
 			{sampleDir}/{wildcards.sampleName}/igv.1bp
 		"""
 
@@ -405,6 +405,28 @@ rule analyze_footprint_homer:
 			{input.peak} {params.motifDir}
 		"""
 
+
+rule analyze_footprint_homer_corrected:
+	input:
+		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
+		motif = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html",
+		bwPlus = sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.plus.bw",
+		bwMinus = sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.minus.bw"
+	output:
+		sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete"
+	params:
+		outPrefix = sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr",
+		motifDir = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG",
+		bwPrefix = sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}",
+		cpu = cluster["analyze_footprint_homer_corrected"]["cpu"]
+	message:
+		"Analyzing CUT&RUN footprints... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.analyzeFootprintBatch.r -o {params.outPrefix} -n {wildcards.sampleName} -g {genome} -b {params.bwPrefix} -p {params.cpu} \
+			{input.peak} {params.motifDir}
+		"""
 
 #####################################################
 ## Scaled BigWig by Spike-in using raw read counts (not RPM)

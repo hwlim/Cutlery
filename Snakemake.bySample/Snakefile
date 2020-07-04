@@ -149,7 +149,9 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist())
+		## Footprint
+		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
+		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist())
 
 
 include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
