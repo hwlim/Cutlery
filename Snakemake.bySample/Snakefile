@@ -142,7 +142,7 @@ rule all:
 		## bigWig files	
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
 		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
-		expand(sampleDir + "/{sampleName}/igv.1bp.corrected.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
+		expand(sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), kmer_pseudo=kmer_pseudo, strand=["plus","minus"]),
 		expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=samples.Name.tolist()),
 		## peak files
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
@@ -151,7 +151,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
 		## Footprint
 		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist())
+		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), kmer_pseudo=kmer_pseudo)
 
 
 include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
