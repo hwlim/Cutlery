@@ -390,7 +390,7 @@ rule analyze_footprint_homer:
 		bwPlus = sampleDir + "/{sampleName}/igv.1bp.plus.bw",
 		bwMinus = sampleDir + "/{sampleName}/igv.1bp.minus.bw"
 	output:
-		sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete
+		sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete"
 	params:
 		outPrefix = sampleDir + "/{sampleName}/Footprint.Homer.default/cnr",
 		motifDir = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG",
