@@ -137,6 +137,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{read}.freq.png",  sampleName=samples.Name.tolist(), read=["R1","R2"]),
+		alignDir + "/alignStat.txt"
 		#spikeinCntDir + "/spikein.txt"
 		## bigWig files	
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
@@ -148,8 +149,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		alignDir + "/alignStat.txt"
-		
+		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist())
 
 
 include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
