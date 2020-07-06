@@ -10,7 +10,7 @@
 ## TODO:
 ##	1. required file validataion
 ##	2, required variables validation
-
+##	3. MEME motif search & footprinting
 
 
 #################################
