@@ -386,7 +386,8 @@ rule make_bigwig_rpsm:
 		all = splitDir + "/{sampleName}.all.ctr.bed.gz",
 		nfr = splitDir + "/{sampleName}.nfr.ctr.bed.gz",
 		nuc = splitDir + "/{sampleName}.nuc.ctr.bed.gz",
-		spikeinCnt = spikeinCntDir + "/spikein.txt"
+		spikeinCnt = spikeinCntDir + "/{sampleName}.spikeCnt.txt"
+		#spikeinCnt = spikeinCntDir + "/spikein.txt"
 	output:
 		all = bigWig_RPSM + "/{sampleName}.all.ctr.bw",
 		nfr = bigWig_RPSM + "/{sampleName}.nfr.ctr.bw",
@@ -400,7 +401,7 @@ rule make_bigwig_rpsm:
 	shell:
 		"""
 		module load CnR/1.0
-		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | gawk '{{ printf "%f", 100000/$3 }}'`
+		scaleFactor=`cat {input.spikeinCnt} | gawk '{{ if($1=="ScaleFactor") print $2 }}'`
 		if [ $scaleFactor == "" ];then
 			echo -e "Error: empty scale factor" >&2
 			exit 1
@@ -409,11 +410,13 @@ rule make_bigwig_rpsm:
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
 		"""
+#		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | gawk '{{ printf "%f", 100000/$3 }}'`
 
 rule make_bigwig_allfrag_rpsm:
 	input:
 		bed = splitDir + "/{sampleName}.all.con.bed.gz",
-		spikeinCnt = spikeinCntDir + "/spikein.txt"
+		spikeinCnt = spikeinCntDir + "/{sampleName}.spikeCnt.txt"
+		#spikeinCnt = spikeinCntDir + "/spikein.txt"
 	output:
 		bigWigAllFrag_RPSM + "/{sampleName}.allFrag.rpsm.bw"
 	message:
@@ -423,13 +426,14 @@ rule make_bigwig_allfrag_rpsm:
 	shell:
 		"""
 		module load CnR/1.0
-		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | gawk '{{ printf "%f", 100000/$3 }}'`
+		scaleFactor=`cat {input.spikeinCnt} | gawk '{{ if($1=="ScaleFactor") print $2 }}'`
 		if [ $scaleFactor == "" ];then
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
+#		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | gawk '{{ printf "%f", 100000/$3 }}'`
 
 
 #######################################################################################
