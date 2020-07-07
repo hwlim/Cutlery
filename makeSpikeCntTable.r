@@ -1,5 +1,10 @@
 #!/usr/bin/env Rscript
 
+######################
+## TODO:
+## - Current scaling factor is not being used and won't be used
+#	because RPSM scaling is more comparable across different batch
+#	Therefore, the current scaling factor must be updated to "RPSM" factor
 
 #suppressPackageStartupMessages(library('geneplotter', quiet=TRUE))
 #suppressPackageStartupMessages(library('RColorBrewer', quiet=TRUE))
@@ -87,7 +92,8 @@ rownames(df) = NULL
 df$Sample = factor(df$Sample, levels=nameL)
 df$MainToSpikeRatio = df$Main / df$Spikein
 df$SpikeFraction = df$Spikein / (df$Main + df$Spikein) * 100
-df$ScaleFactor = mean(df$Spikein) / df$Spikein
+df$ScaleFactor = 100000 / df$Spikein
+#df$ScaleFactor = mean(df$Spikein) / df$Spikein
 
 write.table(df, des.table, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 
@@ -116,7 +122,7 @@ g.ratio = ggplot(data=df, aes(x=Sample, y=MainToSpikeRatio)) +
 g.scale = ggplot(data=df, aes(x=Sample, y=ScaleFactor)) +
 	geom_bar(stat="identity", fill="steelblue")+
 	theme(axis.text.x = element_text(angle = 45, hjust = 1, size=5),) +
-	labs(title="Scaling Factor (to multiply)", x="", y="Scaling Factor (to Multiply)")
+	labs(title="Scaling Factor (RPSM, to multiply)", x="", y="RPSM Scaling Factor (to Multiply)")
 
 
 g1 = plot_grid(g.Main, g.Spike, ncol=1)
