@@ -3,6 +3,7 @@
 
 ## Sample information file with five columns: id / name / group / fq1 / fq2
 src_sampleInfo	= "./sample.tsv"
+cluster_yml	= "~/bin/CnR/Snakemake/cluster.yml"
 
 ## Genome folder depending on platform: CCHMC:HPC vs my desktop
 import socket
@@ -107,9 +108,8 @@ if not len(set(samples.Group).intersection(set(samples.Name)))==0:
 ## Cluster configuration file
 #cluster = json.load(open("./cluster.json"))
 import yaml
-with open('cluster.yml', 'r') as fh:
+with open(os.path.expanduser(cluster_yml), 'r') as fh:
 	cluster = yaml.load(fh)
-#    cluster = yaml.full_load(fh)
 
 
 
