@@ -1,0 +1,144 @@
+
+src_config = "./config_cnr.dev.yml"
+
+import yaml
+import os.path
+with open(os.path.expanduser(src_config), 'r') as fh:
+	config = yaml.load(fh)
+
+
+########################
+## Basic parameters
+## Sample information file with five columns: id / name / group / fq1 / fq2
+src_sampleInfo	= config["src_sampleInfo"]
+cluster_yml		= config["cluster_yml"]
+
+genomeFa	= config["genomeFa"]
+chrom_size	= config["chrom_size"]
+peak_mask	= config["peak_mask"]
+baseDir	= config["baseDir"]
+genome	= config["genome"]
+
+adapter	= config["adapter"]
+trim_minLen	= config["trim_minLen"]
+trim_minQual	= config["trim_minQual"]
+
+chrRegexAll	= config["chrRegexAll"]
+chrRegexTarget	= config["chrRegexTarget"]
+spikePrefix	= config["spikePrefix"]
+
+star_index	= config["star_index"]
+star_module	= config["star_module"]
+star_option	= config["star_option"]
+
+doTrim	= config["doTrim"]
+doDedup	= config["doDedup"]
+
+fastqDir	= config["fastqDir"]
+trimDir	= config["trimDir"]
+alignDir	= config["alignDir"]
+filteredDir	= config["filteredDir"]
+dedupDir	= config["dedupDir"]
+qcDir	= config["qcDir"]
+sampleDir	= config["sampleDir"]
+
+kmer_genome	= config["kmer_genome"]
+kmer_pseudo	= config["kmer_pseudo"]
+
+
+
+################################################
+## Loading sample Information & Validation
+import pandas as pd
+import sys
+samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
+
+## Id / Name column must be unique
+if not samples.Id.is_unique:
+	print( "Error: Id column in sample.tsv is not unique" )
+	sys.exit(1)
+if not samples.Name.is_unique:
+	print( "Error: Name column in sample.tsv is not unique" )
+	sys.exit(1)
+
+## Group column must not overlap with Name column
+#if not len(set(samples.Group).intersection(set(samples.Name)))==0:
+#	print( "Error: Sample Group name must not overlap with Name" )
+#	sys.exit(1)
+
+#################################
+## Cluster configuration file
+#cluster = json.load(open("./cluster.json"))
+import yaml
+with open(os.path.expanduser(cluster_yml), 'r') as fh:
+	cluster = yaml.load(fh)
+
+
+
+
+
+#################################################################################################
+## Output files to be created
+# Decided by job_level in config_cnr.yml
+
+# All sample names (Name field in sample.tsv file)
+sampleList = samples.Name.tolist()
+# Samples for TF (or narrow peaks)
+sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
+# Samples for histone modification (or broad peaks)
+sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
+
+## Final output list (possibly omitting intermediate files)
+output_list = []
+# level 1: Alignment / filtering / fragment / fragment length / QC
+if level >= 1:
+	tmp = [
+			expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
+			expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=sampleList, ext=["txt","png"]),
+			expand(sampleDir + "/{sampleName}/QC/base_freq.{read}.freq.png",  sampleName=sampleList, read=["R1","R2"]),
+			alignDir + "/alignStat.txt"
+		]
+	output_list = output_list + tmp
+
+# level 2: Peak calling / BigWig files (allFrag, nuc, nfr) / Motif search / peak heatmap
+if level >= 2:
+	tmp = [
+			expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+			expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=sampleList),
+			expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=sampleListFactor),
+			expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
+			expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html", sampleName=sampleListFactor),
+			expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor)
+		]
+	output_list = output_list + tmp
+
+# level 3: Footprint analysis including 1bp-bigWig, preliminary footprints
+if level >= 3:
+	tmp = [
+			expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=sampleListFactor, strand=["plus","minus"]),
+			expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor)
+		]
+	output_list = output_list + tmp
+
+# level 4: Bias correction + footprint re-analysis
+if level >= 4:
+	tmp = [
+			expand(sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.{strand}.bw",
+				sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo, strand=["plus","minus"]),
+			expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete",
+				sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo)
+		]
+	output_list = output_list + tmp
+
+
+
+## Rule for Snakemake final output
+rule all:
+	input:
+		output_list
+
+
+## Snakemake rule import
+include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
+include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.bySample/rules.post.smk"
+
