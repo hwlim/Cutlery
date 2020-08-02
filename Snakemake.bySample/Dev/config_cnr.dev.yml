@@ -11,20 +11,20 @@ cluster_yml: "~/bin/CnR/Snakemake.bySample/cluster.yml"
 
 ###########################################
 ## Basic genomic resource files
-# genome fasta file
+# genome fasta file, required
 genomeFa  : "/data/limlab/Resource/GenomeData/hg/hg19/Genome/genome.fa"
-# chromosome size file
+# chromosome size file, required
 chrom_size: "/data/limlab/Resource/GenomeData/hg/hg19/Genome/chrom.size"
-# blacklist bed file
+# blacklist bed file, "NULL" if not needed
 peak_mask : "/data/limlab/Resource/GenomeData/hg/hg19/ENCODE-blacklist.bed"
 # base directory
 baseDir   : "/data"
-## Genome version primarily for ...
+## Genome version primarily for ..., required
 genome  : "hg19"
 
 ###########################################
 ## Adapter trimming parameters
-# Adapter sequence
+# Adapter sequence, required
 # Illumina universal adapter: AGATCGGAAGAGC
 # Nextera adapter (ATACseq / CUT&Tag): CTGTCTCTTATA
 adapter : "AGATCGGAAGAGC"
