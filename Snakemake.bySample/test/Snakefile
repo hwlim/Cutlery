@@ -1,0 +1,22 @@
+
+
+level=0
+
+if level==0:
+	output = [ "a.txt2", expand( "{sample}.txt2", sample=[ ] ) ]
+else:
+	output = [ "a.txt2", expand( "{sample}.txt2", sample=[ "b" ] ) ]
+
+rule all:
+	input:
+		output
+
+rule process:
+	input:
+		"{sampleName}.txt"
+	output:
+		"{sampleName}.txt2"
+	shell:
+		"""
+		touch {wildcards.sampleName}.txt2
+		"""
