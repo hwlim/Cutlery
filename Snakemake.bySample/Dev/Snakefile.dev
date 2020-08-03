@@ -1,17 +1,25 @@
 
+## TODO: default option values
+
+
 src_config = "./config_cnr.dev.yml"
 
 import yaml
 import os.path
 with open(os.path.expanduser(src_config), 'r') as fh:
-	config = yaml.load(fh)
+	config = yaml.safe_load(fh)
 
 
-########################
+#################################################################################################
 ## Basic parameters
 ## Sample information file with five columns: id / name / group / fq1 / fq2
 src_sampleInfo	= config["src_sampleInfo"]
+
+## Cluster resource file
+if "cluster_yml" not in config:
+	cluster_yml = "~/bin/CnR/Snakemake.bySample/cluster.yml"
 cluster_yml		= config["cluster_yml"]
+
 
 genomeFa	= config["genomeFa"]
 chrom_size	= config["chrom_size"]
@@ -42,12 +50,16 @@ dedupDir	= config["dedupDir"]
 qcDir	= config["qcDir"]
 sampleDir	= config["sampleDir"]
 
+sampleDir	= config["sampleDir"]
+
+job_level 	= config["job_level"]
+
 kmer_genome	= config["kmer_genome"]
 kmer_pseudo	= config["kmer_pseudo"]
 
 
 
-################################################
+#################################################################################################
 ## Loading sample Information & Validation
 import pandas as pd
 import sys
@@ -61,17 +73,13 @@ if not samples.Name.is_unique:
 	print( "Error: Name column in sample.tsv is not unique" )
 	sys.exit(1)
 
-## Group column must not overlap with Name column
-#if not len(set(samples.Group).intersection(set(samples.Name)))==0:
-#	print( "Error: Sample Group name must not overlap with Name" )
-#	sys.exit(1)
 
-#################################
+#################################################################################################
 ## Cluster configuration file
-#cluster = json.load(open("./cluster.json"))
+## LSF cluster resource information for Snakemake rules
 import yaml
 with open(os.path.expanduser(cluster_yml), 'r') as fh:
-	cluster = yaml.load(fh)
+	cluster = yaml.safe_load(fh)
 
 
 
@@ -90,8 +98,8 @@ sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
 
 ## Final output list (possibly omitting intermediate files)
 output_list = []
-# level 1: Alignment / filtering / fragment / fragment length / QC
-if level >= 1:
+# job_level 1: Alignment / filtering / fragment / fragment length / QC
+if job_level >= 1:
 	tmp = [
 			expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 			expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=sampleList, ext=["txt","png"]),
@@ -100,8 +108,8 @@ if level >= 1:
 		]
 	output_list = output_list + tmp
 
-# level 2: Peak calling / BigWig files (allFrag, nuc, nfr) / Motif search / peak heatmap
-if level >= 2:
+# job_level 2: Peak calling / BigWig files (allFrag, nuc, nfr) / Motif search / peak heatmap
+if job_level >= 2:
 	tmp = [
 			expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 			expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=sampleList),
@@ -112,16 +120,16 @@ if level >= 2:
 		]
 	output_list = output_list + tmp
 
-# level 3: Footprint analysis including 1bp-bigWig, preliminary footprints
-if level >= 3:
+# job_level 3: Footprint analysis including 1bp-bigWig, preliminary footprints
+if job_level >= 3:
 	tmp = [
 			expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=sampleListFactor, strand=["plus","minus"]),
 			expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor)
 		]
 	output_list = output_list + tmp
 
-# level 4: Bias correction + footprint re-analysis
-if level >= 4:
+# job_level 4: Bias correction + footprint re-analysis
+if job_level >= 4:
 	tmp = [
 			expand(sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.{strand}.bw",
 				sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo, strand=["plus","minus"]),
@@ -131,13 +139,13 @@ if level >= 4:
 	output_list = output_list + tmp
 
 
-
 ## Rule for Snakemake final output
 rule all:
 	input:
 		output_list
 
 
+###################################################################
 ## Snakemake rule import
 include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
 include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.bySample/rules.post.smk"

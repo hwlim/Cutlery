@@ -12,11 +12,11 @@ src_sampleInfo: "../sample.tsv"
 ###########################################
 ## Basic genomic resource files
 # genome fasta file, required
-genomeFa  : "/data/limlab/Resource/GenomeData/hg/hg19/Genome/genome.fa"
+genomeFa  : "./config_cnr.dev.yml"
 # chromosome size file, required
-chrom_size: "/data/limlab/Resource/GenomeData/hg/hg19/Genome/chrom.size"
+chrom_size: "./config_cnr.dev.yml"
 # blacklist bed file, "NULL" if not needed
-peak_mask : "/data/limlab/Resource/GenomeData/hg/hg19/ENCODE-blacklist.bed"
+peak_mask : "./config_cnr.dev.yml"
 # base directory
 baseDir   : "/data"
 ## Genome version, required
@@ -47,7 +47,7 @@ spikePrefix : "NULL"
 ## STAR aligner parameters
 # STAR index
 # Note: check the compatibility between STAR version and index. Some STAR version is not backward compatible)
-star_index  : "/data/limlab/Resource/STAR_Index/2.7.4/hg19_allChr_v19"
+star_index  : "."
 
 # STAR module for HPC @ BMI/CCHMC
 # Note: If not specified, 2.5 will be used for the compatibility with the previous runs
