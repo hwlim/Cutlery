@@ -17,11 +17,21 @@ trim_pe:
     output      : "logs/{rule}.{wildcards.sampleId}.out"
     error       : "logs/{rule}.{wildcards.sampleId}.err"
 
+trim_se:
+    name        : "{rule}.{wildcards.sampleId}"
+    output      : "logs/{rule}.{wildcards.sampleId}.out"
+    error       : "logs/{rule}.{wildcards.sampleId}.err"
+
 align_pe:
     cpu         : 4
     memory      : 50000
     walltime    : "24:00"
     resource    : "\"span[hosts=1]\""
+
+make_align_stat_table:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"
 
 check_baseFreq:
     memory      : 6000
