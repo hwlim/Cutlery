@@ -38,8 +38,9 @@ rule check_baseFreq:
 		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
 		#bamDir + "/{sampleName}.bam"
 	output:
-		sampleDir + "/{sampleName}/QC/base_freq.R1.png",
-		sampleDir + "/{sampleName}/QC/base_freq.R2.png"
+		sampleDir + "/{sampleName}/QC/base_freq.png"
+#		sampleDir + "/{sampleName}/QC/base_freq.R1.png",
+#		sampleDir + "/{sampleName}/QC/base_freq.R2.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
