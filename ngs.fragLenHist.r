@@ -8,7 +8,7 @@ suppressPackageStartupMessages(library('tools', quiet=TRUE))
 suppressPackageStartupMessages(library('ggplot2', quiet=TRUE))
 suppressPackageStartupMessages(library('cowplot', quiet=TRUE))
 suppressPackageStartupMessages(library('optparse', quiet=TRUE))
-#suppressPackageStartupMessages(library('KernSmooth', quiet=TRUE))
+suppressPackageStartupMessages(library('plotly', quiet=TRUE))
 
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
@@ -17,8 +17,8 @@ source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 option_list <- list(
 	make_option(c("-o","--outPrefix"), default=NULL, help="Output prefix including path, default=<same with the src file excluding an extension under current directorys>"),
 	make_option(c("-m","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000"),
-	make_option(c("-n","--name"), default=NULL, help="Sample name to display at top. default=<input file name>")
-#	make_option(c("-F","--bamUnFlag"), default="0x400", help="flag for bam records to exclude, NULL is allowed to unset. Ignored for bed file. default=0x400 (exclude duplicates)")
+	make_option(c("-n","--name"), default=NULL, help="Sample name to display at top. default=<input file name>"),
+	make_option(c("-p","--plotly"), default=FALSE, action="store_true", help="If set, plotly plot is also generated in html")
 #	make_option(c("-t","--title"), default="Title", help="Main Title [default: Title]"),
 #	make_option(c("-s","--size"), default="600,600", help="Comma-separated figure size, xSize,ySize"),
 #	make_option(c("-f","--field"), default="", help="Comma-separated field numbers for x-axis, y-axis."),
@@ -30,7 +30,8 @@ Input:
 	Paired-end BAM file or fragment bed file
 Output:
 	- <outPrefix>.dist.txt
-	- <outPrefix>.dist.png",
+	- <outPrefix>.dist.png
+	- <outPrefix>.dist.html (if -p is set)",
 	 option_list=option_list)
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) == 0) {
@@ -46,10 +47,9 @@ opt=arguments$options
 
 
 outPrefix=opt$outPrefix
-#bamFlag=opt$bamFlag
-#bamUnFlag=opt$bamUnFlag
 maxLen=opt$maxLen
 name=opt$name
+drawPlotly = opt$plotly
 assertFileExist(src)
 
 
@@ -57,6 +57,7 @@ if(FALSE){
 	src="Sox2.frag.bed.gz"
 	maxLen=1000
 	outPrefix=NULL	
+	des.dist="fragLen.dist.txt"
 }
 
 if(is.null(name)) name=src
@@ -103,3 +104,17 @@ g2 = ggplot(data=data.dist, aes(x=fragLen, y=log10(Cnt))) + geom_line() +
 g = plot_grid(g1, g2, nrow=2)
 ggsave(des.hist, g, width=6, height=6)
 
+
+if(drawPlotly){
+	des.html = sprintf("%s.dist.html", outPrefix)
+	fig <- plot_ly(data.dist, x = ~fragLen, y = ~Cnt, type = 'scatter', mode = 'lines')
+	fig = fig %>% layout(
+						title = name,
+						xaxis = list(title = "Fragment Length"),
+						yaxis = list(title = "Frequency")
+						)
+
+	tmp=sprintf("%s.html", tempfile(tmpdir="."))
+	htmlwidgets::saveWidget(fig, tmp)
+	system(sprintf("mv %s %s", tmp, des.html))
+}
