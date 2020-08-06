@@ -46,8 +46,8 @@ rule check_baseFreq:
 		"""
 		module load CnR/1.0
 		bamToBed.separate.sh -o {baseFreqDir}/{wildcards.sampleName} {input}
-		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {baseFreqDir}/{wildcards.sampleName}.R1 {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
-		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {baseFreqDir}/{wildcards.sampleName}.R2 {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
+		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -m 5 -l 20 -o {baseFreqDir}/{wildcards.sampleName}.R1 {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
+		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -m 5 -l 20 -o {baseFreqDir}/{wildcards.sampleName}.R2 {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
 		rm {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
 		rm {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
 		"""
