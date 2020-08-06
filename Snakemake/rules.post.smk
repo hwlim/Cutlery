@@ -38,8 +38,8 @@ rule check_baseFreq:
 	input:
 		bamDir + "/{sampleName}.bam"
 	output:
-		read1 = baseFreqDir + "/{sampleName}.R1.freq.png",
-		read2 = baseFreqDir + "/{sampleName}.R2.freq.png"
+		read1 = baseFreqDir + "/{sampleName}.R1.png",
+		read2 = baseFreqDir + "/{sampleName}.R2.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:

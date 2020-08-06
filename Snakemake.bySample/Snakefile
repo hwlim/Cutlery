@@ -115,7 +115,7 @@ rule all:
 		## QC output
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
-		expand(sampleDir + "/{sampleName}/QC/base_freq.{read}.freq.png",  sampleName=samples.Name.tolist(), read=["R1","R2"]),
+		expand(sampleDir + "/{sampleName}/QC/base_freq.png",  sampleName=samples.Name.tolist()),
 		alignDir + "/alignStat.txt"
 		#spikeinCntDir + "/spikein.txt"
 		## bigWig files	

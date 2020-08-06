@@ -103,7 +103,7 @@ if job_level >= 1:
 	tmp = [
 			expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 			expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=sampleList, ext=["txt","png"]),
-			expand(sampleDir + "/{sampleName}/QC/base_freq.{read}.freq.png",  sampleName=sampleList, read=["R1","R2"]),
+			expand(sampleDir + "/{sampleName}/QC/base_freq.png", sampleName=sampleList),
 			alignDir + "/alignStat.txt"
 		]
 	output_list = output_list + tmp

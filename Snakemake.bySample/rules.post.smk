@@ -35,21 +35,24 @@ if "bamDir" not in locals():
 ## NEED REVISION for OUTPUT names & directories
 rule check_baseFreq:
 	input:
-		bamDir + "/{sampleName}.bam"
+		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		#bamDir + "/{sampleName}.bam"
 	output:
-		sampleDir + "/{sampleName}/QC/base_freq.R1.freq.png",
-		sampleDir + "/{sampleName}/QC/base_freq.R2.freq.png"
+		sampleDir + "/{sampleName}/QC/base_freq.R1.png",
+		sampleDir + "/{sampleName}/QC/base_freq.R2.png"
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
-		bamToBed.separate.sh -o {sampleDir}/{wildcards.sampleName}/tmp {input}
-		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R1 {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
-		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R2 {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
-		rm {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
-		rm {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
+		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq \
+			-n {wildcards.sampleName} -g {genomeFa} -c "{chrRegexTarget}" -m both -l 20 -f -v {input}
 		"""
+#		bamToBed.separate.sh -o {sampleDir}/{wildcards.sampleName}/tmp {input}
+#		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R1 {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
+#		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R2 {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
+#		rm {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
+#		rm {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
 
 
 ## BAM to fragment bed files: all / nfr / nuc

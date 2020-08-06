@@ -120,7 +120,7 @@ with open(os.path.expanduser(cluster_yml), 'r') as fh:
 rule all:
 	input:
 		## output from check_baseFreq
-		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.freq.line.png", sampleName=samples.Name.tolist(), read=[1,2]),
+		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.png", sampleName=samples.Name.tolist(), read=[1,2]),
 		## output from make_bigwig
 		expand(bigWigDir + "/{sampleName}.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["nfr","nuc"]),
 		expand(bigWigDir1bp + "/{sampleName}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
