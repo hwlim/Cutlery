@@ -18,7 +18,7 @@ option_list <- list(
 	make_option(c("-o","--outPrefix"), default=NULL, help="Output prefix including path, default=<same with the src file excluding an extension under current directorys>"),
 	make_option(c("-m","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000"),
 	make_option(c("-n","--name"), default=NULL, help="Sample name to display at top. default=<input file name>"),
-	make_option(c("-p","--plotly"), default=FALSE, action="store_true", help="If set, plotly plot is also generated in html")
+	make_option(c("-i","--interactive"), default=FALSE, action="store_true", help="If set, interactive plotly plot is also generated in html")
 #	make_option(c("-t","--title"), default="Title", help="Main Title [default: Title]"),
 #	make_option(c("-s","--size"), default="600,600", help="Comma-separated figure size, xSize,ySize"),
 #	make_option(c("-f","--field"), default="", help="Comma-separated field numbers for x-axis, y-axis."),
@@ -49,7 +49,7 @@ opt=arguments$options
 outPrefix=opt$outPrefix
 maxLen=opt$maxLen
 name=opt$name
-drawPlotly = opt$plotly
+drawPlotly = opt$interactive
 assertFileExist(src)
 
 
