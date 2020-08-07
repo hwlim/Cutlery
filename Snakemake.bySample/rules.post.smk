@@ -38,7 +38,8 @@ rule check_baseFreq:
 		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
 		#bamDir + "/{sampleName}.bam"
 	output:
-		sampleDir + "/{sampleName}/QC/base_freq.png"
+		sampleDir + "/{sampleName}/QC/base_freq.png",
+		sampleDir + "/{sampleName}/QC/base_freq.html"
 #		sampleDir + "/{sampleName}/QC/base_freq.R1.png",
 #		sampleDir + "/{sampleName}/QC/base_freq.R2.png"
 	message:
@@ -47,7 +48,7 @@ rule check_baseFreq:
 		"""
 		module load CnR/1.0
 		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq \
-			-n {wildcards.sampleName} -g {genomeFa} -c "{chrRegexTarget}" -m both -l 20 -f -v {input}
+			-n {wildcards.sampleName} -g {genomeFa} -c "{chrRegexTarget}" -m both -l 20 -f -i -v {input}
 		"""
 #		bamToBed.separate.sh -o {sampleDir}/{wildcards.sampleName}/tmp {input}
 #		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R1 {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz

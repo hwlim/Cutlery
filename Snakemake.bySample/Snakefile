@@ -110,27 +110,35 @@ with open(os.path.expanduser(cluster_yml), 'r') as fh:
 
 #########################
 ## Rules start
+
+# All sample names (Name field in sample.tsv file)
+sampleList = samples.Name.tolist()
+# Samples for TF (or narrow peaks)
+sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
+# Samples for histone modification (or broad peaks)
+sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
+
 rule all:
 	input:
 		## QC output
-		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
-		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=samples.Name.tolist(), ext=["txt","png"]),
-		expand(sampleDir + "/{sampleName}/QC/base_freq.png",  sampleName=samples.Name.tolist()),
+		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
+		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=sampleList, ext=["txt","png"]),
+		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
 		alignDir + "/alignStat.txt"
 		#spikeinCntDir + "/spikein.txt"
 		## bigWig files	
-		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=samples.Name.tolist(), fragment=["all","nfr","nuc"]),
-		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), strand=["plus","minus"]),
-		expand(sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.{strand}.bw", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), kmer_pseudo=kmer_pseudo, strand=["plus","minus"]),
-		expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=samples.Name.tolist()),
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=sampleListFactor, strand=["plus","minus"]),
+		expand(sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.{strand}.bw", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo, strand=["plus","minus"]),
+		expand(sampleDir + "/{sampleName}/igv.allFrag.bw", sampleName=sampleList),
 		## peak files
-		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=samples.Name[samples.PeakMode=="histone"].tolist()),
-		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		## Footprint
-		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist()),
-		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=samples.Name[samples.PeakMode=="factor"].tolist(), kmer_pseudo=kmer_pseudo)
+		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo)
 
 
 include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
