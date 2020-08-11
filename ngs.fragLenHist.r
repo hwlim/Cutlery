@@ -16,7 +16,7 @@ source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 # command line option handling
 option_list <- list(
 	make_option(c("-o","--outPrefix"), default=NULL, help="Output prefix including path, default=<same with the src file excluding an extension under current directorys>"),
-	make_option(c("-m","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000"),
+	make_option(c("-l","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000"),
 	make_option(c("-n","--name"), default=NULL, help="Sample name to display at top. default=<input file name>"),
 	make_option(c("-i","--interactive"), default=FALSE, action="store_true", help="If set, interactive plotly plot is also generated in html")
 #	make_option(c("-t","--title"), default="Title", help="Main Title [default: Title]"),
