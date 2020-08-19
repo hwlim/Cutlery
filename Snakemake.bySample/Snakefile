@@ -36,7 +36,7 @@ spikePrefix		= "NULL"
 
 ########################
 ## STAR index & options
-star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/hg19_allChr_v19"
+star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
 star_module	= "STAR/2.7.4"
 
 ## ChIP-seq / ATAC-seq / Cut&Run
