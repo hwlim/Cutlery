@@ -276,7 +276,15 @@ rule make_tagdir:
 
 
 
+def get_input_name(sampleName):
+	ctrlName = samples.Ctrl[samples.Name == sampleName]
+	if len(ctrlName)==0:
+		return ctrlName.tolist()[0]
+	else:
+		return None
+	
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
+## TODO: use get_input_name function
 def get_peakcall_input(sampleName, fragment):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
 	ctrlName = ctrlName.tolist()[0]
