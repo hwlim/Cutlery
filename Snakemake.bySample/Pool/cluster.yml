@@ -62,3 +62,28 @@ make_bigwig_scaled:
 
 make_bigwig_scaled_subtract:
     memory      : 30000
+
+
+count_kmers:
+    cpu         : 3
+
+make_bigwig1bp_corrected:
+    memory      : 10000
+    cpu         : 3
+
+
+analyze_footprint_homer:
+    cpu         : 4
+    memory      : 10000
+
+analyze_footprint_homer_corrected:
+    cpu         : 4
+    memory      : 10000
+
+draw_peak_heatmap_factor:
+    cpu         : 2
+    memory      : 10000
+
+run_homermotif:
+    cpu         : 4
+    memory      : 5000
