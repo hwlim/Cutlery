@@ -134,8 +134,9 @@ rule all:
 		## peak files
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
-		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
 		## Footprint
 		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo)

@@ -365,6 +365,7 @@ rule call_peaks_histone_allfrag:
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
+''''
 rule run_homermotif:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
@@ -377,7 +378,6 @@ rule run_homermotif:
 		module load Motif/1.0
 		runHomerMotif.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor {input}
 		"""
-
 rule run_homermotif_allfrag:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
@@ -390,6 +390,53 @@ rule run_homermotif_allfrag:
 		module load Motif/1.0
 		runHomerMotif.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag {input}
 		"""
+''''
+
+
+rule run_homer_motif:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html"
+	message:
+		"Running Homer motif search... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Motif/1.0
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all {input}
+		"""
+
+rule run_homermotif_allfrag:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/Homer.all.allFrag/homerResults.html"
+	message:
+		"Running Homer motif search... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Motif/1.0
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all.allFrag {input}
+		"""
+
+rule run_meme_motif_rand5k:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html"
+	message:
+		"Running MEME-ChIP motif search for random 5k TSS peaks [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load MotifMEME/1.0
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d ~/bin/Motif/MEME_DB/Merged_By_Lim.meme \
+			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k {input}
+		"""
+
+
 
 rule draw_peak_heatmap_factor:
 	input:
