@@ -3,7 +3,7 @@
 
 ## Sample information file with five columns: Id / Name / Group / Fq1 / Fq2 / Ctrl / PeakMode
 src_sampleInfo	= "../sample.tsv"
-cluster_yml	= "~/bin/CnR/Snakemake.pool/cluster.yml"
+cluster_yml	= "~/bin/CnR/Snakemake.bySample/Pool/cluster.yml"
 
 ## Name / PeakMode / Ctrl columns for group analysis mimicking sample.tsv file
 ## i.e. Name correspond to the Group column in sample.tsv
