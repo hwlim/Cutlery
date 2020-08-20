@@ -393,19 +393,19 @@ rule run_homermotif_allfrag:
 
 rule draw_peak_heatmap_factor:
 	input:
-		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+		bed=sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
+		nfr=sampleDir + "/{sampleName}/igv.nfr.ctr.bw",
+		nuc=sampleDir + "/{sampleName}/igv.nuc.ctr.bw"
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png"
-	params:
-		workDir = sampleDir + "/{sampleName}"
 	message:
-		"Running Homer motif search... [{wildcards.sampleName}]"
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load CnR/1.0
 		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -c NFR,NUC -s 3,6 \
-			-o {params.workDir}/HomerPeak.factor/heatmap.exBL.1rpm \
-			{input} {params.workDir}/igv.nfr.ctr.bw {params.workDir}/igv.nuc.ctr.bw
+			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
+			{input.bed} {input.nfr} {input.nuc}
 		"""
 
 rule analyze_footprint_homer:
