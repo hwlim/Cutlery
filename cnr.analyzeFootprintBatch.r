@@ -278,7 +278,7 @@ for( i in indexL.select ){
 	src.selectedAnchor = srcL.selectedAnchor[motifName]
 	#mainTitle= sprintf("%s (N=%d)", motifName, cntL.anchor[i])
 	vizPrefix=sprintf("%s.3.%s/CnR", outPrefix, motifName)
-	cmd=sprintf("idom.visualizeExoBed.r -o %s -g homer_%s -t %s -f -s %s %s", vizPrefix, genome, motifName, src.selectedAnchor, bwPrefix)
+	cmd=sprintf("idom.visualizeExoBed.r -o %s -g %s -t %s -f -s %s %s", vizPrefix, genome, motifName, src.selectedAnchor, bwPrefix)
 	cmdL = c(cmdL, cmd)
 }
 
