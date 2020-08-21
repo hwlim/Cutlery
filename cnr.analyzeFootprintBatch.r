@@ -13,7 +13,7 @@ option_list <- list(
 	make_option(c("-n","--name"), default="NULL", help="Data name, default=<peak file name without suffix>"),
 	make_option(c("-t","--minTargetPercent"), default=10, help="Minimum target % for motif selection, default=10"),
 	make_option(c("-m","--maxMotifCount"), default=10, help="Maximum motif count to consider, default=10"),
-	make_option(c("-g","--genome"), default=NULL, help="Genome for Homer. e.g. hg38 or mm10. If not specified, parameters from Homer motif directory (motifFindingParameters.txt) is retrieved."),
+	make_option(c("--genome"), default=NULL, help="Genome for Homer. e.g. hg38 or mm10. If not specified, parameters from Homer motif directory (motifFindingParameters.txt) is retrieved."),
 	make_option(c("-b","--bwPrefix"), default=NULL, help="BigWig file prefix assuming <prefix>.{plus,minus}.bw, Required"),
 	make_option(c("-p","--parallel"), default=1, help="Number of thread to use for parallel processing for visualization, default=1")
 )
