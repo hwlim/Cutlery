@@ -365,7 +365,7 @@ rule call_peaks_histone_allfrag:
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
-''''
+'''
 rule run_homermotif:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
@@ -390,7 +390,7 @@ rule run_homermotif_allfrag:
 		module load Motif/1.0
 		runHomerMotif.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag {input}
 		"""
-''''
+'''
 
 
 rule run_homer_motif:
