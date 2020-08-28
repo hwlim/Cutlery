@@ -5,14 +5,11 @@ totalWaitTime="48:00"
 timestamp=$(date +%Y%m%d_%H%M%S)
 cluster_config=~/bin/CnR/Snakemake.bySample/Pool/cluster.yml
 
-if [ ! -f diag.pdf ];then
-	module load python3/3.6.3
-	snakemake --dag | dot -Tpdf > diag.pdf
-fi
+#if [ ! -f diag.pdf ];then
+[  "`which python3`" == "" ] && module load python3/3.6.3
+snakemake --dag | dot -Tpdf > diag.pdf
+#fi
 
-#module load python3/3.6.3
-#snakemake -np
-#exit 0
 mkdir -p logs
 bsub -W ${totalWaitTime} -eo bsub.${timestamp}.err -oo bsub.${timestamp}.out \
 	"module load python3/3.6.3
