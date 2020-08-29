@@ -116,7 +116,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=sampleList, ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
-		qcDir + "/alignStat.txt"
+		qcDir + "/alignStat.txt",
 		#spikeinCntDir + "/spikein.txt"
 		## bigWig files	
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
