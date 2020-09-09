@@ -30,9 +30,9 @@ parser <- OptionParser(usage = "%prog [options] <bam or bed.gz>",
 Input:
 	Paired-end BAM file or fragment bed file
 Output:
-	- <outPrefix>.dist.txt
-	- <outPrefix>.dist.png
-	- <outPrefix>.dist.html (if -p is set)",
+	- <outPrefix>.txt
+	- <outPrefix>.png
+	- <outPrefix>.html (if -p is set)",
 	 option_list=option_list)
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) == 0) {
@@ -85,8 +85,8 @@ write(sprintf("Checking fragment length distribution"), stderr())
 
 
 system(sprintf("mkdir -p %s", desDir))
-des.dist = sprintf("%s.dist.txt", outPrefix)
-des.hist = sprintf("%s.dist.png", outPrefix)
+des.dist = sprintf("%s.txt", outPrefix)
+des.hist = sprintf("%s.png", outPrefix)
 	
 write(sprintf("  - %s", src), stderr())
 #if( mode=="bam" ){
@@ -107,7 +107,7 @@ ggsave(des.hist, g, width=6, height=6)
 
 
 if(drawPlotly){
-	des.html = sprintf("%s.dist.html", outPrefix)
+	des.html = sprintf("%s.html", outPrefix)
 	fig <- plot_ly(data.dist, x = ~fragLen, y = ~Cnt, type = 'scatter', mode = 'lines')
 	fig = fig %>% layout(
 						title = name,

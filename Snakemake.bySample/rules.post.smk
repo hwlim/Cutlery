@@ -101,7 +101,7 @@ rule get_fragLenHist:
 	shell:
 		"""
 		module load CnR/1.0
-		ngs.fragLenHist.r -o {sampleDir}/{wildcards.sampleName}/QC/fragLen -n {wildcards.sampleName} {input}
+		ngs.fragLenHist.r -o {sampleDir}/{wildcards.sampleName}/QC/fragLen.dist -n {wildcards.sampleName} {input}
 		"""
 
 ## Autocorrelation plot as Q/C
