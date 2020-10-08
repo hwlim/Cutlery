@@ -129,6 +129,8 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+		#expand(sampleDir + "/{sampleName}/Motif/Homer.all.allFrag/homerResults.html", sampleName=sampleListFactor),
+		#expand(sampleDir + "/{sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html", sampleName=sampleListFactor)
 		## Footprint
 		#expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor),
 		#expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo)
