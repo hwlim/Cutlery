@@ -53,6 +53,18 @@ run_homermotif:
     cpu         : 4
     memory      : 5000
 
+run_homermotif_allfrag:
+    cpu         : 4
+    memory      : 5000
+
+run_meme_motif_rand5k:
+    cpu         : 4
+    memory      : 5000
+
+run_meme_motif_rand5k_allfrag:
+    cpu         : 4
+    memory      : 5000
+
 draw_peak_heatmap_factor:
     cpu         : 2
     memory      : 10000
