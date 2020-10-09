@@ -120,6 +120,6 @@ else
 		| makeTagDirectory ${tmpTagDir} /dev/stdin -format bed -fragLength given 2>&1 | tee $log
 fi
 
-drawAutoCorrplot.r -t "$name" ${tmpTagDir}
+drawHomerAutoCorr.r -t "$name" ${tmpTagDir}
 mv ${tmpTagDir} ${desDir}
 
