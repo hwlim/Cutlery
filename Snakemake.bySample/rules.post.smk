@@ -308,7 +308,7 @@ rule call_peaks_factor:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
 		"""
 
 
@@ -326,7 +326,7 @@ rule call_peaks_factor_allfrag:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
 		"""
 
 

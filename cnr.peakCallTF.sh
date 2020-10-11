@@ -24,8 +24,8 @@ Options:
 	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
 	-m <mask>: mask bed file for filtering such as ENCODE blacklist
 	-s <optStr>: additional option for 'findPeaks' of Homer
-		Internal pre-set option: \"-style factor -tbp 0 -norm 1000000 -strand both -center -size 200\"
-		\"-fragLength 100\" is recommended as an additiona option considering the input bed length" >&2
+		Internal pre-set option: \"-style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0\"
+		\"-fragLength 100 -inputFragLength 100\" is recommended as an additiona option considering the input bed length" >&2
 #	echo -e "\t-l <fragLen,peakWidth>: Comma-separated fragment length and peak width, default=NULL,NULL" >&2
 #        echo -e "\t-g <genome>: genome, default=NULL" >&2
 #        echo -e "\t-h: Print help" >&2
@@ -110,10 +110,12 @@ peakMasked=${desDir}/peak.exBL.bed
 peak1rpm=${desDir}/peak.exBL.1rpm.bed
 
 mkdir -p $desDir
+optStr="-o ${peak0} -style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0 ${optStr}"
 if [ "$ctrl" == "NULL" ];then
-	findPeaks $target -o ${peak0} -style factor -tbp 0 -norm 1000000 -strand both -center -size 200 ${optStr} 2>&1 | tee ${log}
+	#findPeaks $target -o ${peak0} -style factor -tbp 0 -norm 1000000 -strand both -center -size 200 ${optStr} 2>&1 | tee ${log}
+	findPeaks $target ${optStr} 2>&1 | tee ${log}
 else
-	findPeaks $target -i ${ctrl} -o ${peak0} -style factor -tbp 0 -norm 1000000 -strand both -center -size 200 ${optStr} 2>&1 | tee ${log}
+	findPeaks $target -i ${ctrl} ${optStr} 2>&1 | tee ${log}
 fi
 
 
