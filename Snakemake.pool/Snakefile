@@ -60,7 +60,8 @@ bigWigDir_avg = "2.2.BigWig.avg"
 
 bigWigScaledDir = "3.1.BigWig.scaled"
 bigWigScaledDir_sub = "3.2.BigWig.scaled.subInput"
-bigWigAllFrag_RPSM = "3.3.BigWig.allFrag.RPSM"
+bigWig_RPSM = "3.3.BigWig.RPSM"
+bigWigAllFrag_RPSM = "3.4.BigWig.allFrag.RPSM"
 homerDir	= "4.Homer"
 
 spikeinCntDir = "1.5.Spikein"
