@@ -71,38 +71,23 @@ kmer_pseudo	= 1
 
 
 ################################################
-## Loading sample Information & Validation
+## Loading sample Information & cluster config
 import pandas as pd
 import sys
 samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
 
-## Id / Name column must be unique
-if not samples.Id.is_unique:
-	print( "Error: Id column in sample.tsv is not unique" )
-	sys.exit(1)
-if not samples.Name.is_unique:
-	print( "Error: Name column in sample.tsv is not unique" )
-	sys.exit(1)
-
-## Group column must not overlap with Name column
-#if not len(set(samples.Group).intersection(set(samples.Name)))==0:
-#	print( "Error: Sample Group name must not overlap with Name" )
-#	sys.exit(1)
-
-#################################
-## Cluster configuration file
 import yaml
 with open(os.path.expanduser(cluster_yml), 'r') as fh:
 	cluster = yaml.load(fh)
 
 
-
-
+#################################################
+## Configuration & sample sheet validation
+include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.bySample/validate.smk"
 
 
 #########################
 ## Rules start
-
 # All sample names (Name field in sample.tsv file)
 sampleList = samples.Name.tolist()
 # Samples for TF (or narrow peaks)
