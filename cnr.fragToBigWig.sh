@@ -87,9 +87,9 @@ printBed(){
 	local ext=${src##*.}
 	
 	if [ "$ext" == "gz" ];then
-		zcat $src | grep ^chr
+		zcat $src | grep ^chr | gawk '$2 > 0'
 	else
-		cat $src | grep ^chr
+		cat $src | grep ^chr | gawk '$2 > 0'
 	fi
 }
 

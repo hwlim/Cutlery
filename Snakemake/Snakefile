@@ -119,6 +119,7 @@ with open(os.path.expanduser(cluster_yml), 'r') as fh:
 ## Rules start
 rule all:
 	input:
+		alignDir + "/alignStat.txt",
 		## output from check_baseFreq
 		expand(filteredDir + "/BaseFreq/{sampleName}.R{read}.png", sampleName=samples.Name.tolist(), read=[1,2]),
 		## output from make_bigwig
