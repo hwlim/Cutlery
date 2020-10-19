@@ -24,6 +24,8 @@ if not samples.Name.is_unique:
 
 ## Only alphanumeric / dash / underbar in sample sheet
 ## NOTE: should be upgraded to regular expression of allowed pattern (not only checking a space)
+## Series.str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-_]+$)').sum()
+
 invalid_elem=[]
 for col in samples:
     flag = samples[col].str.contains(" ")
