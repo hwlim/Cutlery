@@ -22,19 +22,23 @@ if not samples.Name.is_unique:
 #	print( "Error: Sample Group name must not overlap with Name" )
 #	sys.exit(1)
 
-## Only alphanumeric / dash / underbar in sample sheet
-## NOTE: should be upgraded to regular expression of allowed pattern (not only checking a space)
-## Series.str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-_]+$)').sum()
-
+## Only alphanumeric / dash / underbar / dot in sample sheet
+## Must start with alphanumeric only
 invalid_elem=[]
 for col in samples:
-    flag = samples[col].str.contains(" ")
-    if flag.any:
-        invalid_elem = invalid_elem + samples[col][ flag.tolist() ].tolist()
+    #tmp = samples[col].str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-_\.]+$)')
+    tmp = samples[col].str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-\.]+$)')
+    index_invalid = (tmp == 0)
+    if index_invalid.any():
+        invalid_elem = invalid_elem + samples[col][index_invalid].tolist()
 
 if len(invalid_elem) > 0:
-    print( "Error: Only alphanumeric, dash (-) and underbar (_) are allowed in a sample sheet" )
+    print( "Error: Only alphanumeric, dash (-) and underbar (_) are allowed in a sample sheet")
+    print( "Invalid values:" )
+    for elem in invalid_elem: print( "  - %s" % elem )
     sys.exit(1)
+
+
 
 ## To add
 ## - file check
