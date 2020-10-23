@@ -32,7 +32,7 @@ Input:
 Output:
 	- <outPrefix>.txt
 	- <outPrefix>.png
-	- <outPrefix>.html (if -p is set)",
+	- <outPrefix>.html (if -i is set)",
 	 option_list=option_list)
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) == 0) {
