@@ -306,7 +306,7 @@ rule call_peaks_histone_allfrag:
 
 rule draw_peak_heatmap_factor:
 	input:
-		bed = homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+		bed = homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
 		nfr = bigWigDir + "/{sampleName}.nfr.ctr.bw",
 		nuc = bigWigDir + "/{sampleName}.nuc.ctr.bw"
 	output:
