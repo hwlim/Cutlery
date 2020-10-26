@@ -303,6 +303,24 @@ rule call_peaks_histone_allfrag:
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
+
+rule draw_peak_heatmap_factor:
+	input:
+		bed = homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+		nfr = bigWigDir + "/{sampleName}.nfr.ctr.bw",
+		nuc = bigWigDir + "/{sampleName}.nuc.ctr.bw"
+	output:
+		homerDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png"
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -c NFR,NUC -s 3,6 \
+			-o {homerDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
+			{input.bed} {input.nfr} {input.nuc}
+		"""
+
 #####################################################
 ## Scaled BigWig by Spike-in using raw read counts (not RPM)
 #def get_scalefactor(wildcards):
