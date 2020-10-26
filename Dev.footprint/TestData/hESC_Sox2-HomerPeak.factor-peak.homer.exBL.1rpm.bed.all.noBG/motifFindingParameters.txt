@@ -1,1 +1,0 @@
-cmd = __temp__runHomerMotif.17586.0 hg19 hESC_Sox2-HomerPeak.factor-peak.homer.exBL.1rpm.bed.all.noBG -size 200 -len 8,10,12 -p 4 -preparsedDir /data/limlab/Resource/Homer.preparse
