@@ -183,9 +183,11 @@ rule make_bigwig1bp:
 
 rule make_bigwig_allfrag:
 	input:
-		splitDir + "/{sampleName}.all.con.bed.gz"
+		all=splitDir + "/{sampleName}.all.con.bed.gz",
+		nfr=splitDir + "/{sampleName}.nfr.con.bed.gz"
 	output:
-		bigWigDirAllFrag + "/{sampleName}.allFrag.bw"
+		all=bigWigDirAllFrag + "/{sampleName}.allFrag.bw",
+		nfr=bigWigDirAllFrag + "/{sampleName}.nfr.con.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -193,7 +195,8 @@ rule make_bigwig_allfrag:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output} {input}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
 		"""
 
 rule make_tagdir:
