@@ -25,7 +25,8 @@ option_list <- list(
 )
 parser <- OptionParser(usage = "%prog [options] [peak] [bigwig]", option_list=option_list,
 	description="Description:
-	Find center of peaks with maximum fragment stack-up from a given bigwig file and create a new peak file
+	Find center of peaks with maximum fragment stack-height profile from a given bigwig file and create a new peak file
+	Weighted moving average (WMA) is performed to smooth the profile and find the global maxima
 	If more than one max position, their middle (average) location will be the center
 Input:
 	- Peak file in bed format containing fixed size regions
@@ -37,7 +38,7 @@ Output:
 # Option handling
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) < 2){
-	write(sprintf("Error: Requires at bed and bigWig prefix: (%d)", length(arguments$args)), stderr())
+	write(sprintf("Error: Requires input bed file and bigwig file"), stderr())
 	print_help(parser)
 	q()
 }else{
@@ -75,14 +76,19 @@ peak = readBedFile(src.peak)
 ## Homer peak is sometimes incorrect sized
 ## Forced resizing to handle those incorrect sized peaks
 peak = resizeBed(peak,200)
-half_width = round(peak[1,3] - peak[1,2])/2
+half_width = round( (peak[1,3] - peak[1,2])/2 )
 
+## bigwig profile extraction
 data = extractBigWigData1bp(peak, src.bw, des=NULL)
 stopifnot(sum(is.na(data))==0)
 
 #stopifnot(all(peak[,3]-peak[,2] == peak[1,3]-peak[1,2]))
 if(FALSE){
+	########################################################
 	## Dev. code to compare different types of bigwig files
+	src.bw1="../TestData/HNF4a_Park/igv.nfr.ctr.bw"
+	src.bw2="../TestData/HNF4a_Park/igv.allFrag.bw"
+	src.bw3="../TestData/HNF4a_Park/igv.nfr.con.bw"
 	data1 = extractBigWigData1bp(src.peak, src.bw1, des=NULL)
 	data2 = extractBigWigData1bp(src.peak, src.bw2, des=NULL)
 	data3 = extractBigWigData1bp(src.peak, src.bw3, des=NULL)
@@ -111,7 +117,8 @@ if(FALSE){
 	}
 }
 
-
+## Center finding by WMA maxima
+## If more than one maxima loci, take middle point
 findCenter=function(x, n.wma=0){
 	## n.wma
 	if(n.wma==0){
@@ -123,11 +130,17 @@ findCenter=function(x, n.wma=0){
 }
 
 ## NOTE: Some center after WMA goes beyond the initial peak boundary
+##       Not decided how to handle these cases
 write(sprintf("Centering..."), stderr())
 offset = apply(data,1, function(x) findCenter(x,n.wma))
 offset = round(offset)
 #hist(center,100)
 #tmp.index=which(center==200)
+
+## index of peaks whose centers are located at the edge
+## For record keeping and future  further development 
+#tf.edge = offset == 1 | offset == half_width * 2
+#writeBedFile(peak[tf.edge,], sub(".bed$", ".edge", des))
 
 center = peak[,2] + offset
 peak[,2] = center - half_width
