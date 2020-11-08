@@ -184,10 +184,12 @@ rule make_bigwig1bp:
 rule make_bigwig_allfrag:
 	input:
 		all=splitDir + "/{sampleName}.all.con.bed.gz",
-		nfr=splitDir + "/{sampleName}.nfr.con.bed.gz"
+		nfr=splitDir + "/{sampleName}.nfr.con.bed.gz",
+		nuc=splitDir + "/{sampleName}.nuc.con.bed.gz"
 	output:
 		all=bigWigDirAllFrag + "/{sampleName}.allFrag.bw",
-		nfr=bigWigDirAllFrag + "/{sampleName}.nfr.con.bw"
+		nfr=bigWigDirAllFrag + "/{sampleName}.nfr.con.bw",
+		nuc=bigWigDirAllFrag + "/{sampleName}.nuc.con.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -197,6 +199,7 @@ rule make_bigwig_allfrag:
 		module load CnR/1.0
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 rule make_tagdir:
@@ -236,6 +239,7 @@ rule call_peaks_factor:
 		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr")
 #		get_peakcall_factor_input
 	output:
+		homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.bed",
 		homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	params:
 		mask = peak_mask,
@@ -247,6 +251,23 @@ rule call_peaks_factor:
 		"""
 		module load CnR/1.0
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		"""
+
+rule center_peak_factor:
+	input:
+		all=homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.bed",
+		rpm=homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
+		bw=bigWigDirAllFrag + "/{sampleName}.nfr.con.bw"
+	output:
+		all=homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.centered.bed",
+		rpm=homerDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.centered.bed"
+	message:
+		"Peak centering ... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load CnR/1.0
+		cnr.centerPeaks.r -n 20 -o {output.all} {input.all} {input.bw}
+		cat {output.all} | gawk '$5 > 1' > {output.rpm}
 		"""
 
 
