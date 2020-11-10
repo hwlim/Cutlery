@@ -11,7 +11,7 @@ snakemake --dag | dot -Tpdf > diag.pdf
 #fi
 
 mkdir -p logs
-bsub -W ${totalWaitTime} -eo bsub.${timestamp}.err -oo bsub.${timestamp}.out \
+bsub -W ${totalWaitTime} -eo bsub.err -oo bsub.out \
 	"module load python3/3.6.3
 	snakemake -j $nJob \
 		--latency-wait 60 \
