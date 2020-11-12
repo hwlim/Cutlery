@@ -238,13 +238,16 @@ rule make_bigwig1bp_corrected:
 			{sampleDir}/{wildcards.sampleName}/igv.1bp
 		"""
 
+
 rule make_bigwig_allfrag:
 	input:
 		all=sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
-		nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz"
+		nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
+		nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz"
 	output:
 		all=sampleDir + "/{sampleName}/igv.allFrag.bw",
-		nfr=sampleDir + "/{sampleName}/igv.nfr.con.bw"
+		nfr=sampleDir + "/{sampleName}/igv.nfr.con.bw",
+		nuc=sampleDir + "/{sampleName}/igv.nuc.con.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
 #	params:
@@ -299,7 +302,8 @@ def get_peakcall_input(sampleName, fragment):
 
 rule call_peaks_factor:
 	input:
-		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr")
+		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr"),
+		bw = sampleDir + "/{sampleName}/igv.nfr.con.bw"
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	params:
@@ -311,13 +315,14 @@ rule call_peaks_factor:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
 		"""
 
 
 rule call_peaks_factor_allfrag:
 	input:
-		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
+		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
+		bw = sampleDir + "/{sampleName}/igv.all.con.bw"
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
@@ -329,7 +334,7 @@ rule call_peaks_factor_allfrag:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
 		"""
 
 
