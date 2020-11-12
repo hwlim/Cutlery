@@ -23,6 +23,9 @@ Options:
 	-o <outDir>: Destination tag directory, required
 	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
 	-m <mask>: mask bed file for filtering such as ENCODE blacklist
+	-b <bigwig>: bigwig file of NFR fragments, i.e. *.nfr.con.bw
+		If specified, peak centering is performed using given bigwig file
+		default=NULL
 	-s <optStr>: additional option for 'findPeaks' of Homer
 		Internal pre-set option: \"-style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0\"
 		\"-fragLength 100 -inputFragLength 100\" is recommended as an additiona option considering the input bed length" >&2
@@ -42,9 +45,10 @@ fi
 desDir=NULL
 ctrl=NULL
 mask=NULL
+bw=NULL
 optStr=""
 #lengthParam=NULL,NULL
-while getopts ":o:i:m:s:" opt; do
+while getopts ":o:i:m:b:s:" opt; do
 	case $opt in
 		o)
 			desDir=$OPTARG
@@ -54,6 +58,9 @@ while getopts ":o:i:m:s:" opt; do
 			;;
 		m)
 			mask=$OPTARG
+			;;
+		b)
+			bw=$OPTARG
 			;;
 		s)
 			optStr=$OPTARG
@@ -94,6 +101,10 @@ if [ "$mask" != "NULL" ];then
 	assertFileExist $mask
 fi
 
+if [ "$bw" != "NULL" ];then
+	assertFileExist $bw
+fi
+
 ###################################
 ## main code
 log=${desDir}/peak.log
@@ -109,28 +120,42 @@ peakBed=${desDir}/peak.bed
 peakMasked=${desDir}/peak.exBL.bed
 peak1rpm=${desDir}/peak.exBL.1rpm.bed
 
+## Homer Peak finding
 mkdir -p $desDir
 optStr="-o ${peak0} -style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0 ${optStr}"
 if [ "$ctrl" == "NULL" ];then
-	#findPeaks $target -o ${peak0} -style factor -tbp 0 -norm 1000000 -strand both -center -size 200 ${optStr} 2>&1 | tee ${log}
+	## Without control sample
 	findPeaks $target ${optStr} 2>&1 | tee ${log}
 else
+	## With control sample
 	findPeaks $target -i ${ctrl} ${optStr} 2>&1 | tee ${log}
 fi
 
 
+## pos -> bed file
 grep -v "^#" ${peak0} \
 	| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t+\n", $2, $3, $4, $1, $6 }' \
 	> ${peakBed}
 
+## Peak centering using given NFR bigwig file
+tmpPeak=${TMPDIR}/__temp__.$$.bed
+if [ "$bw" == "NULL" ];then
+	cnr.centerPeaks.r -n 20 -o ${tmpPeak} ${peakBed} ${bw}
+	peakBed=${tmpPeak}
+fi
+
+## Blacklist filtering if given
 if [ "$mask" != "NULL" ];then
 	intersectBed -a ${peakBed} -b $mask -v > ${peakMasked}
 else
 	cp ${peakBed} ${peakMasked}
 fi
 
+## > 1 RPM filtering
 gawk '$5 > 1' ${peakMasked} > ${peak1rpm}
 
+## Final summary print
+gawk '$5 > 1' ${peakMasked} > ${peak1rpm}
 N0=`cat ${peakBed} | wc -l`
 N1=`cat ${peak1rpm} | wc -l`
 echo -e "Final peaks: $N1 (/$N0), > 1rpm(/all)" >&2
