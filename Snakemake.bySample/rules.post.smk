@@ -257,6 +257,7 @@ rule make_bigwig_allfrag:
 		module load CnR/1.0
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 rule make_tagdir:
