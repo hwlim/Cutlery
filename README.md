@@ -47,7 +47,7 @@ export PATH=${PATH}:${CUTLERY}
 
 ## 2. Analysis of CUT&RUN data: Each sample
 
-### 2.0 Initialize analysis folder
+### 1 Initialize analysis folder
 
 Create a folder for analysis workspace
 
@@ -67,7 +67,7 @@ which will create three files:
 - 0.submit.snakemake.sh
 
 
-### 2.1 sample.tsv
+### 2. sample.tsv
 
 Tab-separated sample information file with following 7 columns:
 - **Id**: Unique sample ID. This is used for the output files of adapter trimming. 
@@ -92,3 +92,16 @@ Example:
 |sample5|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG|histone|
 
 
+### 3. Snakefile
+
+- File declaring various parameters, files, and outputs.
+- Check the comments within the created Snakefile for further information.
+- Basically, it is based on python. Mind the grammar.
+
+## 3. Run
+
+Dry run first to see if everything is correctly defined.
+
+```bash
+snakemake -np
+```
