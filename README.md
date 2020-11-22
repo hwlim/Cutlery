@@ -23,7 +23,7 @@ export PATH=${PATH}:${CUTLERY}
 
 ### 2.1 sample.tsv file: sample data sheet with 6 columns:
 
-- **Id**: Unique sample ID
+- **Id**: Unique sample ID. This is used for the output files of adapter trimming. 
 - **Name**: Sample name. This becomes the output folder name for each sample
 - **Group**: Sample group. No specific use in the process of each sample but will be used for replicate-pooling and group-wise analysis later
 - **Fq1/2**: Name of fastq files, Read1 and 2 (Paired-end sequencing is assumed always)
