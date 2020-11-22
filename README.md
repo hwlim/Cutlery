@@ -77,7 +77,9 @@ Tab-separated sample information file with following 7 columns:
 - **Ctrl**: Name of control sample from the "Name" column for peak calling. Use "NULL" for peak calling without a control.
 - **PeakMode**: Peak mode among {factor,histone,NULL}. If "NULL", no peak calling is performed, e.g. for IgG samples.
 
-Note: no white space is allowed in the file except for the column separator, tab.
+Note:
+- no white space is allowed in the file except for the column separator, tab.
+- Id and Name columns must contain unique values not overlapping with other samples
 
 Example:
 
