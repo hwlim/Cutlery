@@ -12,6 +12,7 @@ git clone https://github.com/hwlim/Cutlery
 
 ```bash
 # For Cutlery location
+# This environment variable is used in many Cutlery scripts to locate basic resource
 export CUTLERY=${HOME}/bin/Cutlery
 
 # PATH for Cutlery scripts and executables
