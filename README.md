@@ -2,6 +2,8 @@
 
 ## 0. Prerequisite
 
+1. LimLabBase
+
 This pipeline heavily relies on LimLabBase. Therefore, setup github.com/LimLabBase first.
 
 ```bash
@@ -45,6 +47,11 @@ Initialize to create template files
 ```bash
 cnr.init.sh
 ```
+which will create three files:
+- sample.tsv
+- Snakefile
+- 0.submit.snakemake.sh
+
 
 ### 2.1 sample.tsv file: sample data sheet with 6 columns:
 
