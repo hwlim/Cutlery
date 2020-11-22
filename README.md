@@ -67,8 +67,9 @@ which will create three files:
 - 0.submit.snakemake.sh
 
 
-### 2.1 sample.tsv file: sample data sheet with 6 columns:
+### 2.1 sample.tsv
 
+sample data sheet with following 7 columns:
 - **Id**: Unique sample ID. This is used for the output files of adapter trimming. 
 - **Name**: Sample name. This becomes the output folder name for each sample
 - **Group**: Sample group. No specific use in the process of each sample but will be used for replicate-pooling and group-wise analysis later
