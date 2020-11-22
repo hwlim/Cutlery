@@ -9,8 +9,22 @@ This pipeline heavily relies on LimLabBase. Therefore, setup github.com/LimLabBa
 ```bash
 git clone https://github.com/LimLabBase
 ```
-
 And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
+
+2. Other software packages
+
+Mostly available in the HPC/BMI
+
+- Homer
+- cutadapt
+- STAR (> v2.7.4)
+- bedtools
+- samtools
+- bedGraphToBigWig (UCSC utilities)
+- bwtool
+- gawk
+- sed
+- R
 
 
 ## 1. Setting Cutlery for CUT&RUN data analysis
