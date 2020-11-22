@@ -32,6 +32,8 @@ export PATH=${PATH}:${CUTLERY}
 
 Note: no white space is allowed in the file except for the column separator, tab.
 
+Example:
+
 |Id|Name|Group|Fq1|Fq2|Ctrl|PeakMode|
 |--|----|-----|---|---|----|--------|
 |sample1|hPSC_Foxa1_rep1|hPSC_Foxa1|sample1_R1.fq.gz|sample1_R2.fq.gz|hPSC_IgG|factor|
