@@ -69,7 +69,7 @@ which will create three files:
 
 ### 2.1 sample.tsv
 
-sample data sheet with following 7 columns:
+Tab-separated sample information file with following 7 columns:
 - **Id**: Unique sample ID. This is used for the output files of adapter trimming. 
 - **Name**: Sample name. This becomes the output folder name for each sample
 - **Group**: Sample group. No specific use in the process of each sample but will be used for replicate-pooling and group-wise analysis later
