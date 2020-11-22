@@ -23,12 +23,12 @@ export PATH=${PATH}:${CUTLERY}
 
 ### 2.1 sample.tsv file: sample data sheet with 6 columns:
 
-- Id: Unique sample ID
-- Name: Sample name. This becomes the output folder name for each sample
-- Group: Sample group. No specific use in the process of each sample but will be used for replicate-pooling and group-wise analysis later
-- Fq1/2: Name of fastq files, Read1 and 2 (Paired-end sequencing is assumed always)
-- Ctrl: Name of control sample from the "Name" column for peak calling. Use "NULL" for peak calling without a control.
-- PeakMode: Peak mode among {factor,histone,NULL}. If "NULL", no peak calling is performed, e.g. for IgG samples.
+- **Id**: Unique sample ID
+- **Name**: Sample name. This becomes the output folder name for each sample
+- **Group**: Sample group. No specific use in the process of each sample but will be used for replicate-pooling and group-wise analysis later
+- **Fq1/2**: Name of fastq files, Read1 and 2 (Paired-end sequencing is assumed always)
+- **Ctrl**: Name of control sample from the "Name" column for peak calling. Use "NULL" for peak calling without a control.
+- **PeakMode**: Peak mode among {factor,histone,NULL}. If "NULL", no peak calling is performed, e.g. for IgG samples.
 
 Note: no white space is allowed in the file except for the column separator, tab.
 
