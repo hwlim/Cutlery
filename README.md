@@ -105,3 +105,15 @@ Dry run first to see if everything is correctly defined.
 ```bash
 snakemake -np
 ```
+
+If not error, then submit a job for Snakemake.
+```bash
+./0.submet.snakemake.sh
+```
+
+Check if jobs are automatically created and submitted by Snakemake
+```bash
+bjobs
+```
+
+
