@@ -1,5 +1,15 @@
 # Cutlery: automated pipeline and utilities for CUT&RUN data analysis
 
+## 0. Prerequisite
+
+This pipeline heavily relies on LimLabBase. Therefore, setup github.com/LimLabBase first.
+
+```bash
+git clone https://github.com/LimLabBase
+```
+
+And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
+
 
 ## 1. Setting Cutlery for CUT&RUN data analysis
 
@@ -21,6 +31,8 @@ export PATH=${PATH}:${CUTLERY}
 
 ## 2. Analysis of CUT&RUN data: Each sample
 
+### 2.0 Initialize analysis folder
+
 ### 2.1 sample.tsv file: sample data sheet with 6 columns:
 
 - **Id**: Unique sample ID. This is used for the output files of adapter trimming. 
@@ -41,3 +53,5 @@ Example:
 |sample3|hPSC_IgG|hPSC_IgG|sample3_R1.fq.gz|sample3_R2.fq.gz|hPSC_IgG|NULL|
 |sample4|hPSC_H3K27me3_rep1|hPSC_H3K27me3|sample4_R1.fq.gz|sample4_R2.fq.gz|hPSC_IgG|histone|
 |sample5|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG|histone|
+
+
