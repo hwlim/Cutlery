@@ -39,7 +39,8 @@ git clone https://github.com/hwlim/Cutlery
 ```bash
 # For Cutlery location
 # This environment variable is used in many Cutlery scripts to locate basic resource
-export CUTLERY=${HOME}/bin/Cutlery
+# Replace <path_to_Cutlery> with as needed
+export CUTLERY=<path_to_Cutlery>
 
 # PATH for Cutlery scripts and executables
 export PATH=${PATH}:${CUTLERY}
