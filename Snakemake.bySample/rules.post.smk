@@ -245,7 +245,7 @@ rule make_bigwig_allfrag:
 		nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
 		nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz"
 	output:
-		all=sampleDir + "/{sampleName}/igv.allFrag.bw",
+		all=sampleDir + "/{sampleName}/igv.all.con.bw",
 		nfr=sampleDir + "/{sampleName}/igv.nfr.con.bw",
 		nuc=sampleDir + "/{sampleName}/igv.nuc.con.bw"
 	message:
