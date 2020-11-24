@@ -1,12 +1,22 @@
 #!/usr/bin/env bash
 
+source $COMMON_LIB_BASE/commonBash.sh
+
+
 nJob=20
 totalWaitTime="48:00"
 timestamp=$(date +%Y%m%d_%H%M%S)
-cluster_config=~/bin/CnR/Snakemake.bySample/cluster.yml
+cluster_config=${CUTLERY}/Snakemake.bySample/cluster.yml
+
+assertFileExist $cluster_config
 
 #if [ ! -f diag.pdf ];then
-[  "`which python3`" == "" ] && module load python3/3.6.3
+if [  "`which python3`" == "" ]; then
+	module load python3/3.6.3
+else
+	python_version=`python3 --version`
+	[ "$python_version" != "Python 3.6.3" ] && module load python3/3.6.3
+fi
 snakemake --dag | dot -Tpdf > diag.pdf
 #fi
 
