@@ -353,7 +353,7 @@ rule call_peaks_histone:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input}
 		"""
 
 
@@ -371,7 +371,7 @@ rule call_peaks_histone_allfrag:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input}
 		"""
 
 '''
