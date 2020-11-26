@@ -140,7 +140,8 @@ grep -v "^#" ${peak0} \
 
 echo -e "Blacking masking & merging" >&2
 if [ "$mask" != "NULL" ];then
-	subtractBed -a ${peakBed} -b $mask \
+	#subtractBed -a ${peakBed} -b $mask \
+	intersectBed -a ${peakBed} -b $mask -v \
 		| sortBed \
 		| mergeBed \
 		| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t0\t+\n", $1,$2,$3,NR }' \
