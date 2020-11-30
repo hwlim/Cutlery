@@ -2,7 +2,7 @@
 
 ## 0. Prerequisite
 
-1. LimLabBase
+### 1. LimLabBase
 
 This pipeline heavily relies on LimLabBase. Therefore, setup github.com/LimLabBase first.
 
@@ -11,7 +11,7 @@ git clone https://github.com/LimLabBase
 ```
 And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
 
-2. Other software packages
+### 2. Other software packages
 
 Mostly available in the HPC/BMI
 
@@ -29,12 +29,12 @@ Mostly available in the HPC/BMI
 
 ## 1. Setting Cutlery for CUT&RUN data analysis
 
-1. Git clone:
+### 1. Git clone:
 ```bash
 git clone https://github.com/hwlim/Cutlery
 ```
 
-2. Declare environment for Cutlery in .bash_profile (or .bashrc)
+### 2. Declare environment for Cutlery in .bash_profile (or .bashrc)
 
 ```bash
 # For Cutlery location
