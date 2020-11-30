@@ -46,7 +46,7 @@ export CUTLERY=<path_to_Cutlery>
 export PATH=${PATH}:${CUTLERY}
 ```
 
-## 2. Analysis of CUT&RUN data: Each sample
+## 2. Analysis of CUT&RUN data
 
 ### 2.1. Initialize analysis folder
 
