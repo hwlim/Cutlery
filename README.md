@@ -2,7 +2,7 @@
 
 ## 0. Prerequisite
 
-### 1. LimLabBase
+### 0.1. LimLabBase
 
 This pipeline heavily relies on LimLabBase. Therefore, setup github.com/LimLabBase first.
 
@@ -11,7 +11,7 @@ git clone https://github.com/LimLabBase
 ```
 And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
 
-### 2. Other software packages
+### 0.2. Other software packages
 
 Mostly available in the HPC/BMI
 
@@ -29,12 +29,12 @@ Mostly available in the HPC/BMI
 
 ## 1. Setting Cutlery for CUT&RUN data analysis
 
-### 1. Git clone:
+### 1.1. Git clone:
 ```bash
 git clone https://github.com/hwlim/Cutlery
 ```
 
-### 2. Declare environment for Cutlery in .bash_profile (or .bashrc)
+### 1.2. Declare environment for Cutlery in .bash_profile (or .bashrc)
 
 ```bash
 # For Cutlery location
@@ -48,7 +48,7 @@ export PATH=${PATH}:${CUTLERY}
 
 ## 2. Analysis of CUT&RUN data: Each sample
 
-### 1 Initialize analysis folder
+### 2.1. Initialize analysis folder
 
 Create a folder for analysis workspace
 
@@ -68,7 +68,7 @@ which will create three files:
 - 0.submit.snakemake.sh
 
 
-### 2. sample.tsv
+### 2.2. sample.tsv
 
 Tab-separated sample information file with following 7 columns:
 - **Id**: Unique sample ID. This is used for the output files of adapter trimming. 
@@ -93,7 +93,7 @@ Example:
 |sample5|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG|histone|
 
 
-### 3. Snakefile
+### 2.3. Snakefile
 
 - File declaring various parameters, files, and outputs.
 - Check the comments within the created Snakefile for further information.
