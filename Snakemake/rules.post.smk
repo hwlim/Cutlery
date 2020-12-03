@@ -266,8 +266,14 @@ rule center_peak_factor:
 	shell:
 		"""
 		module load CnR/1.0
-		cnr.centerPeaks.r -n 20 -o {output.all} {input.all} {input.bw}
-		cat {output.all} | gawk '$5 > 1' > {output.rpm}
+		N=`cat {input.all} | wc -l`
+		if [ $N -gt 0 ];then
+			cnr.centerPeaks.r -n 20 -o {output.all} {input.all} {input.bw}
+			cat {output.all} | gawk '$5 > 1' > {output.rpm}
+		else
+			touch {output.all}
+			touch {output.rpm}
+		fi
 		"""
 
 
@@ -340,9 +346,14 @@ rule draw_peak_heatmap_factor:
 	shell:
 		"""
 		module load CnR/1.0
-		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -c NFR,NUC -s 3,6 \
-			-o {homerDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
-			{input.bed} {input.nfr} {input.nuc}
+		N=`cat {input.bed} | wc -l`
+		if [ $N -gt 0 ];then
+			drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -c NFR,NUC -s 3,6 \
+				-o {homerDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
+				{input.bed} {input.nfr} {input.nuc}
+		else
+			touch {output}
+		fi
 		"""
 
 #####################################################
