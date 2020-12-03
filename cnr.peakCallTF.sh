@@ -139,7 +139,7 @@ grep -v "^#" ${peak0} \
 
 ## Peak centering using given NFR bigwig file
 tmpPeak=${TMPDIR}/__temp__.$$.bed
-if [ "$bw" == "NULL" ];then
+if [ "$bw" != "NULL" ];then
 	cnr.centerPeaks.r -n 20 -o ${tmpPeak} ${peakBed} ${bw}
 	peakBed=${tmpPeak}
 fi
@@ -155,7 +155,6 @@ fi
 gawk '$5 > 1' ${peakMasked} > ${peak1rpm}
 
 ## Final summary print
-gawk '$5 > 1' ${peakMasked} > ${peak1rpm}
 N0=`cat ${peakBed} | wc -l`
 N1=`cat ${peak1rpm} | wc -l`
 echo -e "Final peaks: $N1 (/$N0), > 1rpm(/all)" >&2
