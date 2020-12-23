@@ -3,7 +3,7 @@
 
 ## Sample information file with five columns: id / name / group / fq1 / fq2
 src_sampleInfo	= "./sample.tsv"
-cluster_yml	= "~/bin/CnR/Snakemake/cluster.yml"
+cluster_yml	= os.environ["CUTLERY"] + "/Snakemake/cluster.yml"
 
 ## Genome folder depending on platform: CCHMC:HPC vs my desktop
 import socket
@@ -141,6 +141,6 @@ rule all:
 		#expand(homerDir + "/{sampleName}/TSV.{fragment}", sampleName=samples.Name.tolist(), fragment=["nfr","nuc"])
 
 
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.post.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/rules.pre.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/rules.post.smk"
 

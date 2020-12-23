@@ -3,7 +3,7 @@
 
 ## Sample information file with five columns: Id / Name / Group / Fq1 / Fq2 / Ctrl / PeakMode
 src_sampleInfo	= "../sample.tsv"
-cluster_yml	= "~/bin/CnR/Snakemake.pool/cluster.yml"
+cluster_yml	= os.environ["CUTLERY"] + "/Snakemake.pool/cluster.yml"
 
 ## Name / PeakMode / Ctrl columns for group analysis mimicking sample.tsv file
 ## i.e. Name correspond to the Group column in sample.tsv
@@ -131,5 +131,5 @@ rule all:
 		#expand(homerDir + "/{sampleName}/TSV.{fragment}", sampleName=samples.Name.tolist(), fragment=["nfr","nuc"])
 
 
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.post.smk"
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.pool/rules.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/rules.post.smk"
+include: os.environ["CUTLERY"] + "/Snakemake.pool/rules.smk"

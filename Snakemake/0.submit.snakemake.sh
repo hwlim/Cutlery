@@ -3,7 +3,7 @@
 nJob=20
 totalWaitTime="48:00"
 timestamp=$(date +%Y%m%d_%H%M%S)
-config=~/bin/CnR/Snakemake/cluster.yml
+config=${CUTLERY}/Snakemake/cluster.yml
 
 if [ ! -f diag.pdf ];then
 	module load python3/3.6.3
@@ -14,7 +14,7 @@ fi
 #snakemake -np
 #exit 0
 mkdir -p logs
-bsub -W ${totalWaitTime} -eo bsub.${timestamp}.err -oo bsub.${timestamp}.out \
+bsub -W ${totalWaitTime} -eo bsub.err -oo bsub.out \
 	"module load python3/3.6.3
 	snakemake -j $nJob \
 		--latency-wait 60 \
