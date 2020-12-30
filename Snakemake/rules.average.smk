@@ -30,7 +30,7 @@ rule make_bigwig_avg:
 #		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
 		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
 		makeBigWigAverage.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}

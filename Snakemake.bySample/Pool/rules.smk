@@ -21,6 +21,6 @@ rule pool_replicate_bam:
 		"Pooling replicates... [{wildcards.groupName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		ngs.concateBamFiles.sh -o {output} {input}
 		"""

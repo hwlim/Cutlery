@@ -44,7 +44,7 @@ rule check_baseFreq:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		bamToBed.separate.sh -o {baseFreqDir}/{wildcards.sampleName} {input}
 		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -m 5 -l 20 -o {baseFreqDir}/{wildcards.sampleName}.R1 {baseFreqDir}/{wildcards.sampleName}.R1.bed.gz
 		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -m 5 -l 20 -o {baseFreqDir}/{wildcards.sampleName}.R2 {baseFreqDir}/{wildcards.sampleName}.R2.bed.gz
@@ -64,7 +64,7 @@ rule split_bam:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.splitBamToBed.sh -o {splitDir}/{wildcards.sampleName} -c "{chrRegexTarget}" {input}
 		"""
 
@@ -80,7 +80,7 @@ rule make_fcl_file:
 		"Making FCL bed files... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		fragmentToFCL.sh -o {output} -m 5G {input}
 		"""
 
@@ -94,7 +94,7 @@ rule get_fragLenHist:
 		"Checking fragment length... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		ngs.fragLenHist.r -o {fragLenDir}/{wildcards.sampleName}.dist -n {wildcards.sampleName} {input}
 		"""
 
@@ -108,7 +108,7 @@ rule get_frag_autocor:
 		"Checking fragment auto-correlation... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.drawAutoCorFrag.r -o {fragAcorDir}/{wildcards.sampleName} {input}
 		"""
 
@@ -122,7 +122,7 @@ rule count_spikein:
 		"Counting spikein tags... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		countSpikein.sh -p {spikePrefix} {input} > {output}
 		"""
 
@@ -135,7 +135,7 @@ rule make_spikeintable:
 		"Making spikein table..."
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		makeSpikeCntTable.r -o {spikeinCntDir}/spikein {input}
 		"""
 
@@ -156,7 +156,7 @@ rule make_bigwig:
 #		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
@@ -176,7 +176,7 @@ rule make_bigwig1bp:
 #		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.fragToBigWigStranded1bp.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -c "{chrRegexTarget}" -m 5G {input}
 		"""
 #		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
@@ -196,7 +196,7 @@ rule make_bigwig_allfrag:
 #		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
 		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
@@ -217,7 +217,7 @@ rule make_tagdir:
 		"Making Homer tag directory... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.makeHomerDir.sh -o {output.nfr} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nfr}
 		cnr.makeHomerDir.sh -o {output.nuc} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nuc}
 		cnr.makeHomerDir.sh -o {output.all} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.all}
@@ -249,7 +249,7 @@ rule call_peaks_factor:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
@@ -265,7 +265,7 @@ rule center_peak_factor:
 		"Peak centering ... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		N=`cat {input.all} | wc -l`
 		if [ $N -gt 0 ];then
 			cnr.centerPeaks.r -n 20 -o {output.all} {input.all} {input.bw}
@@ -291,7 +291,7 @@ rule call_peaks_factor_allfrag:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
@@ -310,7 +310,7 @@ rule call_peaks_histone:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
@@ -329,7 +329,7 @@ rule call_peaks_histone_allfrag:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
 		"""
 
@@ -345,7 +345,7 @@ rule draw_peak_heatmap_factor:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		N=`cat {input.bed} | wc -l`
 		if [ $N -gt 0 ];then
 			drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -c NFR,NUC -s 3,6 \
@@ -393,7 +393,7 @@ rule make_bigwig_scaled:
 #		scaleFactor = get_scalefactor
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		scaleFactor=`cat {input.spikeinCnt} | gawk '$1=="'{wildcards.sampleName}'"' | cut -f 6`
 		if [ $scaleFactor == "" ];then
 			echo -e "Error: empty scale factor" >&2
@@ -427,7 +427,7 @@ rule make_bigwig_scaled_subtract:
 	#	memory = "%dG" % (  cluster["make_bigwig_subtract"]["memory"]/1000 - 1 )
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.all} {input.all}
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nfr} {input.nfr}
 		bigWigSubtract.sh -g {chrom_size} -m 5G -t -1000 {output.nuc} {input.nuc}
@@ -453,7 +453,7 @@ rule make_bigwig_rpsm:
 #		scaleFactor = get_scalefactor
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		scaleFactor=`cat {input.spikeinCnt} | gawk '{{ if($1=="ScaleFactor") print $2 }}'`
 		if [ $scaleFactor == "" ];then
 			echo -e "Error: empty scale factor" >&2
@@ -478,7 +478,7 @@ rule make_bigwig_allfrag_rpsm:
 #		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		scaleFactor=`cat {input.spikeinCnt} | gawk '{{ if($1=="ScaleFactor") print $2 }}'`
 		if [ $scaleFactor == "" ];then
 			echo -e "Error: empty scale factor" >&2
@@ -504,7 +504,7 @@ rule make_bigwig_scaled_divide:
 	#	memory = "%dG" % (  cluster["make_bigwig_subtract"]["memory"]/1000 - 1 )
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		bigWigDivide.sh -g {chrom_size} -m 5G -s log -a 1 -o {output} {input}
 		"""
 
@@ -527,7 +527,7 @@ rule make_bigwig_sub_avg:
 		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
 		"""
 
@@ -546,7 +546,7 @@ rule make_bigwig_scaled_sub_avg:
 		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
 		"""
 
@@ -565,7 +565,7 @@ rule make_bigwig_scaled_div_avg:
 		memory = "5G"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		makeBigWigAverage.sh -g {chrom_size} -m {params.memory} -o {output} {input}
 		"""
 '''

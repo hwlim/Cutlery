@@ -65,7 +65,7 @@ rule align_pe:
 		cluster["align_pe"]["cpu"]
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		module load {params.star_module}
 
 		star.align.sh -g {params.index} \
@@ -103,7 +103,7 @@ rule filter_align:
 		"Filtering... [{wildcards.sampleName}]"
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.filterBam.sh  -o {output} -c "{chrRegexAll}" {input}
 		"""
 
@@ -118,6 +118,6 @@ rule dedup_align:
 		memory = "%dG" % ( cluster["dedup_align"]["memory"]/1000 - 1 )
 	shell:
 		"""
-		module load CnR/1.0
+		module load Cutlery/1.0
 		cnr.dedupBam.sh -m {params.memory} -o {output} -r {input}
 		"""
