@@ -5,9 +5,13 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 
 function printUsage {
 	echo "Usage: `basename $0` (options) [bam or bed.gz]
-Description: check the frequency of fragment length
-Input: Paired-end bam file (sorted by name) or fragment bed file (compressed)
-Output: Two column text file with header, 'fragLen' / 'Cnt'
+Description:
+	check the frequency of fragment length
+	*Warning: Chromosomes start with 'chr' are considered.
+Input:
+	Paired-end bam file (sorted by name) or fragment bed file (compressed)
+Output:
+	Two column text file with header, 'fragLen' / 'Cnt'
 Options:
 	-o <out>: output file, default=stdout
 	-l <maxLen>: max length to consider. Larger lengths are included in the maxLen, default=1000"
@@ -18,6 +22,7 @@ Options:
 ## option and input file handling
 out=NULL
 maxLen=1000
+#chregex=
 while getopts ":o:l:" opt; do
 	case $opt in
 		o)
