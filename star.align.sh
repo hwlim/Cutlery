@@ -100,6 +100,10 @@ if [ "$genome" = "NULL" ];then
 fi
 isDirExist $genome
 
+## Temporary folder designation
+optStr="${optStr} --outTmpDir ${TMPDIR}/STARtmp_$$"
+
+## Sort or Not
 if [ "$sortBam" == "TRUE" ];then
 	optStr="${optStr} --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000"
 else
