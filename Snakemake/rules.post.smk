@@ -31,6 +31,14 @@ if "bamDir" not in locals():
 	else:
 		bamDir = filteredDir
 
+if "bigWig_RPSM" not in locals():
+	bigWig_RPSM = "NULL"
+
+if "bigWigAllFrag_RPSM" not in locals():
+	bigWigAllFrag_RPSM = "NULL"
+
+if "bigWigDirAllFrag" not in locals():
+	bigWigDirAllFrag = "NULL"
 
 ## Nucleotide frequence around MNase cutting sites
 ## PLAN: Use fragment file (all.con.bed.gz) instead of BAM file
@@ -250,7 +258,7 @@ rule call_peaks_factor:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
 		"""
 
 rule center_peak_factor:
@@ -292,7 +300,7 @@ rule call_peaks_factor_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
 		"""
 
 
@@ -311,7 +319,7 @@ rule call_peaks_histone:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
 		"""
 
 
@@ -330,7 +338,7 @@ rule call_peaks_histone_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100\" {params.optStr} {input}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input}
 		"""
 
 
