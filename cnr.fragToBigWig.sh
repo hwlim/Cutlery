@@ -8,8 +8,9 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bed]
-Description: Make a bigWig file from a fragment BED file in RPM scale (default) or manually scaled
-**Note that this only considers chromosome names starting with chr
+Description:
+	Make a bigWig file from a fragment BED file in RPM scale (default) or manually scaled
+	**Note that this only considers chromosome names starting with 'chr'
 Options:
 	-o <outFile>: Destination directory. required
 	-g <chromSIze>: chromosome size file, required
