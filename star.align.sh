@@ -41,7 +41,7 @@ fi
 ###################################
 ## option and input file handle
 genome=NULL
-outPrefix=STAR
+outPrefix=align
 thread=4
 sortBam=FALSE
 optStr=NULL
