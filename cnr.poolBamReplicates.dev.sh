@@ -19,7 +19,8 @@ Input:
 	- des bam directory: to write merged bam files
 		bam files are named as <group>.bam
 Options:
-	-b: if set, bam files are merged in parallel by submitting multiple bsub jobs, default=off" >&2
+	-b: if set, bam files are merged in parallel by submitting multiple bsub jobs, default=off
+	-o: if set, overwrite existing destination bam files, default=off" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -30,11 +31,15 @@ fi
 
 ###################################
 ## option and input file handling
-bsub=0
-while getopts ":b" opt; do
+bsub=FALSE
+overwrite=FALSE
+while getopts ":bo" opt; do
 	case $opt in
 		b)
-			bsub=1
+			bsub=TRUE
+			;;
+		o)
+			overwrite=TRUE
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -51,7 +56,7 @@ done
 
 
 shift $((OPTIND-1))
-if [ $# -eq 0 ];then
+if [ $# -lt 3 ];then
 	printUsage
 	exit 1
 fi
@@ -59,16 +64,57 @@ sampleInfo=$1
 srcDir=$2
 desDir=$3
 
+assertFileExist $sampleInfo
+assertDirExist $srcDir
 
 ###################################
 ## main code
 
-Usage: ngs.concateBamFiles.sh (options) [bam1] ...
-Description:
-	Concatenate bam files. No sorting
-Options:
-	-o <out>: Output file prefix including pathr. required
-	-m <mem>: Memory for sorting. default=5G
-	-s : If set, coordinate-sorted and indexed
+#Usage: ngs.concateBamFiles.sh (options) [bam1] ...
+#Description:
+#	Concatenate bam files. No sorting
+#Options:
+#	-o <out>: Output file prefix including pathr. required
+#	-m <mem>: Memory for sorting. default=5G
+#	-s : If set, coordinate-sorted and indexed
 
+groupL=`tail -n +2 $sampleInfo | grep -v -e ^$ -e ^# | cut -f 3 | uniq`
+
+echo -e "Pooling replicate bam files" >&2
+echo -e "  - sampleInfo: $sampleInfo" >&2
+echo -e "  - srcDir: $srcDir" >&2
+echo -e "  - desDir: $desDir" >&2
+echo -e "  - bsub:   $bsub" >&2
+
+mkdir -p $desDir
+for group in ${groupL[@]}
+do
+	des=${desDir}/${group}.bam
+	log=${desDir}/${group}.log
+
+	## Checking existing destination file
+	if [ -f $des ] && [ "$overwrite" != "TRUE" ];then
+		echo -e "Warning: $des already exists, pass" >&2
+		continue
+	fi
+
+	## List of replicate bam files
+	srcL=( `tail -n +2 $sampleInfo | grep -v -e ^$ -e "^#" | gawk '{ if($3 == "'$group'") printf "'$srcDir'/%s\n", $2 }'` )
+	assertFileExist ${srcL[@]}
+
+	## Merging to destination
+	echo -e "Creating $des" >&2
+	for src in ${srcL[@]}
+	do
+		echo -e "  - $src" >&2
+	done 2>&1 | tee $log
+
+	if [ "$bsub" == "TRUE" ];then
+		## Parallel processing using HPC:lsf
+		bsub -W 24:00 -n 1 "module load samtools/1.9.0; ngs.concateBamFiles.sh -o $des ${srcL[@]}"
+	else
+		## Sequential processing
+		ngs.concateBamFiles.sh -o $des ${srcL[@]}
+	fi
+done
 
