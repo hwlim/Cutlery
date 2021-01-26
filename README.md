@@ -1,5 +1,11 @@
 # Cutlery: automated pipeline and utilities for CUT&RUN data analysis
 
+Near-future plan
+- Remove "Pool" rules
+Once bam files are pooled, all the downstream analysis is the same
+Therefore, it is more logical and simple to have one script for bam file pooling utilizig sample.tsv
+
+
 ## 0. Prerequisite
 
 ### 0.1. LimLabBase
