@@ -6,9 +6,10 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bam1] ...
 Description:
-	Concatenate bam files. No sorting
+	Merge multiple bam files into one
+	In default, bam files are simply concatenated
 Options:
-	-o <out>: Output file prefix including pathr. required
+	-o <out>: Output file prefix including path. required
 	-m <mem>: Memory for sorting. default=5G
 	-s : If set, coordinate-sorted and indexed" >&2
 }
