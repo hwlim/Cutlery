@@ -99,7 +99,7 @@ do
 	fi
 
 	## List of replicate bam files
-	srcL=( `tail -n +2 $sampleInfo | grep -v -e ^$ -e "^#" | gawk '{ if($3 == "'$group'") printf "'$srcDir'/%s\n", $2 }'` )
+	srcL=( `tail -n +2 $sampleInfo | grep -v -e ^$ -e "^#" | gawk '{ if($3 == "'$group'") printf "'$srcDir'/%s.bam\n", $2 }'` )
 	assertFileExist ${srcL[@]}
 
 	## Merging to destination
