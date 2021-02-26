@@ -112,21 +112,32 @@ Snakemake is available in python3/3.6.3 in CCHMC/HPC.
 module load python3/3.6.3
 snakemake -np
 ```
-If there's an error, find the source of error and correct them.
-
-If no error, then submit a job for Snakemake.
+If there's an error, find the source of error and correct them such as incorrect parameters, folders, or missing inputs.
+If no error, then submit a Snakemake job for actual analysis.
 ```bash
 ./0.submet.snakemake.sh
 ```
 
-Check if jobs are automatically created and submitted by Snakemake
+After submitting, check if jobs are automatically created and submitted by Snakemake
 ```bash
 bjobs
 ```
-
-During the first few second, there will be only one job, a master job that create/submit each analysis task.
-But eventually, children bjos will appear and run as their dependency is satisfied.
-
+During the first few seconds, there will be only one job, a master job that create/submit each analysis task.
+But eventually a few seconds later, children bjos will appear and run as their dependency is satisfied.
+There is no automatic notification. Check back with **bjobs** command if they are still running.
 
 ## 4. Check results
-
+Once the job is finished or encounter an error, two log files will be created.
+(These file names are specified in 0.submit.snakemake.sh)
+- bsub.err
+- bsub.out
+Try
+```bash
+tail bsub.err
+```
+If you see something like **"(100%) done"**, everything is OK and complete.
+If you see something less than 100%, it means there was an error in one of the job.
+Check the log of individual jobs under the folder **logs** to see the error message.
+```baseh
+grep -i error logs/*err
+```
