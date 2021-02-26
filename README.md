@@ -39,7 +39,7 @@ Mostly available in the HPC/BMI
 ```bash
 git clone https://github.com/hwlim/Cutlery
 ```
-- **Cutlery** can be clonned to any location as far as you properly declare the environment variable below.
+Currently, LimLabBase also contains a folder, Cutlery. But **Cutlery** can be clonned to any location as far as you properly declare the environment variable below.
 
 ### 1.2. Declare environment for Cutlery in .bash_profile (or .bashrc)
 
