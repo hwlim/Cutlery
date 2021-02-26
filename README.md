@@ -121,6 +121,7 @@ If no error, then submit a Snakemake job for actual analysis.
 ./0.submet.snakemake.sh
 ```
 
+### 3.3. Job monitoring
 After submitting, check if jobs are automatically created and submitted by Snakemake
 ```bash
 bjobs
