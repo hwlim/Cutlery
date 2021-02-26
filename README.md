@@ -131,6 +131,7 @@ Once the job is finished or encounter an error, two log files will be created.
 (These file names are specified in 0.submit.snakemake.sh)
 - bsub.err
 - bsub.out
+
 Try
 ```bash
 tail bsub.err
