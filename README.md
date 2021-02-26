@@ -28,6 +28,7 @@ And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
 - gawk
 - sed
 - R
+- 
 All available in the HPC/BMI
 
 
