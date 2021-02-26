@@ -18,9 +18,6 @@ git clone https://github.com/LimLabBase
 And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
 
 ### 0.2. Other software packages
-
-Mostly available in the HPC/BMI
-
 - Homer
 - cutadapt
 - STAR (> v2.7.4)
@@ -31,6 +28,7 @@ Mostly available in the HPC/BMI
 - gawk
 - sed
 - R
+All available in the HPC/BMI
 
 
 ## 1. Setting Cutlery for CUT&RUN data analysis
@@ -39,7 +37,7 @@ Mostly available in the HPC/BMI
 ```bash
 git clone https://github.com/hwlim/Cutlery
 ```
-Currently, LimLabBase also contains a folder, Cutlery. But **Cutlery** can be clonned to any location as far as you properly declare the environment variable below.
+Currently, **LimLabBase** also contains a folder, Cutlery. But **Cutlery** can be clonned to any location as far as you properly declare the environment variable below.
 
 ### 1.2. Declare environment for Cutlery in .bash_profile (or .bashrc)
 
