@@ -39,6 +39,7 @@ Mostly available in the HPC/BMI
 ```bash
 git clone https://github.com/hwlim/Cutlery
 ```
+- **Cutlery** can be clonned to any location as far as you properly declare the environment variable below.
 
 ### 1.2. Declare environment for Cutlery in .bash_profile (or .bashrc)
 
@@ -59,8 +60,8 @@ export PATH=${PATH}:${CUTLERY}
 Create a folder for analysis workspace
 
 ```bash
-mkdir CnR.20201122
-cd CnR.20201122
+mkdir CnR_Analysis
+cd CnR_Analysis
 ```
 
 Initialize to create template files
@@ -69,9 +70,9 @@ Initialize to create template files
 cnr.init.sh
 ```
 which will create three files:
-- sample.tsv
-- Snakefile
-- 0.submit.snakemake.sh
+- sample.tsv: sample information meta sheet
+- Snakefile: analysis parameters and environments
+- 0.submit.snakemake.sh: script to run the analysis
 
 
 ### 2.2. sample.tsv
@@ -81,7 +82,7 @@ Tab-separated sample information file with following 7 columns:
 - **Name**: Sample name. This becomes the output folder name for each sample
 - **Group**: Sample group. No specific use in the process of each sample but will be used for replicate-pooling and group-wise analysis later
 - **Fq1 & 2**: Name of fastq files, Read1 & 2 (Paired-end sequencing is assumed always)
-- **Ctrl**: Name of control sample from the "Name" column for peak calling. Use "NULL" for peak calling without a control.
+- **Ctrl**: Name of control sample from the "Name" column for peak calling. Use "NULL" for peak calling without a control or ATAC-seq data analysis.
 - **PeakMode**: Peak mode among {factor,histone,NULL}. If "NULL", no peak calling is performed, e.g. for IgG samples.
 
 Note:
@@ -100,20 +101,20 @@ Example:
 
 
 ### 2.3. Snakefile
-
-- File declaring various parameters, files, and outputs.
-- Check the comments within the created Snakefile for further information.
+- **Snakefile** declares various parameters, environments, files, and outputs.
+- Check the comments within the **Snakefile** for further information and revise as needed.
 - Basically, it is based on python. Mind the grammar.
 
 ## 3. Run
-
 Dry run first to see if everything is correctly defined.
-
+Snakemake is available in python3/3.6.3 in CCHMC/HPC.
 ```bash
+module load python3/3.6.3
 snakemake -np
 ```
+If there's an error, find the source of error and correct them.
 
-If not error, then submit a job for Snakemake.
+If no error, then submit a job for Snakemake.
 ```bash
 ./0.submet.snakemake.sh
 ```
@@ -123,4 +124,9 @@ Check if jobs are automatically created and submitted by Snakemake
 bjobs
 ```
 
+During the first few second, there will be only one job, a master job that create/submit each analysis task.
+But eventually, children bjos will appear and run as their dependency is satisfied.
+
+
+## 4. Check results
 
