@@ -105,13 +105,17 @@ Example:
 - Basically, it is based on python. Mind the grammar.
 
 ## 3. Run
-Dry run first to see if everything is correctly defined.
+
+### 3.1. Dry-run
+Dry-run first to see if everything is correctly defined.
 Snakemake is available in python3/3.6.3 in CCHMC/HPC.
 ```bash
 module load python3/3.6.3
 snakemake -np
 ```
 If there's an error, find the source of error and correct them such as incorrect parameters, folders, or missing inputs.
+
+### 3.2. Submit Snakemake job
 If no error, then submit a Snakemake job for actual analysis.
 ```bash
 ./0.submet.snakemake.sh
