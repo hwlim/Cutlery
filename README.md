@@ -93,6 +93,13 @@ Example:
 |sample4|hPSC_H3K27me3_rep1|hPSC_H3K27me3|sample4_R1.fq.gz|sample4_R2.fq.gz|hPSC_IgG|histone|
 |sample5|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG|histone|
 
+**ATAC-seq analysis:**
+
+Since CUT&RUN and ATAC-seq data analysis are conceptually analogous to each other. It is possible to process ATAC-seq data using Cutlery in the same way with minor tweak.
+- **PeakMode** column should be **factor**
+- **Ctrl** column should be **NULL** because ATAC-seq doesn't have control samples, i.e. IgG sample for CUT&RUN.
+- **adapter** sequence is different. CUT&RUN usually uses Illumina universal adapter, but ATAC-seq uses Nextera adapter sequence. (check Snakefile comment)
+
 
 ### 2.3. Snakefile
 - Snakemake is workflow management language, inspired by **Make** in unix development.
