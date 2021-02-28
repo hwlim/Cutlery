@@ -76,10 +76,13 @@ kmer_pseudo	= 1
 
 ################################################
 ## Loading sample Information & cluster config
+
+## Sample table
 import pandas as pd
 import sys
 samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
 
+## Cluster configuration
 import yaml
 with open(os.path.expanduser(cluster_yml), 'r') as fh:
 	cluster = yaml.load(fh)
@@ -92,6 +95,8 @@ include: os.environ["CUTLERY"] + "/Snakemake.bySample/validate.smk"
 
 #########################
 ## Rules start
+
+### Sample list and types (No need to change) 
 # All sample names (Name field in sample.tsv file)
 sampleList = samples.Name.tolist()
 # Samples for TF (or narrow peaks)
@@ -101,30 +106,34 @@ sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
 
 rule all:
 	input:
+		##### Basic Output Files #####
 		## QC output
-		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
-#		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=sampleList, ext=["txt","png"]),
-		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
 		qcDir + "/alignStat.txt",
-		#spikeinCntDir + "/spikein.txt"
-		## bigWig files	
+		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
+		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
+		## BigWig files	
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
-		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=sampleListFactor, strand=["plus","minus"]),
-		expand(sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.{strand}.bw", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo, strand=["plus","minus"]),
-		expand(sampleDir + "/{sampleName}/igv.all.con.bw", sampleName=sampleList),
-		## peak files
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		## Peak calling
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
+		## Motif search
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
-		#expand(sampleDir + "/{sampleName}/Motif/Homer.all.allFrag/homerResults.html", sampleName=sampleListFactor),
-		#expand(sampleDir + "/{sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html", sampleName=sampleListFactor)
+
+'''
+Output files under Development
+		#spikeinCntDir + "/spikein.txt"
 		## Footprint
 		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo)
+		expand(sampleDir + "/{sampleName}/igv.1bp.{strand}.bw", sampleName=sampleListFactor, strand=["plus","minus"]),
+		expand(sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.{strand}.bw", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo, strand=["plus","minus"]),
+		expand(sampleDir + "/{sampleName}/QC/enrich.acor.{ext}", sampleName=sampleList, ext=["txt","png"]),
+'''
 
-
+## Include Snakemake rules from separate files
 include: os.environ["CUTLERY"] + "/Snakemake.bySample/rules.pre.smk"
 include: os.environ["CUTLERY"] + "/Snakemake.bySample/rules.post.smk"
 
