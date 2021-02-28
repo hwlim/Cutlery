@@ -95,9 +95,14 @@ Example:
 
 
 ### 2.3. Snakefile
+- Snakemake is workflow management language, inspired by **Make** in unix development.
+- Like **Make** uses **Makefile**, Snakemake uses a file, **Snakefile**, do define workflows.
 - **Snakefile** declares various parameters, environments, files, and outputs.
+- It is based on python grammar. Keep it mind.
 - Check the comments within the **Snakefile** for further information and revise as needed.
-- Basically, it is based on python. Mind the grammar.
+- Basically, workflow to perform is decided from designated outputs.
+- Snakemake trace up the rules for input:output relations, checkcreate jobs with dependency.
+
 
 ## 3. Run
 
