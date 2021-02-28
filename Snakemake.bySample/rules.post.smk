@@ -35,7 +35,8 @@ if "bamDir" not in locals():
 ## NEED REVISION for OUTPUT names & directories
 rule check_baseFreq:
 	input:
-		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		genomeFa = genomeFa
 		#bamDir + "/{sampleName}.bam"
 	output:
 		sampleDir + "/{sampleName}/QC/base_freq.png",
@@ -48,7 +49,7 @@ rule check_baseFreq:
 		"""
 		module load Cutlery/1.0
 		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq \
-			-n {wildcards.sampleName} -g {genomeFa} -c "{chrRegexTarget}" -m both -l 20 -f -i -v {input}
+			-n {wildcards.sampleName} -g {input.genomeFa} -c "{chrRegexTarget}" -m both -l 20 -f -i -v {input.frag}
 		"""
 #		bamToBed.separate.sh -o {sampleDir}/{wildcards.sampleName}/tmp {input}
 #		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R1 {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
@@ -151,7 +152,8 @@ rule make_bigwig:
 	input:
 		all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz",
 		nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
-		nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz"
+		nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz",
+		chrom = chrom_size
 	output:
 		all = sampleDir + "/{sampleName}/igv.all.ctr.bw",
 		nfr = sampleDir + "/{sampleName}/igv.nfr.ctr.bw",
@@ -163,9 +165,9 @@ rule make_bigwig:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 
@@ -174,7 +176,8 @@ rule make_bigwig:
 ## 		Thus needs an update in command line
 rule make_bigwig1bp:
 	input:
-		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		chrom = chrom_size
 		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/igv.1bp.plus.bw",
@@ -186,7 +189,7 @@ rule make_bigwig1bp:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -c "{chrRegexTarget}" -m 5G {input}
+		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -m 5G {input.frag}
 		"""
 #		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
@@ -224,7 +227,8 @@ rule make_bigwig1bp_corrected:
 	input:
 		plus = sampleDir + "/{sampleName}/igv.1bp.plus.bw",
 		minus = sampleDir + "/{sampleName}/igv.1bp.minus.bw",
-		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo{kmer_pseudo}.txt"
+		scale = sampleDir + "/{sampleName}/QC/kmer.scaleFactor.pseudo{kmer_pseudo}.txt",
+		chrom = chrom_size
 	output:
 		sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.plus.bw",
 		sampleDir + "/{sampleName}/igv.1bp.corrected{kmer_pseudo}.minus.bw"
@@ -233,7 +237,7 @@ rule make_bigwig1bp_corrected:
 	shell:
 		"""
 		module load Cutlery/1.0
-		correctKmerBiasBW.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -k {input.scale} \
+		correctKmerBiasBW.sh -l 3 -r 3 -g {genomeFa} -s {input.chrom} -k {input.scale} \
 			-o {sampleDir}/{wildcards.sampleName}/igv.1bp.corrected{kmer_pseudo} -v \
 			{sampleDir}/{wildcards.sampleName}/igv.1bp
 		"""
@@ -243,7 +247,8 @@ rule make_bigwig_allfrag:
 	input:
 		all=sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
 		nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
-		nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz"
+		nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz",
+		chrom = chrom_size
 	output:
 		all=sampleDir + "/{sampleName}/igv.all.con.bw",
 		nfr=sampleDir + "/{sampleName}/igv.nfr.con.bw",
@@ -255,9 +260,9 @@ rule make_bigwig_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.all} {input.all}
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nfr} {input.nfr}
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.all} {input.all}
+		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nfr} {input.nfr}
+		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nuc} {input.nuc}
 		"""
 
 rule make_tagdir:
@@ -304,11 +309,11 @@ def get_peakcall_input(sampleName, fragment):
 rule call_peaks_factor:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr"),
-		bw = sampleDir + "/{sampleName}/igv.nfr.con.bw"
+		bw = sampleDir + "/{sampleName}/igv.nfr.con.bw",
+		mask = peak_mask
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	params:
-		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
@@ -316,18 +321,18 @@ rule call_peaks_factor:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {input.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
 		"""
 
 
 rule call_peaks_factor_allfrag:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
-		bw = sampleDir + "/{sampleName}/igv.all.con.bw"
+		bw = sampleDir + "/{sampleName}/igv.all.con.bw",
+		mask = peak_mask
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
-		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
@@ -335,17 +340,17 @@ rule call_peaks_factor_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {params.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {input.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
 		"""
 
 
 rule call_peaks_histone:
 	input:
-		lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc")
+		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc"),
+		mask = peak_mask
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed"
 	params:
-		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
@@ -353,17 +358,17 @@ rule call_peaks_histone:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {input.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
 		"""
 
 
 rule call_peaks_histone_allfrag:
 	input:
-		lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
+		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
+		mask = peak_mask,
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
-		mask = peak_mask,
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag",
 		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
 	message:
@@ -371,8 +376,9 @@ rule call_peaks_histone_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {params.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {input.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
 		"""
+
 
 '''
 rule run_homermotif:
