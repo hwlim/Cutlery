@@ -101,7 +101,7 @@ Example:
 - It is based on python grammar. Keep it mind.
 - Check the comments within the **Snakefile** for further information and revise as needed.
 - Basically, workflow to perform is decided from designated outputs.
-- Snakemake trace up the rules for input:output relations, checkcreate jobs with dependency.
+- Snakemake trace up the rules for input:output relations, checkcreate jobs with dependency within the **rule all:**.
 
 
 ## 3. Run
