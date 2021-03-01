@@ -44,6 +44,7 @@ star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
 star_module	= "STAR/2.7.4"
 
 ## STAR alignment options
+## Default option for CUT&RUN (and ATAC-seq)
 star_option	= "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 1000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None --alignEndsProtrude 2 ConcordantPair"
 ## Note:
 ## Additoinal star_option to prevent soft-clipping: "--alignEndsType EndToEnd"
@@ -51,9 +52,9 @@ star_option	= "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 
 ## To keep unmapped reads in the output bam file, add "--outSAMunmapped Within"
 
 #########################
-## Job flags
+## Job flag options
 doTrim		= True		## Perform adapter trimming, recommended
-doDedup		= False		## Perform deduplication, not recommended
+doDedup		= False		## Perform deduplication, NOT recommended
 
 #########################
 ## Directories
@@ -66,9 +67,10 @@ qcDir		= "2.1.QualityControl"
 
 sampleDir	= "3.Sample"
 
-#########################################
+###########################################################
+## ** Developmental feature. Please ignore this section
 ## Parameters for k-mer bias correction
-kmer_genome	= "%s/limlab/Resource/Jellyfish.Kmer/%s.6mer.txt" % ( baseDir, genome )
+kmer_genome	= "/data/limlab/Resource/Jellyfish.Kmer/%s.6mer.txt" % genome
 kmer_pseudo	= 1
 
 
