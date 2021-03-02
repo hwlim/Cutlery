@@ -17,6 +17,7 @@ else
 	python_version=`python3 --version`
 	[ "$python_version" != "Python 3.6.3" ] && module load python3/3.6.3
 fi
+module load graphviz/2.40.1
 snakemake --dag | dot -Tpdf > diag.pdf
 #fi
 
