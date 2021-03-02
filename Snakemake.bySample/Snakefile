@@ -33,7 +33,10 @@ trim_minQual	= 20	# minimum quality for quality trimming
 chrRegexAll		= "^chr[0-9XY]+$"
 ## Target chromosomes
 chrRegexTarget	= "^chr[0-9XY]+$"
-## Spike-in chromosomes, i.e. ec-chr for E coli chromosme (defined by Lim), NULL if not needed
+
+## Spike-in setting
+## Regular expression of spike-in chromosomes, i.e. ec-chr for E coli chromosme (defined by Lim), "NULL" if not needed
+## If not "NULL", spike-in fragment is separated when making a fragment bed files ** NOT Yet Implemented **
 spikePrefix		= "NULL"
 
 ########################
