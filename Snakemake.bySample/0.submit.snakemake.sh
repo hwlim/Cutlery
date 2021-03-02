@@ -10,16 +10,11 @@ cluster_config=${CUTLERY}/Snakemake.bySample/cluster.yml
 
 assertFileExist $cluster_config
 
-#if [ ! -f diag.pdf ];then
-if [  "`which python3`" == "" ]; then
+if [ ! -f diag.pdf ];then
 	module load python3/3.6.3
-else
-	python_version=`python3 --version`
-	[ "$python_version" != "Python 3.6.3" ] && module load python3/3.6.3
+	module load graphviz/2.40.1
+	snakemake --dag | dot -Tpdf > diag.pdf
 fi
-module load graphviz/2.40.1
-snakemake --dag | dot -Tpdf > diag.pdf
-#fi
 
 mkdir -p logs
 bsub -W ${totalWaitTime} -eo bsub.err -oo bsub.out \
