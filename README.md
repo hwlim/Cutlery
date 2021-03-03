@@ -8,7 +8,7 @@
 This pipeline heavily relies on LimLabBase. Therefore, setup github.com/LimLabBase first.
 
 ```bash
-git clone https://github.com/LimLabBase
+$ git clone https://github.com/LimLabBase
 ```
 And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
 
