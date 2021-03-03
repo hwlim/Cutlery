@@ -155,9 +155,11 @@ grep -i error logs/*err
 ```
 
 ## 5. Replicate-Pooling & Analysis
-When we have multiple replicates, it is possible to pool the replicate and repeat the same analysis for the pooled sample.
-The process is the same with the process above except that now we pool the replicate bam files first and treat them as samples.
-**BAM file is the starting point of all the downstream analysis.** Therefore, we should prepare pooled bam files and modified Snakemake setting.
+
+- When we have multiple replicates, it is possible to pool the replicate and repeat the same analysis for the pooled sample.
+- The process is the same with the process above except that now we pool the replicate bam files first and treat them as samples.
+- **BAM file is the starting point of all the downstream analysis.**
+- Therefore, we should prepare pooled bam files and modified Snakemake setting.
 
 ### Step 0: Create a separate analysis folder for pooled-replicates
 ```bash
