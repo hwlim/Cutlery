@@ -172,7 +172,7 @@ MendelsohnLab/
 ├── 1.2.Align.filtered
 ├── 2.1.QualityControl
 ├── 3.Sample
-├── `**Pool**`
+├── **`Pool`**
 ├── README.txt
 ├── Snakefile
 ├── bsub.err
