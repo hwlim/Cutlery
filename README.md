@@ -8,7 +8,7 @@
 This pipeline heavily relies on LimLabBase. Therefore, setup github.com/LimLabBase first.
 
 ```bash
-$ git clone https://github.com/LimLabBase
+git clone https://github.com/LimLabBase
 ```
 And add the subfolders of the LimLabBase in the PATH of .bash_profile or .bashrc
 
@@ -193,3 +193,4 @@ Note:
 - sample.tsv / 1.2.Align.filtered should be the same the existing ones
 
 ### Step 2: 
+Set up a new sample.tsv file using Group column as Sample/Id
