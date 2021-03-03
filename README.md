@@ -158,11 +158,12 @@ grep -i error logs/*err
 When we have multiple replicates, it is possible to pool the replicate and repeat the same analysis for the pooled sample.
 
 ### Step 0: Create a separate analysis folder for pooled-replicates
-```baseh
+```bash
 mkdir -p Pool
 ```
 This folder can be located anywhere, but it is good to place within the replicates analysis folder.
 For example:
+```bash
 MendelsohnLab/
 ├── 0.Fastq
 ├── 0.Fastq.Trim
@@ -179,7 +180,7 @@ MendelsohnLab/
 ├── diag.pdf
 ├── logs
 └── sample.tsv
-
+```
 
 ### Step 1: Pool replicate bam files and save them in a separate directory
 ```bash
