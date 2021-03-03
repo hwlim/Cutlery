@@ -153,3 +153,42 @@ Check the log of individual jobs under the folder **logs** to see the error mess
 ```baseh
 grep -i error logs/*err
 ```
+
+## 5. Replicate-Pooling & Analysis
+When we have multiple replicates, it is possible to pool the replicate and repeat the same analysis for the pooled sample.
+
+### Step 0: Create a separate analysis folder for pooled-replicates
+```baseh
+mkdir -p Pool
+```
+This folder can be located anywhere, but it is good to place within the replicates analysis folder.
+For example:
+MendelsohnLab/
+├── 0.Fastq
+├── 0.Fastq.Trim
+├── 0.submit.snakemake.sh
+├── 1.1.Align
+├── 1.2.Align.filtered
+├── 2.1.QualityControl
+├── 3.Sample
+├── **Pool**
+├── README.txt
+├── Snakefile
+├── bsub.err
+├── bsub.out
+├── diag.pdf
+├── logs
+└── sample.tsv
+
+
+### Step 1: Pool replicate bam files and save them in a separate directory
+```bash
+# If workign in HPC/CCHMC
+# This command with (-b) option perform the bam-pooling in parallel by submitting multiple jobs
+cnr.poolBamReplicates.sh -b sample.tsv 1.2.Align.filtered Pool/1.2.Align.filtered
+```
+Note:
+- Check the usage of "cnr.poolBamReplicates.sh"
+- sample.tsv / 1.2.Align.filtered should be the same the existing ones
+
+### Step 2: 
