@@ -196,4 +196,11 @@ Note:
 - sample.tsv / 1.2.Align.filtered should be the same the existing ones
 
 ### Step 2: 
-Set up a new sample.tsv file using Group column as Sample/Id
+Creat a new sample.tsv file under the "pooled analysis" folder
+
+Example: Pool/sample.tsv
+|Id|Name|Group|Fq1|Fq2|Ctrl|PeakMode|
+|--|----|-----|---|---|----|--------|
+|hPSC_Foxa1|hPSC_Foxa1|hPSC_Foxa1|sample1_R1.fq.gz|sample1_R2.fq.gz|hPSC_IgG|factor|
+|hPSC_IgG|hPSC_IgG|hPSC_IgG|sample3_R1.fq.gz|sample3_R2.fq.gz|NULL|NULL|
+|hPSC_H3K27me3|hPSC_H3K27me3|hPSC_H3K27me3|sample4_R1.fq.gz|sample4_R2.fq.gz|hPSC_IgG|histone|
