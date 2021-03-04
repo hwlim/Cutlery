@@ -233,12 +233,13 @@ filteredDir = "1.Align.pool"
 Define output list
 Example:
 ```python
-## Some diagnostic outputs are not needed, such as 
-## qcDir + "/alignStat.txt"
 rule all:
 	input:
-		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
-		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
+		## Some diagnostic outputs are not needed, such as 
+		# qcDir + "/alignStat.txt"
+		# expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
+		# expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
+		## Target output files
 		## BigWig files	
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
