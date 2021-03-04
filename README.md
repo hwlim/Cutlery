@@ -252,7 +252,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
 ```
 
-### Step 4: Dry-run for check & Run
+### Step 4: Dry-run & Run
 - Dry-run as previously for check up
 - Run using the same script for replicate processing
 ```bash
