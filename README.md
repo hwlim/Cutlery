@@ -221,18 +221,22 @@ cp Snakefile Pool
 
 Set the directory names appropriately in the Snakefile.
 ```python
+# These three are not needed any more, thus "NULL"
 fastqDir    = "NULL"
 trimDir     = "NULL"
 alignDir    = "NULL"
-filteredDir = "1.Align.pool"   # Same with the previous run of **cnr.poolBamReplicates.sh**
+
+# Same with the previous run of **cnr.poolBamReplicates.sh**
+filteredDir = "1.Align.pool"
 ```
 
 Define output list
 Example:
 ```python
+## Some diagnostic outputs are not needed, such as 
+## qcDir + "/alignStat.txt"
 rule all:
 	input:
-		qcDir + "/alignStat.txt",
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
 		## BigWig files	
