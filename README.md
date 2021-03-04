@@ -254,8 +254,8 @@ rule all:
 
 ### Step 4: Dry-run & Run
 - Dry-run as previously for check up
-- Run using the same script for replicate processing
+- Submit Snakemake job using the same script for replicate processing
 ```bash
 ./0.submit.snakemake.sh
 ```
-- Check job status and results
+- Check job status and results as previously
