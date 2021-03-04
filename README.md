@@ -87,11 +87,12 @@ Example:
 
 |Id|Name|Group|Fq1|Fq2|Ctrl|PeakMode|
 |--|----|-----|---|---|----|--------|
-|sample1|hPSC_Foxa1_rep1|hPSC_Foxa1|sample1_R1.fq.gz|sample1_R2.fq.gz|hPSC_IgG|factor|
-|sample2|hPSC_Foxa1_rep2|hPSC_Foxa1|sample2_R1.fq.gz|sample2_R2.fq.gz|hPSC_IgG|factor|
-|sample3|hPSC_IgG|hPSC_IgG|sample3_R1.fq.gz|sample3_R2.fq.gz|NULL|NULL|
-|sample4|hPSC_H3K27me3_rep1|hPSC_H3K27me3|sample4_R1.fq.gz|sample4_R2.fq.gz|hPSC_IgG|histone|
-|sample5|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG|histone|
+|sample1|hPSC_Foxa1_rep1|hPSC_Foxa1|sample1_R1.fq.gz|sample1_R2.fq.gz|hPSC_IgG_rep1|factor|
+|sample2|hPSC_Foxa1_rep2|hPSC_Foxa1|sample2_R1.fq.gz|sample2_R2.fq.gz|hPSC_IgG_rep2|factor|
+|sample3|hPSC_IgG_rep1|hPSC_IgG_rep1|sample3_R1.fq.gz|sample3_R2.fq.gz|NULL|NULL|
+|sample4|hPSC_IgG_rep2|hPSC_IgG_rep2|sample4_R1.fq.gz|sample4_R2.fq.gz|NULL|NULL|
+|sample5|hPSC_H3K27me3_rep1|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG_rep1|histone|
+|sample6|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample6_R1.fq.gz|sample6_R2.fq.gz|hPSC_IgG_rep2|histone|
 
 
 ### 2.3. Snakefile
@@ -195,12 +196,20 @@ Note:
 - Check the usage of "cnr.poolBamReplicates.sh"
 - sample.tsv / 1.2.Align.filtered should be the same the existing ones
 
-### Step 2: 
+### Step 2: Setup Snakemake for pooled analysis
+
 Creat a new sample.tsv file under the "pooled analysis" folder
 
 Example: Pool/sample.tsv
 |Id|Name|Group|Fq1|Fq2|Ctrl|PeakMode|
 |--|----|-----|---|---|----|--------|
-|hPSC_Foxa1|hPSC_Foxa1|hPSC_Foxa1|sample1_R1.fq.gz|sample1_R2.fq.gz|hPSC_IgG|factor|
-|hPSC_IgG|hPSC_IgG|hPSC_IgG|sample3_R1.fq.gz|sample3_R2.fq.gz|NULL|NULL|
-|hPSC_H3K27me3|hPSC_H3K27me3|hPSC_H3K27me3|sample4_R1.fq.gz|sample4_R2.fq.gz|hPSC_IgG|histone|
+|hPSC_Foxa1|hPSC_Foxa1|hPSC_Foxa1|NULL|NULL|hPSC_IgG|factor|
+|hPSC_IgG|hPSC_IgG|hPSC_IgG|NULL|NULL|NULL|NULL|
+|hPSC_H3K27me3|hPSC_H3K27me3|hPSC_H3K27me3|NULL|NULL|hPSC_IgG|histone|
+
+Note:
+- Since replicates are pooled, now we have reduced number of samples.
+- Fq1/Fq2 columns are NULL because the analysis start from BAM files. No fastq files needed.
+- If there is only one replicate for a group, it is OK to create a symbolic to the sample folder under the pooled analysis destination sample folder. Then Snakemake will recognize the existing folder and won't repeat the analysis.
+
+Copy the current **Snakefile** 
