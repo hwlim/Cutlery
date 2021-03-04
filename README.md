@@ -220,9 +220,29 @@ cp Snakefile Pool
 ```
 
 Set the directory names appropriately in the Snakefile.
-```
+```python
 fastqDir    = "NULL"
 trimDir     = "NULL"
 alignDir    = "NULL"
 filteredDir = "1.Align.pool"   # Same with the previous run of **cnr.poolBamReplicates.sh**
+```
+
+Define output list
+Example:
+```python
+rule all:
+	input:
+		qcDir + "/alignStat.txt",
+		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
+		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
+		## BigWig files	
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		## Peak calling
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
+		## Motif search
+		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
 ```
