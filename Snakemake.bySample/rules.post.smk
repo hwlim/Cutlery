@@ -57,6 +57,19 @@ rule check_baseFreq:
 #		rm {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
 #		rm {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
 
+## ** Under development **
+## Convert BAM to fragment bed file
+rule make_fragment:
+	input:
+		bamDir + "/{sampleName}.bam"
+	output:
+		sampleDir + "/{sampleName}/fragment.bed.gz"
+	message:
+		"Making fragment bed files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		"""
+
 
 ## BAM to fragment bed files: all / nfr / nuc
 rule split_bam:
@@ -315,7 +328,7 @@ rule call_peaks_factor:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
-		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
+		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:

@@ -87,11 +87,12 @@ Example:
 
 |Id|Name|Group|Fq1|Fq2|Ctrl|PeakMode|
 |--|----|-----|---|---|----|--------|
-|sample1|hPSC_Foxa1_rep1|hPSC_Foxa1|sample1_R1.fq.gz|sample1_R2.fq.gz|hPSC_IgG|factor|
-|sample2|hPSC_Foxa1_rep2|hPSC_Foxa1|sample2_R1.fq.gz|sample2_R2.fq.gz|hPSC_IgG|factor|
-|sample3|hPSC_IgG|hPSC_IgG|sample3_R1.fq.gz|sample3_R2.fq.gz|NULL|NULL|
-|sample4|hPSC_H3K27me3_rep1|hPSC_H3K27me3|sample4_R1.fq.gz|sample4_R2.fq.gz|hPSC_IgG|histone|
-|sample5|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG|histone|
+|sample1|hPSC_Foxa1_rep1|hPSC_Foxa1|sample1_R1.fq.gz|sample1_R2.fq.gz|hPSC_IgG_rep1|factor|
+|sample2|hPSC_Foxa1_rep2|hPSC_Foxa1|sample2_R1.fq.gz|sample2_R2.fq.gz|hPSC_IgG_rep2|factor|
+|sample3|hPSC_IgG_rep1|hPSC_IgG_rep1|sample3_R1.fq.gz|sample3_R2.fq.gz|NULL|NULL|
+|sample4|hPSC_IgG_rep2|hPSC_IgG_rep2|sample4_R1.fq.gz|sample4_R2.fq.gz|NULL|NULL|
+|sample5|hPSC_H3K27me3_rep1|hPSC_H3K27me3|sample5_R1.fq.gz|sample5_R2.fq.gz|hPSC_IgG_rep1|histone|
+|sample6|hPSC_H3K27me3_rep2|hPSC_H3K27me3|sample6_R1.fq.gz|sample6_R2.fq.gz|hPSC_IgG_rep2|histone|
 
 
 ### 2.3. Snakefile
@@ -125,7 +126,7 @@ If there's an error, find the source of error and correct them such as incorrect
 ### 3.2. Submit Snakemake job
 If no error, then submit a Snakemake job for actual analysis.
 ```bash
-./0.submet.snakemake.sh
+./0.submit.snakemake.sh
 ```
 
 ### 3.3. Job monitoring
@@ -153,3 +154,108 @@ Check the log of individual jobs under the folder **logs** to see the error mess
 ```baseh
 grep -i error logs/*err
 ```
+
+## 5. Replicate-Pooling & Analysis
+
+- When we have multiple replicates, it is possible to pool the replicate and repeat the same analysis for the pooled sample.
+- **BAM file is the starting point of all the downstream analysis.**
+- Therefore, once we prepare pooled bam files, we can reuse the same pipeline above for analysis with minor change of parameters.
+
+### Step 0: Create a separate analysis folder for pooled-replicates
+```bash
+mkdir -p Pool
+```
+This folder can be located anywhere, but it is good to place within the replicates analysis folder.
+For example:
+```bash
+MendelsohnLab/
+├── 0.Fastq
+├── 0.Fastq.Trim
+├── 0.submit.snakemake.sh
+├── 1.1.Align
+├── 1.2.Align.filtered
+├── 2.1.QualityControl
+├── 3.Sample
+├── Pool
+├── README.txt
+├── Snakefile
+├── bsub.err
+├── bsub.out
+├── diag.pdf
+├── logs
+└── sample.tsv
+```
+
+### Step 1: Pool replicate bam files and save them in a separate directory
+```bash
+# If workign in HPC/CCHMC
+# This command with (-b) option perform the bam-pooling in parallel by submitting multiple jobs
+cnr.poolBamReplicates.sh -b sample.tsv 1.2.Align.filtered Pool/1.2.Align.pool
+```
+Note:
+- Check the usage of "cnr.poolBamReplicates.sh"
+- sample.tsv / 1.2.Align.filtered should be the same the existing ones
+
+### Step 2: Setup a new sample.tsv file for pooled analysis
+
+Creat a new sample.tsv file under the "pooled analysis" folder
+
+Example: Pool/sample.tsv
+|Id|Name|Group|Fq1|Fq2|Ctrl|PeakMode|
+|--|----|-----|---|---|----|--------|
+|hPSC_Foxa1|hPSC_Foxa1|hPSC_Foxa1|NULL|NULL|hPSC_IgG|factor|
+|hPSC_IgG|hPSC_IgG|hPSC_IgG|NULL|NULL|NULL|NULL|
+|hPSC_H3K27me3|hPSC_H3K27me3|hPSC_H3K27me3|NULL|NULL|hPSC_IgG|histone|
+
+Note:
+- Since replicates are pooled, now we have reduced number of samples.
+- Fq1/Fq2 columns are NULL because the analysis start from BAM files. No fastq files needed.
+- If there is only one replicate for a group, it is OK to create a symbolic to the sample folder under the pooled analysis destination sample folder. Then Snakemake will recognize the existing folder and won't repeat the analysis.
+
+### Step 3: Create a new Snakefile
+
+Copy the original **Snakefile** to the pooled analysis folder.
+```bash
+cp Snakefile Pool
+```
+
+Set the directory names appropriately in the Snakefile.
+```python
+# These three are not needed any more, thus "NULL"
+fastqDir    = "NULL"
+trimDir     = "NULL"
+alignDir    = "NULL"
+
+# Same with the previous run of **cnr.poolBamReplicates.sh**
+filteredDir = "1.Align.pool"
+```
+
+Define output list
+Example:
+```python
+rule all:
+	input:
+		## Some diagnostic outputs are not needed, such as 
+		# qcDir + "/alignStat.txt"
+		# expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
+		# expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
+		## Target output files
+		## BigWig files	
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		## Peak calling
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
+		## Motif search
+		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+```
+
+### Step 4: Dry-run & Run
+- Dry-run as previously for check up
+- Submit Snakemake job using the same script for replicate processing
+```bash
+./0.submit.snakemake.sh
+```
+- Check job status and results as previously
