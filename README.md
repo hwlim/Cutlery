@@ -126,7 +126,7 @@ If there's an error, find the source of error and correct them such as incorrect
 ### 3.2. Submit Snakemake job
 If no error, then submit a Snakemake job for actual analysis.
 ```bash
-./0.submet.snakemake.sh
+./0.submit.snakemake.sh
 ```
 
 ### 3.3. Job monitoring
@@ -249,5 +249,13 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		## Motif search
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
-		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
 ```
+
+### Step 4: Dry-run for check & Run
+- Dry-run as previously for check up
+- Run using the same script for replicate processing
+```bash
+./0.submit.snakemake.sh
+```
+- Check job status and results
