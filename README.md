@@ -190,13 +190,13 @@ MendelsohnLab/
 ```bash
 # If workign in HPC/CCHMC
 # This command with (-b) option perform the bam-pooling in parallel by submitting multiple jobs
-cnr.poolBamReplicates.sh -b sample.tsv 1.2.Align.filtered Pool/1.2.Align.filtered
+cnr.poolBamReplicates.sh -b sample.tsv 1.2.Align.filtered Pool/1.2.Align.pool
 ```
 Note:
 - Check the usage of "cnr.poolBamReplicates.sh"
 - sample.tsv / 1.2.Align.filtered should be the same the existing ones
 
-### Step 2: Setup Snakemake for pooled analysis
+### Step 2: Setup a new sample.tsv file for pooled analysis
 
 Creat a new sample.tsv file under the "pooled analysis" folder
 
@@ -212,4 +212,17 @@ Note:
 - Fq1/Fq2 columns are NULL because the analysis start from BAM files. No fastq files needed.
 - If there is only one replicate for a group, it is OK to create a symbolic to the sample folder under the pooled analysis destination sample folder. Then Snakemake will recognize the existing folder and won't repeat the analysis.
 
-Copy the current **Snakefile** 
+### Step 3: Create a new Snakefile
+
+Copy the original **Snakefile** to the pooled analysis folder.
+```bash
+cp Snakefile Pool
+```
+
+Set the directory names appropriately in the Snakefile.
+```
+fastqDir    = "NULL"
+trimDir     = "NULL"
+alignDir    = "NULL"
+filteredDir = "1.Align.pool"   # Same with the previous run of **cnr.poolBamReplicates.sh**
+```
