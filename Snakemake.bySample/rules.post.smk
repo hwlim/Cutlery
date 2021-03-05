@@ -26,6 +26,10 @@ if "bamDir" not in locals():
 	else:
 		bamDir = filteredDir
 
+if "meme_db" not in locals():
+	meme_db = os.environ["LimLabBase"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
+
+
 
 #################################
 ## Rule Start
@@ -451,7 +455,8 @@ rule run_homermotif_allfrag:
 
 rule run_meme_motif_rand5k:
 	input:
-		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+		bed = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
+		db = meme_db
 	output:
 		sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html"
 	message:
@@ -460,14 +465,15 @@ rule run_meme_motif_rand5k:
 		"""
 		module purge
 		module load MotifMEME/1.0
-		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d ~/bin/Motif/MEME_DB/Merged_By_Lim.meme \
-			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k {input}
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {input.db} \
+			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k {input.bed}
 		"""
 
 
 rule run_meme_motif_rand5k_allfrag:
 	input:
-		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
+		bed = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed",
+		db = meme_db
 	output:
 		sampleDir + "/{sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html"
 	message:
@@ -476,8 +482,8 @@ rule run_meme_motif_rand5k_allfrag:
 		"""
 		module purge
 		module load MotifMEME/1.0
-		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d ~/bin/Motif/MEME_DB/Merged_By_Lim.meme \
-			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input}
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {input.db}} \
+			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input.bed}
 		"""
 
 
