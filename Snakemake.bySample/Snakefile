@@ -54,7 +54,8 @@ star_option	= "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 
 ## BAM sort by "--outSAMtype" is handled by the star.align.sh by -s option.
 ## To keep unmapped reads in the output bam file, add "--outSAMunmapped Within"
 
-## MEME Motif DB
+## MEME Motif DB needed for MEME motif search
+## No need to change if MEME motif search is not intended, i.e. MEME.random5k/meme-chip.html in the output
 meme_db = os.environ["LimLabBase"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
 
 
