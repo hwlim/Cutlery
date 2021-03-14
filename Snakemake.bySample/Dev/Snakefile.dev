@@ -147,6 +147,6 @@ rule all:
 
 ###################################################################
 ## Snakemake rule import
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake/rules.pre.smk"
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.bySample/rules.post.smk"
+include: os.environ["LIMLAB_BASE"] + "/CnR/Snakemake/rules.pre.smk"
+include: os.environ["LIMLAB_BASE"] + "/CnR/Snakemake.bySample/rules.post.smk"
 

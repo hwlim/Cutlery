@@ -14,8 +14,8 @@ source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/genomeR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/commonR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/motifR.r", Sys.getenv("COMMON_LIB_BASE")))
-source(sprintf("%s/IDOM/IDOM.r", Sys.getenv("MY_SCRIPT_BASE")))
-source(sprintf("%s/ExoTools/ChipExoUtil.r", Sys.getenv("MY_SCRIPT_BASE")))
+source(sprintf("%s/IDOM/IDOM.r", Sys.getenv("LIMLAB_BASE")))
+source(sprintf("%s/ExoTools/ChipExoUtil.r", Sys.getenv("LIMLAB_BASE")))
 
 # command line option handling
 option_list <- list(

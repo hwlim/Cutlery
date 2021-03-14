@@ -113,5 +113,5 @@ rule all:
 		expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Footprint.Homer.corrected{kmer_pseudo}/cnr.4.complete", sampleName=sampleListFactor, kmer_pseudo=kmer_pseudo)
 
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.bySample/rules.post.smk"
-include: os.environ["MY_SCRIPT_BASE"] + "/CnR/Snakemake.bySample/Pool/rules.smk"
+include: os.environ["LIMLAB_BASE"] + "/CnR/Snakemake.bySample/rules.post.smk"
+include: os.environ["LIMLAB_BASE"] + "/CnR/Snakemake.bySample/Pool/rules.smk"
