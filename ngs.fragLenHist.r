@@ -18,8 +18,8 @@ option_list <- list(
 	make_option(c("-o","--outPrefix"), default=NULL, help="Output prefix including path, default=<same with the src file excluding an extension under current directorys>"),
 	make_option(c("-l","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000"),
 	make_option(c("-n","--name"), default=NULL, help="Sample name to display at top. default=<input file name>"),
-	make_option(c("-i","--interactive"), default=FALSE, action="store_true", help="If set, interactive plotly plot is also generated in html")
-#	make_option(c("-t","--title"), default="Title", help="Main Title [default: Title]"),
+	make_option(c("-i","--interactive"), default=FALSE, action="store_true", help="If set, interactive plotly plot is also generated in html"),
+	make_option(c("-c","--cSorted"), default=FALSE, action="store_true", help="If set, input bam file is assumed to be coordinate-sorted not name-sorted"),
 #	make_option(c("-s","--size"), default="600,600", help="Comma-separated figure size, xSize,ySize"),
 #	make_option(c("-f","--field"), default="", help="Comma-separated field numbers for x-axis, y-axis."),
 )
@@ -51,6 +51,7 @@ outPrefix=opt$outPrefix
 maxLen=opt$maxLen
 name=opt$name
 drawPlotly = opt$interactive
+cSorted=opt$cSorted
 assertFileExist(src)
 
 
@@ -94,7 +95,11 @@ write(sprintf("  - %s", src), stderr())
 #}else{
 #	cmd=sprintf("zcat %s | grep ^chr | gawk 'BEGIN{printf \"fragLen\\tCnt\\n\"; maxLen=%d }{ d=$3-$2; if(d>maxLen){d=maxLen}; cnt[d]++ }END{ for( i=1;i<=maxLen;i=i+1 ) printf \"%%d\\t%%d\\n\", i, cnt[i] }' > %s", src, maxLen, des.dist)
 #}
-cmd=sprintf("ngs.getFragLenHist.sh -o %s -l %d %s", des.dist, maxLen, src)
+if(cSorted){
+	cmd=sprintf("ngs.getFragLenHist.sh -o %s -l %d -c %s", des.dist, maxLen, src)
+}else{
+	cmd=sprintf("ngs.getFragLenHist.sh -o %s -l %d %s", des.dist, maxLen, src)
+}
 system(cmd)
 data.dist = read.delim(des.dist, header=TRUE)
 
