@@ -19,7 +19,7 @@ option_list <- list(
 	make_option(c("-l","--maxLen"), default=1000, help="Max fragment length, x-axis for plotting. default=1000"),
 	make_option(c("-n","--name"), default=NULL, help="Sample name to display at top. default=<input file name>"),
 	make_option(c("-i","--interactive"), default=FALSE, action="store_true", help="If set, interactive plotly plot is also generated in html"),
-	make_option(c("-c","--cSorted"), default=FALSE, action="store_true", help="If set, input bam file is assumed to be coordinate-sorted not name-sorted"),
+	make_option(c("-c","--cSorted"), default=FALSE, action="store_true", help="If set, input bam file is assumed to be coordinate-sorted not name-sorted")
 #	make_option(c("-s","--size"), default="600,600", help="Comma-separated figure size, xSize,ySize"),
 #	make_option(c("-f","--field"), default="", help="Comma-separated field numbers for x-axis, y-axis."),
 )
