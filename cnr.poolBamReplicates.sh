@@ -19,7 +19,7 @@ Input:
 	- des bam directory: to write merged bam files
 		bam files are named as <group>.bam
 Options:
-	-b: if set, bam files are merged in parallel by submitting multiple bsub jobs, default=off
+	-b: if set, bsub are submitted for merging bam files, default=off
 	-o: if set, overwrite existing destination bam files, default=off" >&2
 }
 
