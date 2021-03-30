@@ -8,9 +8,9 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bed]
 Description:
-	Make a pair of stranded bigWig file from a fragment BED file using 1bp of both ends
-	5'-end => plus
-	3'-end => minus
+	Make a pair of stranded bigWig file from a fragment BED file using 1bp of each end
+	- left-end => plus
+	- right-end => minus
 	in RPM scale (default) or manually scaled
 Options:
 	-o <outPrefix>: output prefix. required
@@ -22,7 +22,11 @@ Options:
 		NULL if not applicable or no filtering
 	-m <memory>: memory size for sorting bedGraph file, default=5G
 	-s <scale factor>: Manual scaling factor. This value is multiplied to \"raw read count\" primarily for spike-in based scaling.
-			If 0, RPM normalized. default=0" >&2
+			If 1, no scaling, i.e., raw read count.
+			If 0, RPM normalized. default=0
+	-n : Non-negative tracks
+		In default, minus bigwig file contains negative values.
+		But if this is set, it is generated in positive values like plus bigwig file.">&2
 }
 
 if [ $# -eq 0 ];then
@@ -37,8 +41,9 @@ outPrefix=NULL
 genome=NULL
 chrRegex="^chr[0-9XY]+$"
 memory=5G
+nonnegative=FALSE
 scaleFactor=0
-while getopts ":o:g:c:m:s:" opt; do
+while getopts ":o:g:c:m:s:n" opt; do
 	case $opt in
 		o)
 			outPrefix=$OPTARG
@@ -46,11 +51,17 @@ while getopts ":o:g:c:m:s:" opt; do
 		g)
 			genome=$OPTARG
 			;;
+		c)
+			chrRegex=$OPTARG
+			;;
 		m)
 			memory=$OPTARG
 			;;
 		s)
 			scaleFactor=$OPTARG
+			;;
+		n)
+			nonnegative=TRUE
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -136,6 +147,7 @@ echo -e "  - outPrefix = $outPrefix" >&2
 echo -e "  - chromSize = $genome" >&2
 echo -e "  - chrRegex = $chrRegex" >&2
 echo -e "  - scaleFactor = $scaleFactor" >&2
+echo -e "  - nonnegative = $nonnegative" >&2
 echo -e "  - memory = $memory" >&2
 
 if [ $scaleFactor == "0" ];then
@@ -161,12 +173,21 @@ bedGraphToBigWig ${tmpBG} $genome ${tmpBwPlus}
 rm $tmpBG
 
 echo -e "    - Minus strand" >&2
-printBed $src \
-	| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t+\n", $1,$3-1,$3,$4,$5 }' \
-	| sort -S $memory -k1,1 -k2,2n -k3,3n \
-	| genomeCoverageBed -bg -scale $scaleFactor -g $genome -i stdin \
-	| gawk '{ printf "%s\t%s\t%s\t-%.5f\n", $1,$2,$3,$4 }' \
-	> $tmpBG
+if [ "$nonnegative" == "TRUE" ];then
+	printBed $src \
+		| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t+\n", $1,$3-1,$3,$4,$5 }' \
+		| sort -S $memory -k1,1 -k2,2n -k3,3n \
+		| genomeCoverageBed -bg -scale $scaleFactor -g $genome -i stdin \
+		| gawk '{ printf "%s\t%s\t%s\t%.5f\n", $1,$2,$3,$4 }' \
+		> $tmpBG
+else
+	printBed $src \
+		| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t+\n", $1,$3-1,$3,$4,$5 }' \
+		| sort -S $memory -k1,1 -k2,2n -k3,3n \
+		| genomeCoverageBed -bg -scale $scaleFactor -g $genome -i stdin \
+		| gawk '{ printf "%s\t%s\t%s\t-%.5f\n", $1,$2,$3,$4 }' \
+		> $tmpBG
+fi
 bedGraphToBigWig ${tmpBG} $genome ${tmpBwMinus}
 rm $tmpBG
 
