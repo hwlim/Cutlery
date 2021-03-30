@@ -225,7 +225,7 @@ rule make_bigwig1bp_raw_abs:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
+		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
 		"""
 
 ## Count k-mer frequency & Calculate k-mer correction scale factor
