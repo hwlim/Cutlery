@@ -78,7 +78,7 @@ assertDirExist $srcDir
 #	-m <mem>: Memory for sorting. default=5G
 #	-s : If set, coordinate-sorted and indexed
 
-groupL=`tail -n +2 $sampleInfo | grep -v -e ^$ -e ^# | cut -f 3 | uniq`
+groupL=`tail -n +2 $sampleInfo | grep -v -e ^$ -e ^# | cut -f 3 | sort | uniq`
 
 echo -e "Pooling replicate bam files" >&2
 echo -e "  - sampleInfo: $sampleInfo" >&2

@@ -27,7 +27,7 @@ if "bamDir" not in locals():
 		bamDir = filteredDir
 
 if "meme_db" not in locals():
-	meme_db = os.environ["LimLabBase"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
+	meme_db = os.environ["LIMLAB_BASE"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
 
 
 
