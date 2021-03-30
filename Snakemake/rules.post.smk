@@ -189,6 +189,27 @@ rule make_bigwig1bp:
 		"""
 #		ngs.alignToBigWig.sh -o {bigWigDir1bp}/{wildcards.sampleName} -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
+
+## Raw read-scale / nonnegative tracks (positive values even for minus track)
+rule make_bigwig1bp_raw_abs:
+	input:
+		splitDir + "/{sampleName}.all.con.bed.gz",
+		chrom = chrom_size
+		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
+	output:
+		bigWigDir1bp + "/{sampleName}.raw.abs.plus.bw",
+		bigWigDir1bp + "/{sampleName}.raw.abs.minus.bw"
+	message:
+		"Making 1bp-resolution raw/abs bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "5G"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.fragToBigWigStranded1bp.sh -o {bigWigDir1bp}/{wildcards.sampleName}.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
+		"""
+
+
 rule make_bigwig_allfrag:
 	input:
 		all=splitDir + "/{sampleName}.all.con.bed.gz",
