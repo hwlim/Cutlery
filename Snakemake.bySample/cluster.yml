@@ -34,6 +34,9 @@ make_bigwig:
 make_bigwig1bp:
     memory      : 10000
 
+make_bigwig1bp_raw_abs:
+    memory      : 10000
+
 count_kmers:
     cpu         : 3
 
