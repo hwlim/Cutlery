@@ -189,8 +189,6 @@ rule make_bigwig:
 
 
 ## 1bp-resolution bigwig files
-## NOTE: considering protrusion handling, it's better to use fragment file than seprate reads
-## 		Thus needs an update in command line
 rule make_bigwig1bp:
 	input:
 		frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
@@ -206,11 +204,29 @@ rule make_bigwig1bp:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -m 5G {input.frag}
+		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -s 0 -m 5G {input.frag}
 		"""
 #		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
 
+## Raw read-scale / nonnegative tracks (positive values even for minus track)
+rule make_bigwig1bp_raw_abs:
+	input:
+		frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		chrom = chrom_size
+		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
+	output:
+		sampleDir + "/{sampleName}/igv.1bp.raw.abs.plus.bw",
+		sampleDir + "/{sampleName}/igv.1bp.raw.abs.minus.bw"
+	message:
+		"Making 1bp-resolution raw/abs bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "5G"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
+		"""
 
 ## Count k-mer frequency & Calculate k-mer correction scale factor
 rule count_kmers:
