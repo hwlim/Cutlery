@@ -40,6 +40,9 @@ if "bigWigAllFrag_RPSM" not in locals():
 if "bigWigDirAllFrag" not in locals():
 	bigWigDirAllFrag = "NULL"
 
+if "bigWigDir1bp_abs" not in locals():
+	bigWigDir1bp_abs = "NULL"
+
 ## Nucleotide frequence around MNase cutting sites
 ## PLAN: Use fragment file (all.con.bed.gz) instead of BAM file
 rule check_baseFreq:
@@ -197,8 +200,8 @@ rule make_bigwig1bp_raw_abs:
 		chrom = chrom_size
 		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
-		bigWigDir1bp + "/{sampleName}.raw.abs.plus.bw",
-		bigWigDir1bp + "/{sampleName}.raw.abs.minus.bw"
+		bigWigDir1bp_abs + "/{sampleName}.raw.abs.plus.bw",
+		bigWigDir1bp_abs + "/{sampleName}.raw.abs.minus.bw"
 	message:
 		"Making 1bp-resolution raw/abs bigWig files... [{wildcards.sampleName}]"
 #	params:
