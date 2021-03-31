@@ -196,7 +196,7 @@ rule make_bigwig1bp:
 ## Raw read-scale / nonnegative tracks (positive values even for minus track)
 rule make_bigwig1bp_raw_abs:
 	input:
-		splitDir + "/{sampleName}.all.con.bed.gz",
+		frag=splitDir + "/{sampleName}.all.con.bed.gz",
 		chrom = chrom_size
 		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
@@ -209,7 +209,7 @@ rule make_bigwig1bp_raw_abs:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWigStranded1bp.sh -o {bigWigDir1bp}/{wildcards.sampleName}.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
+		cnr.fragToBigWigStranded1bp.sh -o {bigWigDir1bp_abs}/{wildcards.sampleName}.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
 		"""
 
 
