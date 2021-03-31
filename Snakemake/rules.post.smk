@@ -196,7 +196,7 @@ rule make_bigwig1bp:
 ## Raw read-scale / nonnegative tracks (positive values even for minus track)
 rule make_bigwig1bp_raw_abs:
 	input:
-		splitDir + "/{sampleName}.all.con.bed.gz",
+		frag=splitDir + "/{sampleName}.all.con.bed.gz",
 		chrom = chrom_size
 		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
