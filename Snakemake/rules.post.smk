@@ -41,7 +41,7 @@ if "bigWigDirAllFrag" not in locals():
 	bigWigDirAllFrag = "NULL"
 
 if "bigWigDir1bp_abs" not in locals():
-	bigWigDir1bp_abs = "NULL"
+	bigWigDir1bp_abs = "2.3.BigWig.1bp.abs"
 
 ## Nucleotide frequence around MNase cutting sites
 ## PLAN: Use fragment file (all.con.bed.gz) instead of BAM file

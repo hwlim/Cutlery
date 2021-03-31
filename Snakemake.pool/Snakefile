@@ -55,6 +55,7 @@ fragLenDir 	= splitDir + "/fragLenHist"
 fragAcorDir = fclDir + "/fragAutoCor"
 bigWigDir	= "2.1.BigWig"
 bigWigDir1bp = "2.3.BigWig.1bp"
+bigWigDir1bp_abs = "2.3.BigWig.1bp.abs"
 bigWigDirAllFrag = "2.BigWig.allFrag.RPM"
 bigWigDir_avg = "2.2.BigWig.avg"
 
