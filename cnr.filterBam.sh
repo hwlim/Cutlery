@@ -138,7 +138,7 @@ tmp=${TMPDIR}/__temp__.$$.bam
 #samtools view -b -o $tmp $src $chrList 
 
 if [ "$chrRegex" == "NULL" ];then
-	samtools view -b -1 optStr -o $tmp $src
+	samtools view -b -1 $optStr -o $tmp $src
 else
 	samtools view -h $optStr $src \
 		| gawk '$3 ~ /'$chrRegex'/ || $1 ~/^@/' \
