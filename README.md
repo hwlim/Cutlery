@@ -139,6 +139,8 @@ But eventually a few seconds later, children bjos will appear and run as their d
 There is no automatic notification. Check back with **bjobs** command if they are still running.
 
 ## 4. Check results
+
+### 4.1. Job log
 Once the job is finished or encounter an error, two log files will be created.
 (These file names are specified in 0.submit.snakemake.sh)
 - bsub.err
@@ -154,6 +156,14 @@ Check the log of individual jobs under the folder **logs** to see the error mess
 ```baseh
 grep -i error logs/*err
 ```
+Note: There may be other error without a message "error" in the log.
+
+### 4.2. Processing output
+- Alignment statistics: Generally > 70% alignment reate expected
+- Fragment length distribution: Enrichment of short (< 120bp) or longer nucleosomal fragment (> 150bp) depending on target protein
+- Number of peaks (if generated)
+- Explore bigwig files in a genome browser (IGV): At top peak regions; Overall signal enrichment against a matching IgG control
+
 
 ## 5. Replicate-Pooling & Analysis
 
