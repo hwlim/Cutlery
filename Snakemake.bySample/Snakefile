@@ -56,7 +56,7 @@ star_option	= "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 
 
 ## MEME Motif DB needed for MEME motif search
 ## No need to change if MEME motif search is not intended, i.e. MEME.random5k/meme-chip.html in the output
-meme_db = os.environ["LimLabBase"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
+meme_db = os.environ["LIMLAB_BASE"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
 
 
 #########################
@@ -132,7 +132,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
 		## BigWig 1bp raw/abs (motivated for BPnet input file)
-		expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}}.bw", sampleName=sampleList, strand=["plus","minus"])
+		expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"])
 
 '''
 Output files under Development
