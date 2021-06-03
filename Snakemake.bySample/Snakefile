@@ -8,16 +8,23 @@ cluster_yml		= os.environ["CUTLERY"] + "/Snakemake.bySample/cluster.yml"
 
 ## Essential reference data
 ## Other user-defined files can be used.
+
 ## Mouse
 genomeFa	= "/data/limlab/Resource/GenomeData/mm/mm10/Genome/genome.fa"
 chrom_size	= "/data/limlab/Resource/GenomeData/mm/mm10/Genome/chrom.size"
 peak_mask	= "/data/limlab/Resource/GenomeData/mm/mm10/ENCODE-blacklist.bed"
 genome		= "mm10"
+star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
+
 ## Human
 #genomeFa	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/genome.fa"
 #chrom_size	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/chrom.size"
 #peak_mask	= "/data/limlab/Resource/GenomeData/hg/hg38/ENCODE-blacklist.bed"
 #genome		= "hg38"
+#star_index	= "/Volumes/limlab/Resource/STAR_Index/2.7.4/hg38_allChr_v29"
+
+## Other STAR index also available under /data/limlab/Resource/STAR_Index/2.7.4
+## If not, send a request to Lim Lab
 
 
 ## Other essential pameters
@@ -40,10 +47,7 @@ chrRegexTarget	= "^chr[0-9XY]+$"
 spikePrefix		= "NULL"
 
 ########################
-## STAR index & options
-## Other STAR index also available under /data/limlab/Resource/STAR_Index/2.7.4
-## If not, send a request to Lim Lab
-star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
+## STAR options
 star_module	= "STAR/2.7.4"
 
 ## STAR alignment options
