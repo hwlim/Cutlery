@@ -385,7 +385,7 @@ rule call_peaks_histone:
 		sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed"
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone",
-		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
+		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
