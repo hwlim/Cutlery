@@ -2,7 +2,7 @@
 
 library(ggplot2)
 library(cowplot)
-library(Seurat)
+#library(Seurat)
 source(sprintf("%s/commonR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
