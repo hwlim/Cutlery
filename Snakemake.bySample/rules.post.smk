@@ -367,7 +367,7 @@ rule call_peaks_factor_allfrag:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag",
-		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
+		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
@@ -403,7 +403,7 @@ rule call_peaks_histone_allfrag:
 		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag",
-		optStr = lambda wildcards, input: "-i" if len(input)>1 else ""
+		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
