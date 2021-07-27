@@ -471,8 +471,8 @@ rule run_homermotif_allfrag:
 
 rule run_meme_motif_rand5k:
 	input:
-		bed = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
-		db = meme_db
+		bed = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+		#db = meme_db
 	output:
 		sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html"
 	message:
@@ -481,15 +481,15 @@ rule run_meme_motif_rand5k:
 		"""
 		module purge
 		module load MotifMEME/1.0
-		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {input.db} \
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
 			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k {input.bed}
 		"""
 
 
 rule run_meme_motif_rand5k_allfrag:
 	input:
-		bed = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed",
-		db = meme_db
+		bed = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
+		#db = meme_db
 	output:
 		sampleDir + "/{sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html"
 	message:
@@ -498,7 +498,7 @@ rule run_meme_motif_rand5k_allfrag:
 		"""
 		module purge
 		module load MotifMEME/1.0
-		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {input.db}} \
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db}} \
 			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input.bed}
 		"""
 
