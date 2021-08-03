@@ -343,7 +343,6 @@ rule call_peaks_factor:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr"),
 		bw = sampleDir + "/{sampleName}/igv.nfr.con.bw",
-		mask = peak_mask
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	params:
@@ -354,7 +353,7 @@ rule call_peaks_factor:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {input.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
 		"""
 
 
@@ -362,7 +361,6 @@ rule call_peaks_factor_allfrag:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
 		bw = sampleDir + "/{sampleName}/igv.all.con.bw",
-		mask = peak_mask
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
@@ -373,14 +371,13 @@ rule call_peaks_factor_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {input.mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
 		"""
 
 
 rule call_peaks_histone:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc"),
-		mask = peak_mask
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed"
 	params:
@@ -391,14 +388,13 @@ rule call_peaks_histone:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {input.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
 		"""
 
 
 rule call_peaks_histone_allfrag:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
-		mask = peak_mask,
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
@@ -409,7 +405,7 @@ rule call_peaks_histone_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {input.mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
 		"""
 
 
