@@ -22,7 +22,7 @@ Output:
 Options:
 	-o <outDir>: Destination tag directory, required
 	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
-	-m <mask>: mask bed file for filtering such as ENCODE blacklist
+	-m <mask>: mask bed file for filtering such as ENCODE blacklist, default=NULL
 	-b <bigwig>: bigwig file of NFR fragments, i.e. *.nfr.con.bw
 		If specified, peak centering is performed using given bigwig file
 		default=NULL
