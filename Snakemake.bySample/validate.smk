@@ -42,3 +42,5 @@ if len(invalid_elem) > 0:
 
 ## To add
 ## - file check
+if peak_mask.upper() != "NULL":
+    assert os.path.exists(peak_mask)
