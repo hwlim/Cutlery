@@ -12,6 +12,7 @@ cluster_yml		= os.environ["CUTLERY"] + "/Snakemake.bySample/cluster.yml"
 ## Mouse
 genomeFa	= "/data/limlab/Resource/GenomeData/mm/mm10/Genome/genome.fa"
 chrom_size	= "/data/limlab/Resource/GenomeData/mm/mm10/Genome/chrom.size"
+## Peak mask e.g. ENCODE blacklist. "NULL" if N/A
 peak_mask	= "/data/limlab/Resource/GenomeData/mm/mm10/ENCODE-blacklist.bed"
 genome		= "mm10"
 star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
