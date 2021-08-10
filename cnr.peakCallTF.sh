@@ -133,8 +133,11 @@ fi
 
 
 ## pos -> bed file
+## Note:
+## - Filtering by $2 >1 : homer peak calling gives start coordinate 1 at the chromosome starting boundary with different size, which should be removed
 grep -v "^#" ${peak0} \
 	| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t+\n", $2, $3, $4, $1, $6 }' \
+	| gawk '$2 > 1' \
 	> ${peakBed}
 
 ## Peak centering using given NFR bigwig file
