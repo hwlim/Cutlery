@@ -10,13 +10,13 @@ import argparse
 import os
 
 #parse command line arguments
-options = argparse.ArgumentParser(description="This script converts a coordinate-sorted bam file to a fragment bed file. 5th column of the fragment bed file represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
+options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed file. 5th column of the fragment bed file represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
 options.add_argument('-f', '--flags_include', default='2',
                         help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 2. User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
 options.add_argument('-F', '--flags_exclude', default='1024',
                         help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 1024. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
 options.add_argument('-r', '--read', default=False,
-                        help='Convert bam file to bed file; same functionality as bedtools bamToBed with default settings. Type \"True\" without the quotation marks after the -r flag to use it. Prints all reads.')
+                        help='Convert bam file to bed file; same functionality as bedtools bamToBed with default settings, i.e. assuming single-end.')
 options.add_argument('bam_file',
                         help='Required; Coordinate sorted bam file. Index file needs to be in the same location as the bam file.')
 args = options.parse_args()
@@ -35,7 +35,7 @@ def getReadLen(cig):
     
     return readLen
 
-#function that performs bamToBed functionality
+#function that performs bamToBed functionality, i.e. single-end mode
 def bamToBed(bamFile):
 
     #Read the bam file line-by-line
@@ -69,7 +69,7 @@ def bamToBed(bamFile):
     return
 
 
-#function that converts coordinate-sorted bam file to a fragment.bed file
+#function that converts coordinate-sorted bam file to a fragment.bed file, i.e. paired-end mode
 def bamToFrag(bamFile):
     #create empty dictionary
     d = {}
@@ -150,12 +150,11 @@ def main():
     #read input bam file
     bamFile = pysam.AlignmentFile(args.bam_file, "rb")
 
-    #Run bamToBed if user uses -r flag in command line
     if (args.read) != False:
+        #Run bamToBed if user uses -r flag in command line
         bamToBed(bamFile)
-
-    #Run bamToFrag otherwise
     else:
+        #Run bamToFrag otherwise
         bamToFrag(bamFile)
 
 if __name__ == "__main__":
