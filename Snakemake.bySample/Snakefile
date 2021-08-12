@@ -124,6 +124,7 @@ rule all:
 		##### Basic Output Files #####
 		## QC output
 		qcDir + "/alignStat.txt",
+		expand(qcDir + "/uniqFragCnt.{ext}", ext=[ "txt", "pdf" ]),
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
 		## BigWig files	
