@@ -10,7 +10,7 @@ source $COMMON_LIB_BASE/commonBash.sh
 nJob=30
 totalWaitTime="48:00"
 #timestamp=$(date +%Y%m%d_%H%M%S)
-config=${CUTLERY}/Snakemake/cluster.yml
+config=${CUTLERY}/Snakemake.bySample/cluster.yml
 
 assertFileExist $config
 assertFileExist ./Snakefile
