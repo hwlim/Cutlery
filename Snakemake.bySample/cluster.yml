@@ -4,7 +4,7 @@
 #
 #
 __default__:
-    cpu         : 2
+    cpu         : 1
     memory      : 5000
     walltime    : "12:00"
     name        : "{rule}.{wildcards.sampleName}"
@@ -23,18 +23,23 @@ align_pe:
     walltime    : "24:00"
 
 check_baseFreq:
+    cpu         : 2
     memory      : 6000
 
 dedup_align:
+    cpu         : 2
     memory      : 6000
 
 make_bigwig:
+    cpu         : 2
     memory      : 10000
 
 make_bigwig1bp:
+    cpu         : 2
     memory      : 10000
 
 make_bigwig1bp_raw_abs:
+    cpu         : 2
     memory      : 10000
 
 count_kmers:
@@ -48,6 +53,11 @@ make_bigwig_allfrag:
     memory      : 10000
 
 make_spikeintable:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"
+
+make_uniqcnt_table:
     name        : "{rule}"
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
