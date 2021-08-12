@@ -19,7 +19,7 @@ Options:
 	-o: outPrefix including path, default=align
 		Since STAR does not add dot (.) after prefix, this script automatically add one if it doesn't end with dot
 	-t: number of threads for parallel processing, default=4
-	-s: sort by coordinate, defalt=Off
+	-s: sort by coordinate, bai index file also created. defalt=Off
 	-p: option string for STAR, default=NULL
 Option examples:
 	ChIP-seq / ATAC-seq:
