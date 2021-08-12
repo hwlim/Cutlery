@@ -17,4 +17,4 @@ echo -e "  CUTLERY path = ${CUTLERY}" >&2
 
 cp -v ${CUTLERY}/Snakemake.bySample/sample.tsv .
 cp -v ${CUTLERY}/Snakemake.bySample/Snakefile .
-cp -v ${CUTLERY}/Snakemake.bySample/0.submit.snakemake.sh .
+#cp -v ${CUTLERY}/Snakemake.bySample/0.submit.snakemake.sh .
