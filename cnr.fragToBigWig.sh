@@ -12,11 +12,16 @@ Description:
 	Make a bigWig file from a fragment BED file in RPM scale (default) or manually scaled
 	**Note that this only considers chromosome names starting with 'chr'
 Options:
-	-o <outFile>: Destination directory. required
-	-g <chromSIze>: chromosome size file, required
+	-o <outFile>: Destination file. required
+	-l <minLen>: lower bound of fragment length to use (including the boundary), default=0
+	-L <maxLen>: upper bound of fragment length to use (including the boundary), default=1000000 (infinite)
+	-r <resize>: resize to the give length around the center, default=-1 (no resize)
+	-g <chromSize>: chromosome size file, required
 	-m <memory>: memory size for sorting bedGraph file, default=5G
 	-s <scale factor>: Manual scaling factor. This value is multiplied to \"raw read count\" primarily for spike-in based scaling.
-			If 0, RPM normalized. default=0" >&2
+			If 0, RPM normalized. default=0
+	-c <chrRegex>: regular expression for chromosome filtering, default=. (no filtering)
+		e.g. \"^chr[0-9XY]+$|^dm-$\": autosome + sex chromosome + drosophila spikein" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -28,13 +33,26 @@ fi
 ###################################
 ## option and input file handling
 des=NULL
+minLen=0
+maxLen=1000000
+resize=-1
 genome=NULL
 memory=5G
 scaleFactor=0
-while getopts ":o:g:m:s:" opt; do
+chrRegex=.
+while getopts ":o:l:L:r:g:m:s:c:" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
+			;;
+		l)
+			minLen=$OPTARG
+			;;
+		L)
+			maxLen=$OPTARG
+			;;
+		r)
+			resize=$OPTARG
 			;;
 		g)
 			genome=$OPTARG
@@ -44,6 +62,9 @@ while getopts ":o:g:m:s:" opt; do
 			;;
 		s)
 			scaleFactor=$OPTARG
+			;;
+		c)
+			chrRegex=$OPTARG
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -87,13 +108,36 @@ printBed(){
 
 	local ext=${src##*.}
 	
+	# avoid using zero coordinate reads
 	if [ "$ext" == "gz" ];then
-		zcat $src | grep ^chr | gawk '$2 > 0'
+		zcat $src | gawk '$2 > 0'
 	else
-		cat $src | grep ^chr | gawk '$2 > 0'
+		cat $src | gawk '$2 > 0'
 	fi
 }
 
+printFrag(){
+	local src=$1
+	assertFileExist $src
+
+	printBed $src \
+		| gawk 'BEGIN{
+				minLen='$minLen';
+				maxLen='$maxLen';
+				resize='$resize';
+			} $1 ~ /'$chrRegex'/ {
+				fragLen=$3-$2
+				if( fragLen < minLen || fragLen > maxLen ) next
+
+				if( resize > -1 ){
+					c = ($3+$2)/2
+					h = resize / 2
+					printf "%s\t%d\t%d\tNULL\t0\t%s\n", $1, c-h, c+h, $6
+				}else{
+					printf "%s\t%d\t%d\tNULL\t0\t%s\n", $1, $2, $3, $6
+				}
+			}'
+}
 
 desDir=`dirname $des`
 mkdir -p $desDir
@@ -101,14 +145,17 @@ mkdir -p $desDir
 tmpBG=${TMPDIR}/__temp__.$$.bedGraph
 tmpBW=${TMPDIR}/__temp__.$$.bw
 
-echo -e "Creating BigWig file from a fragment bed file" >&2
-echo -e "- src = $src" >&2
-echo -e "- des = $des" >&2
-echo -e "- chromSize = $genome" >&2
+echo -e "Creating BigWig file from a fragment bed file
+  - src = $src
+  - des = $des
+  - fragLen = $minLen - $maxLen (bp)
+  - resize = $resize (bp)
+  - chromSize = $genome
+  - chrRegex = $chrRegex" >&2
 
 if [ $scaleFactor == "0" ];then
 	echo -e "  1) Calculating scale factor for RPM normalization" >&2
-	ttc=`printBed $src | wc -l`
+	ttc=`printFrag $src | wc -l`
 	scaleFactor=`echo $ttc | gawk '{ printf "%f", 1000000/$1}'`
 	echo -e "\tTTC = $ttc (scaleFactor $scaleFactor)" >&2
 else
@@ -117,7 +164,7 @@ else
 fi
 
 echo -e "  2) Making bedGraph file" >&2
-printBed $src \
+printFrag $src \
 	| sort -S $memory -k1,1 -k2,2n -k3,3n \
 	| genomeCoverageBed -bg -scale $scaleFactor -g $genome -i stdin \
 	| gawk '{ printf "%s\t%s\t%s\t%.5f\n", $1,$2,$3,$4 }' \
