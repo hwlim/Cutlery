@@ -54,12 +54,18 @@ outPrefix=opt$outPrefix
 
 if( FALSE ){
 	srcL=c(
-		"DE_H3K9me3_Control_A6.spikeCnt.txt",
-		"DE_H3K9me3_Control_H5.spikeCnt.txt",
-		"DE_H3K9me3_FOXA123KD_A6.spikeCnt.txt",
-		"DE_H3K9me3_FOXA123KD_H5.spikeCnt.txt"
+		"../3.Sample/E12.5_Flag_1/QC/spikeCnt.txt",
+"../3.Sample/E12.5_Flag_2/QC/spikeCnt.txt",
+"../3.Sample/E12.5_H3K27me3_Flag_1/QC/spikeCnt.txt",
+"../3.Sample/E12.5_H3K27me3_Flag_2/QC/spikeCnt.txt",
+"../3.Sample/E12.5_H3K27me3_early/QC/spikeCnt.txt",
+"../3.Sample/E12.5_IgG_1/QC/spikeCnt.txt",
+"../3.Sample/E12.5_IgG_2/QC/spikeCnt.txt",
+"../3.Sample/E13.5_Gsx2/QC/spikeCnt.txt",
+"../3.Sample/E13.5_Gsx2_1to1000/QC/spikeCnt.txt",
+"../3.Sample/E13.5_IgG/QC/spikeCnt.txt"
 	)
-	outPrefix="spikein"
+	outPrefix="test"
 }
 assertFileExist(srcL)
 if(is.null(outPrefix)) stop("outPrefix (-o) must be specified")
@@ -71,8 +77,8 @@ des.plot = sprintf("%s.png", outPrefix)
 tmp.df = NULL
 nameL = NULL
 for( src in srcL ){
-	# sample=sampleL[1]
-	name = sub(".spikeCnt.txt$", "", basename(src))
+	# src=srcL[1]
+	name = basename(dirname(dirname(src)))
 	nameL = c(nameL, name)
 	tmp = read.delim(src, header=TRUE, row.names=1)
 
