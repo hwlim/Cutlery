@@ -52,7 +52,8 @@ rule align_pe:
 	input:
 		get_fastq
 	output:
-		alignDir + "/{sampleName}/align.bam",
+		bam = alignDir + "/{sampleName}/align.bam",
+		bai = alignDir + "/{sampleName}/align.bam.bai"
 	message:
 		"Aligning... [{wildcards.sampleName}]"
 	params:
@@ -72,6 +73,7 @@ rule align_pe:
 			-o {alignDir}/{wildcards.sampleName}/align \
 			-t {threads} \
 			-p '{params.option}' \
+			-s \
 			{input}
 		"""
 
@@ -98,20 +100,23 @@ rule filter_align:
 	input:
 		alignDir + "/{sampleName}/align.bam"
 	output:
-		filteredDir + "/{sampleName}.bam"
+		bam = filteredDir + "/{sampleName}.bam",
+		bai = filteredDir + "/{sampleName}.bam.bai"
 	message:
 		"Filtering... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.filterBam.sh  -o {output} -c "{chrRegexAll}" {input}
+		cnr.filterBam.sh  -o {output.bam} -c "{chrRegexAll}" {input}
+		samtools index {output.bam}
 		"""
 
 rule dedup_align:
 	input:
 		filteredDir + "/{sampleName}.bam"
 	output:
-		dedupDir + "/{sampleName}.bam"
+		bam = dedupDir + "/{sampleName}.bam",
+		bai = dedupDir + "/{sampleName}.bam.bai"
 	message:
 		"Deduplicating... [{wildcards.sampleName}]"
 	params:
@@ -119,5 +124,6 @@ rule dedup_align:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.dedupBam.sh -m {params.memory} -o {output} -r {input}
+		cnr.dedupBam.sh -m {params.memory} -o {output.bam} -r {input}
+		samtools index {output.bam}
 		"""
