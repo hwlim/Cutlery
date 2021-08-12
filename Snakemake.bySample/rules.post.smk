@@ -35,11 +35,61 @@ if "meme_db" not in locals():
 ## Rule Start
 
 
+## ** Under development **
+## Convert BAM to fragment bed file
+rule make_fragment:
+	input:
+		bam = bamDir + "/{sampleName}.bam",
+		bai = bamDir + "/{sampleName}.bam.bai"
+	output:
+		sampleDir + "/{sampleName}/fragment.bed.gz"
+	message:
+		"Making fragment bed files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		mkdir -p {sampleDir}/{wildcards.sampleName}
+		ngs.bamToFragment.py {input.bam} | gzip > {output}
+		"""
+
+
+## Count the number of unique fragents out of total
+## - Number & % of unique fragments
+rule count_uniq_fragment:
+	input:
+		sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		sampleDir + "/{sampleName}/QC/fragment.uniq_cnt.txt"
+	message:
+		"Counting unique fragments... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		countUniqFrag.sh -n {wildcards.sampleName} -o {output} {input}
+		"""
+
+
+rule make_uniqcnt_table:
+	input:
+		expand(sampleDir + "/{sampleName}/QC/fragment.uniq_cnt.txt", sampleName=samples.Name.tolist())
+	output:
+		qcDir + "/uniqFragCnt.txt",
+		qcDir + "/uniqFragCnt.pdf"
+	message:
+		"Making unique fragment count table..."
+	shell:
+		"""
+		module load Cutlery/1.0
+		makeUniqCntTable.r -o {qcDir}/uniqFragCnt {input}
+		"""
+
 ## Nucleotide base frequence around 5'-ends of read 1 & 2
 ## NEED REVISION for OUTPUT names & directories
 rule check_baseFreq:
 	input:
-		frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		#frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
 		genomeFa = genomeFa
 		#bamDir + "/{sampleName}.bam"
 	output:
@@ -61,19 +111,6 @@ rule check_baseFreq:
 #		rm {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
 #		rm {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
 
-## ** Under development **
-## Convert BAM to fragment bed file
-rule make_fragment:
-	input:
-		bamDir + "/{sampleName}.bam"
-	output:
-		sampleDir + "/{sampleName}/fragment.bed.gz"
-	message:
-		"Making fragment bed files... [{wildcards.sampleName}]"
-	shell:
-		"""
-		"""
-
 
 ## BAM to fragment bed files: all / nfr / nuc
 rule split_bam:
@@ -94,7 +131,8 @@ rule split_bam:
 ## FCL (Fragment Center / Length) file
 rule make_fcl_file:
 	input:
-		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		#sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		sampleDir + "/{sampleName}/fragment.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/fcl.bed.gz"
 #	params:
@@ -110,7 +148,8 @@ rule make_fcl_file:
 ## Fragment length distribution
 rule get_fragLenHist:
 	input:
-		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		#sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		sampleDir + "/{sampleName}/fragment.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/QC/fragLen.dist.txt",
 		sampleDir + "/{sampleName}/QC/fragLen.dist.png"
@@ -139,7 +178,8 @@ rule get_frag_autocor:
 
 rule count_spikein:
 	input:
-		bamDir + "/{sampleName}.bam"
+		#bamDir + "/{sampleName}.bam"
+		sampleDir + "/{sampleName}/fragment.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/QC/spikeCnt.txt"
 	message:
@@ -160,16 +200,17 @@ rule make_spikeintable:
 	shell:
 		"""
 		module load Cutlery/1.0
-		makeSpikeCntTable.r -o {spikeinCntDir}/spikein {input}
+		makeSpikeCntTable.r -o {qcDir}/spikein {input}
 		"""
 
 ## NOTE: input fragments are already chromosome-filtered in split step
 ##	However, planning to add chrRegex option to cnr.fragToBigWig for better readibility & compatibility
 rule make_bigwig:
 	input:
-		all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz",
-		nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
-		nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz",
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		#all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz"
+		#nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
+		#nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz",
 		chrom = chrom_size
 	output:
 		all = sampleDir + "/{sampleName}/igv.all.ctr.bw",
@@ -182,16 +223,17 @@ rule make_bigwig:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.all} {input.all}
-		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nfr} {input.nfr}
-		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -r 100 -m 5G -o {output.all} {input.frag}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -r 100 -m 5G -o {output.nfr} {input.frag}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -r 100 -m 5G -o {output.nuc} {input.frag}
 		"""
 
 
 ## 1bp-resolution bigwig files
 rule make_bigwig1bp:
 	input:
-		frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		#frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
 		chrom = chrom_size
 		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
@@ -212,7 +254,8 @@ rule make_bigwig1bp:
 ## Raw read-scale / nonnegative tracks (positive values even for minus track)
 rule make_bigwig1bp_raw_abs:
 	input:
-		frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		#frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
 		chrom = chrom_size
 		#sampleDir + "/{sampleName}/Fragments/frag.all.sep.bed.gz"
 	output:
@@ -231,7 +274,8 @@ rule make_bigwig1bp_raw_abs:
 ## Count k-mer frequency & Calculate k-mer correction scale factor
 rule count_kmers:
 	input:
-		sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		#sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		sampleDir + "/{sampleName}/fragment.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/QC/kmer.freq.txt"
 	message:
@@ -278,9 +322,10 @@ rule make_bigwig1bp_corrected:
 
 rule make_bigwig_allfrag:
 	input:
-		all=sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
-		nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
-		nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz",
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		#all=sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		#nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
+		#nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz",
 		chrom = chrom_size
 	output:
 		all=sampleDir + "/{sampleName}/igv.all.con.bw",
@@ -293,16 +338,17 @@ rule make_bigwig_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.all} {input.all}
-		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nfr} {input.nfr}
-		cnr.fragToBigWig.sh -g {input.chrom} -m 5G -o {output.nuc} {input.nuc}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output.all} {input.frag}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output.nfr} {input.frag}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -m 5G -o {output.nuc} {input.frag}
 		"""
 
 rule make_tagdir:
 	input:
-		all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz",
-		nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
-		nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz"
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz"
+		#all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz"
+		#nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
+		#nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz"
 	output:
 		all=directory(sampleDir + "/{sampleName}/TSV.all"),
 		nfr=directory(sampleDir + "/{sampleName}/TSV.nfr"),
@@ -314,9 +360,9 @@ rule make_tagdir:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.makeHomerDir.sh -o {output.nfr} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nfr}
-		cnr.makeHomerDir.sh -o {output.nuc} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.nuc}
-		cnr.makeHomerDir.sh -o {output.all} -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.all}
+		cnr.makeHomerDir.sh -o {output.all} -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		cnr.makeHomerDir.sh -o {output.nfr} -l 0 -L 119 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		cnr.makeHomerDir.sh -o {output.nuc} -l 151 -L 1000000 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
 		"""
 
 
@@ -394,7 +440,7 @@ rule call_peaks_histone:
 
 rule call_peaks_histone_allfrag:
 	input:
-		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
+		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
