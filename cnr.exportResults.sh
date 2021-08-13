@@ -89,9 +89,11 @@ exportFile(){
 
 	if [ "$isDir" == "TRUE" ];then
 		optStr="-r"
+	else
+		optStr=""
 	fi
 
-	if [ -f $src ];then
+	if [ -f $src ] || [ -d $src ];then
 		if [ -f $des ];then
 		       if [ "$force" == "TRUE" ];then
 			       echo -e "Warning: Overwriting $des" >&2
@@ -107,108 +109,81 @@ exportFile(){
 	fi
 }
 
+## Export selection
+read -p 'Export QC result [Y/n]:' exportQC
+read -p 'Export bigwig files [Y/n]:' exportBW
+read -p 'Export peak files [Y/n]:' exportPeak
+read -p 'Export motif results [Y/n]:' exportMotif
+exportQC=${exportQC:-Y}
+exportBW=${exportBW:-Y}
+exportPeak=${exportPeak:-Y}
+exportMotif=${exportMotif:-Y}
+
+## Export
+echo -e "" >&2
 for samplePath in ${sampleL[@]}
 do
+	echo -e "Exporting ${samplePath}" >&2
 	sample=`basename $samplePath`
 
 	# fragment length distribution
-	echo -e "0) Exporting fragment length distribution" >&2
-	mkdir -p ${desDir}/QualityControl
-	src=${srcDir}/${sample}/QC/fragLen.dist.png
-	des=${desDir}/QualityControl/${sample}.fragLen.png
-	exportFile $src $des FALSE
-	#if [ -f $src ];then
-	#	if [ ! -f $des ] || [ "$force" == "TRUE" ];then
-	#		cp -f -v $src $des
-	#	else
-	#		echo -e "Warning: $des already exists, ski" >&2
-	#	fi
-	#else
-	#	echo -e "Warning: $src does not exist, skipping" >&2
-	#fi
-
+	if [ "$exportQC" == "y" ] || [ "$exportQC" == "Y" ];then
+		echo -e "0) Exporting fragment length distribution" >&2
+		mkdir -p ${desDir}/QualityControl
+		src=${srcDir}/${sample}/QC/fragLen.dist.png
+		des=${desDir}/QualityControl/${sample}.fragLen.png
+		exportFile $src $des FALSE
+	else
+		echo -e "0) Skipping fragment length distribution" >&2
+	fi
 
 	# - bigwig: all / nfr / nuc
-	echo -e "1) Exporting bigwig files" >&2
-	mkdir -p ${desDir}/BigWig
-	for frag in all nfr nuc
-	do
-		src=${srcDir}/${sample}/igv.${frag}.ctr.bw
-		des=${desDir}/BigWig/${sample}.${frag}.ctr.bw
-		exportFile $src $des FALSE
-
-		#if [ -f $src ];then
-		#	if [ ! -f $des ] || [ "$force" == "TRUE" ];then
-		#		cp -f -v $src $des
-		#	else
-		#		echo -e "Warning: $des already exists, ski" >&2
-		#	fi
-		#else
-		#	echo -e "Warning: $src does not exist, skipping" >&2
-		#fi
-	done
+	if [ "$exportBW" == "y" ] || [ "$exportBW" == "Y" ];then
+		echo -e "1) Exporting bigwig files" >&2
+		mkdir -p ${desDir}/BigWig
+		for frag in all nfr nuc
+		do
+			src=${srcDir}/${sample}/igv.${frag}.ctr.bw
+			des=${desDir}/BigWig/${sample}.${frag}.ctr.bw
+			exportFile $src $des FALSE
+		done
+	else
+		echo -e "1) Skipping bigwig files" >&2
+	fi
 
 	# - peak & heatmap: all / 1rpm
-	echo -e "2) Exporting peak files & heatmaps" >&2
-	mkdir -p ${desDir}/Peak
-	for mode in factor histone
-	do
-		src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.bed
-		des=${desDir}/Peak/${sample}.all.bed
-		exportFile $src $des FALSE
-		#if [ -f $src ];then
-		#	if [ ! -f $des ] || [ "$force" == "TRUE" ];then
-		#		cp -f -v $src $des
-		#	else
-		#		echo -e "Warning: $des already exists, ski" >&2
-		#	fi
-		#else
-		#	echo -e "Warning: $src does not exist, skipping" >&2
-		#fi
+	if [ "$exportPeak" == "y" ] || [ "$exportPeak" == "Y" ];then
+		echo -e "2) Exporting peak files & heatmaps" >&2
+		mkdir -p ${desDir}/Peak
+		for mode in factor histone
+		do
+			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.bed
+			des=${desDir}/Peak/${sample}.all.bed
+			exportFile $src $des FALSE
 
-		src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.1rpm.bed
-		des=${desDir}/Peak/${sample}.1rpm.bed
-		exportFile $src $des FALSE
-		#if [ -f $src ];then
-		#	if [ ! -f $des ] || [ "$force" == "TRUE" ];then
-		#		cp -f -v $src $des
-		#	else
-		#		echo -e "Warning: $des already exists, ski" >&2
-		#	fi
-		#else
-		#	echo -e "Warning: $src does not exist, skipping" >&2
-		#fi
+			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.1rpm.bed
+			des=${desDir}/Peak/${sample}.1rpm.bed
+			exportFile $src $des FALSE
 
-		src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.1rpm.png
-		des=${desDir}/Peak/${sample}.1rpm.heatmap.png
-		exportFile $src $des FALSE
-		#if [ -f $src ];then
-		#	if [ ! -f $des ] || [ "$force" == "TRUE" ];then
-		#		cp -f -v $src $des
-		#	else
-		#		echo -e "Warning: $des already exists, ski" >&2
-		#	fi
-		#else
-		#	echo -e "Warning: $src does not exist, skipping" >&2
-		#fi
-	done
+			src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.1rpm.png
+			des=${desDir}/Peak/${sample}.1rpm.heatmap.png
+			exportFile $src $des FALSE
+		done
+	else
+		echo -e "2) Skipping peak files & heatmaps" >&2
+	fi
 
 	# - motif
-	echo -e "3) Exporting motif search results" >&2
-	mkdir -p ${desDir}/Motif
-	for src in ${srcDir}/${sample}/Motif/Homer.all  ${srcDir}/${sample}/Motif/MEME.random5k
-	do
-		mode=`basename $src`
-		des=${desDir}/Motif/${sample}.${mode}
-		exportFile $src $des TRUE
-		#if [ -d $src ];then
-		#	if [ ! -d $des ] || [ "$force" == "TRUE" ];then
-		#		cp -f -rv $src $des
-		#	else
-		#		echo -e "Warning: $des already exists, ski" >&2
-		#	fi
-		#else
-		#	echo -e "Warning: $src does not exist, skipping" >&2
-		#fi
-	done
+	if [ "$exportMotif" == "y" ] || [ "$exportMotif" == "Y" ];then
+		echo -e "3) Exporting motif search results" >&2
+		mkdir -p ${desDir}/Motif
+		for src in ${srcDir}/${sample}/Motif/Homer.all  ${srcDir}/${sample}/Motif/MEME.random5k
+		do
+			mode=`basename $src`
+			des=${desDir}/Motif/${sample}.${mode}
+			exportFile $src $des TRUE
+		done
+	else
+		echo -e "3) Skipping motif search results" >&2
+	fi
 done
