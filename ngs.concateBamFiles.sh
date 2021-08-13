@@ -7,11 +7,21 @@ function printUsage {
 	echo -e "Usage: `basename $0` (options) [bam1] ...
 Description:
 	Merge multiple bam files into one
-	In default, bam files are simply concatenated
+Input:
+	- Sorted or unsorted BAM files
+Output:
+	- Simply concatenated BAM file without indexing (default)
+	or
+	- Coordinate-sorted bam file with index, <out>.bai (with -S or -s option)
 Options:
-	-o <out>: Output file prefix including path. required
-	-m <mem>: Memory for sorting. default=5G
-	-s : If set, coordinate-sorted and indexed" >&2
+	-o <out>: Output bam file including path. required.
+		Index will be automatically named as <out>.bai if created
+	-m <mem>: Memory for sorting (for -s option). default=5G
+	-S : If set, input bam files are assumed to be coordinated-sorted (index files must exist)
+		So, input files are merged by \"samtools merge\".
+		Hence the result is also coordinate-sorted and indexed
+	-s : If set, perform coordinate-sorting and indexing assuming unsorted input bam files.
+		If -S is set, this option is ignored" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -24,8 +34,9 @@ fi
 ## option and input file handling
 des=""
 sortMem=5G
-toSort=0
-while getopts ":o:m:s" opt; do
+sortedBam=FALSE
+toSort=FALSE
+while getopts ":o:m:Ss" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
@@ -33,8 +44,11 @@ while getopts ":o:m:s" opt; do
 		m)
 			sortMem=$OPTARG
 			;;
+		S)
+			sortedBam=TRUE
+			;;
 		s)
-			toSort=1
+			toSort=TRUE
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -75,6 +89,7 @@ mkdir -p $desDir
 echo -e "#######################################" >&2
 echo -e "Concatenating bam files" >&2
 echo -e "  des = $des" >&2
+echo -e "  sorted input = $sortedBam" >&2
 echo -e "  sort = $toSort" >&2
 echo -e "  memory = $sortMem" >&2
 echo -e "  src =" >&2
@@ -92,15 +107,25 @@ if [ $# -eq 1 ];then
 	echo -e "Warning: Only one file is given; simply copying" >&2
 	cp ${srcL[0]} $des
 else
-	samtools view -H ${srcL[0]} > ${tmpHdr}
-	samtools cat -h ${tmpHdr} ${srcL[@]} > ${tmpMerged}
-
-	if [ $toSort -gt 0 ];then
-		samtools sort -o $tmpSrt -T $tmpSrtPrefix -m $sortMem $tmpMerged
-		mv $tmpSrt $des
-		samtools index $des
-	else
+	if [ "$sortedBam" == "TRUE" ];then
+		echo -e "- Input bam files are pre-sorted. Performing samtools merge & indexing" >&2
+		samtools merge $tmpMerged ${srcL[@]}
+		samtools index $tmpMerged
 		mv $tmpMerged $des
+		mv ${tmpMerged}.bai ${des}.bai
+	else
+		echo -e "- Simply concatenating input bam files" >&2
+		samtools view -H ${srcL[0]} > ${tmpHdr}
+		samtools cat -h ${tmpHdr} ${srcL[@]} > ${tmpMerged}
+
+		if [ "$toSort" == "TRUE" ];then
+			echo -e "- Sorting & Indexing" >&2
+			samtools sort -o $tmpSrt -T $tmpSrtPrefix -m $sortMem $tmpMerged
+			mv $tmpSrt $des
+			samtools index $des
+		else
+			mv $tmpMerged $des
+		fi
 	fi
 fi
 
