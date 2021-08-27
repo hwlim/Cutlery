@@ -66,7 +66,7 @@ rule count_uniq_fragment:
 	shell:
 		"""
 		module load Cutlery/1.0
-		countUniqFrag.sh -n {wildcards.sampleName} -o {output} {input}
+		ngs.countUniqFrag.sh -n {wildcards.sampleName} -o {output} {input}
 		"""
 
 
@@ -74,14 +74,13 @@ rule make_uniqcnt_table:
 	input:
 		expand(sampleDir + "/{sampleName}/QC/fragment.uniq_cnt.txt", sampleName=samples.Name.tolist())
 	output:
-		qcDir + "/uniqFragCnt.txt",
-		qcDir + "/uniqFragCnt.pdf"
+		expand(qcDir + "/uniqFragCnt.{ext}", ext=[ "txt", "pdf", "png" ])
 	message:
 		"Making unique fragment count table..."
 	shell:
 		"""
 		module load Cutlery/1.0
-		makeUniqCntTable.r -o {qcDir}/uniqFragCnt {input}
+		ngs.makeUniqCntTable.r -o {qcDir}/uniqFragCnt {input}
 		"""
 
 ## Nucleotide base frequence around 5'-ends of read 1 & 2
@@ -187,7 +186,7 @@ rule count_spikein:
 	shell:
 		"""
 		module load Cutlery/1.0
-		countSpikein.sh -p {spikePrefix} {input} > {output}
+		ngs.countSpikein.sh -p {spikePrefix} -n {wildcards.sampleName} {input} > {output}
 		"""
 
 rule make_spikeintable:
@@ -200,7 +199,7 @@ rule make_spikeintable:
 	shell:
 		"""
 		module load Cutlery/1.0
-		makeSpikeCntTable.r -o {qcDir}/spikein {input}
+		ngs.makeSpikeCntTable.r -o {qcDir}/spikein {input}
 		"""
 
 ## NOTE: input fragments are already chromosome-filtered in split step
