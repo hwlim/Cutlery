@@ -561,6 +561,25 @@ rule draw_peak_heatmap_factor:
 			{input.bed} {input.nfr} {input.nuc}
 		"""
 
+
+rule draw_peak_heatmap_histone:
+	input:
+		bed = sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed",
+		nfr=sampleDir + "/{sampleName}/igv.nfr.ctr.bw",
+		nuc=sampleDir + "/{sampleName}/igv.nuc.ctr.bw"
+	output:
+		sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png"
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 10000 -b 20 -c NFR,NUC -s 3,6 \
+			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/heatmap.exBL \
+			{input.bed} {input.nfr} {input.nuc}
+		"""
+
+
 rule analyze_footprint_homer:
 	input:
 		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
