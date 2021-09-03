@@ -162,12 +162,12 @@ else
 	echo -e "Tag counts in RPKM" >&2
 
 	getPeakTags $tmpPeakMasked $target -tagAdjust 0 -tbp 0 -fixed \
-		| sort -k1,1 \
 		> ${tmpTagCount}
 
-	paste ${tmpPeakMasked} ${tmpTagCount} \
-		| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.5f\t%s\n", $1,$2,$3,NR,$8*1000000/'${ttc}'*1000/($3-$2),$6 }' \
-		| sort -k5,5nr \
+	paste <( sort -k4,4 ${tmpPeakMasked} ) <( sort -k1,1 ${tmpTagCount} ) \
+		| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.5f\t%s\t%d\n", $1,$2,$3,NR,$8*1000000/'${ttc}'*1000/($3-$2),$6,$3-$2 }' \
+		| sort -k7,7nr \
+		| cut -f 1-6 \
 		> $peakMasked
 fi
 rm ${tmpPeakMasked} 
