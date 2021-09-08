@@ -96,6 +96,8 @@ rule make_align_stat_table:
 		star.getAlignStats.r {params.inputDir} > {output}
 		"""
 
+'''
+## No more used since chromosome / flag filtering are now incorporated into bam to fragment conversion step
 rule filter_align:
 	input:
 		alignDir + "/{sampleName}/align.bam"
@@ -110,10 +112,11 @@ rule filter_align:
 		cnr.filterBam.sh  -o {output.bam} -c "{chrRegexAll}" {input}
 		samtools index {output.bam}
 		"""
+'''
 
 rule dedup_align:
 	input:
-		filteredDir + "/{sampleName}.bam"
+		alignDir + "/{sampleName}.bam"
 	output:
 		bam = dedupDir + "/{sampleName}.bam",
 		bai = dedupDir + "/{sampleName}.bam.bai"

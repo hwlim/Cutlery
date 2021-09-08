@@ -16,15 +16,6 @@
 #################################
 ## Default values for undefined variables in Snakefile
 
-## bamDir is used to designated bam file directory for downstream analysis
-## Originally motivated for reuse or rule.post.smk in replicate pooling in Snakemake.pool
-## If bamDir is not defined, i.e. for simply processing individual replicates not pooling
-## dedupDir or filteredDir is selected 
-if "bamDir" not in locals():
-	if doDedup:
-		bamDir = dedupDir
-	else:
-		bamDir = filteredDir
 
 if "meme_db" not in locals():
 	meme_db = os.environ["LIMLAB_BASE"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
@@ -34,9 +25,20 @@ if "meme_db" not in locals():
 #################################
 ## Rule Start
 
+## bamDir is used to designated bam file directory for downstream analysis
+## Originally motivated for reuse or rule.post.smk in replicate pooling in Snakemake.pool
+## If bamDir is not defined, i.e. for simply processing individual replicates not pooling
+## dedupDir or alignDir is selected 
+if "bamDir" not in locals():
+	if doDedup:
+		bamDir = dedupDir
+	else:
+		bamDir = alignDir
 
-## ** Under development **
 ## Convert BAM to fragment bed file
+## - Chromosome filtering
+## - 0x2  : Concordant pairs only
+## - 0x400: Removes duplicates
 rule make_fragment:
 	input:
 		bam = bamDir + "/{sampleName}.bam",
@@ -50,7 +52,7 @@ rule make_fragment:
 		module purge
 		module load Cutlery/1.0
 		mkdir -p {sampleDir}/{wildcards.sampleName}
-		ngs.bamToFragment.py {input.bam} | gzip > {output}
+		ngs.bamToFragment.py -c {chrRegexAll} -f 0x2 -F 0x400 {input.bam} | gzip > {output}
 		"""
 
 
@@ -70,6 +72,8 @@ rule count_uniq_fragment:
 		"""
 
 
+## Generate unique fragment count table by combining information from all sample
+## And generate diagnostic plots
 rule make_uniqcnt_table:
 	input:
 		expand(sampleDir + "/{sampleName}/QC/fragment.uniq_cnt.txt", sampleName=samples.Name.tolist())
@@ -145,6 +149,8 @@ rule make_fcl_file:
 		"""
 
 ## Fragment length distribution
+## - distribution data file
+## - distribution plot
 rule get_fragLenHist:
 	input:
 		#sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
