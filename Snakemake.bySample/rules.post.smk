@@ -41,8 +41,8 @@ if "bamDir" not in locals():
 ## - 0x400: Removes duplicates
 rule make_fragment:
 	input:
-		bam = bamDir + "/{sampleName}.bam",
-		bai = bamDir + "/{sampleName}.bam.bai"
+		bam = bamDir + "/{sampleName}/align.bam",
+		bai = bamDir + "/{sampleName}/align.bam.bai"
 	output:
 		sampleDir + "/{sampleName}/fragment.bed.gz"
 	message:

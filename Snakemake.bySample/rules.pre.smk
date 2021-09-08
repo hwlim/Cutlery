@@ -116,10 +116,10 @@ rule filter_align:
 
 rule dedup_align:
 	input:
-		alignDir + "/{sampleName}.bam"
+		alignDir + "/{sampleName}/align.bam"
 	output:
-		bam = dedupDir + "/{sampleName}.bam",
-		bai = dedupDir + "/{sampleName}.bam.bai"
+		bam = dedupDir + "/{sampleName}/align.bam",
+		bai = dedupDir + "/{sampleName}/align.bam.bai"
 	message:
 		"Deduplicating... [{wildcards.sampleName}]"
 	params:
