@@ -22,10 +22,10 @@ import re
 
 #parse command line arguments
 options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed file. 5th column of the fragment bed file represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
-options.add_argument('-f', '--flags_include', default='2',
-                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 2. User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
-options.add_argument('-F', '--flags_exclude', default='1024',
-                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 1024. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
+options.add_argument('-f', '--flags_include', default='0x2',
+                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
+options.add_argument('-F', '--flags_exclude', default='0x400',
+                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
 options.add_argument('-c', '--chr_include', default='.',
                         help='Regular expression of chromosomes to select. Default = . (all). e.g.) ^chr[0-9XY]+$|^chrM$ : regular/sex/chrM, ^chr[0-9XY]+$ : autosomal and sex chromosomes only.')
 options.add_argument('-r', '--read', default=False,
