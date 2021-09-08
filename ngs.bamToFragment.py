@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+'''
+    Written by:
+        Christopher Ahn
+        Hee Woong Lim
+
+    Script to convert coordinate-sorted BAM file (with index) into a bed file of fragment or read.
+    - fragment: interconnecting read1 & read2 from paired-ends
+    - read: treat read1 & read2 (if any) separately
+'''
+
 #import required modules and check if user has pysam installed
 try:
     import pysam
@@ -8,6 +18,7 @@ except ImportError:
     exit()
 import argparse
 import os
+import re
 
 #parse command line arguments
 options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed file. 5th column of the fragment bed file represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
@@ -15,8 +26,10 @@ options.add_argument('-f', '--flags_include', default='2',
                         help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 2. User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
 options.add_argument('-F', '--flags_exclude', default='1024',
                         help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 1024. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
+options.add_argument('-c', '--chr_include', default='.',
+                        help='Regular expression of chromosomes to select. Default = . (all). e.g.) ^chr[0-9XY]+$|^chrM$ : regular/sex/chrM, ^chr[0-9XY]+$ : autosomal and sex chromosomes only.')
 options.add_argument('-r', '--read', default=False,
-                        help='Convert bam file to bed file; same functionality as bedtools bamToBed with default settings, i.e. assuming single-end.')
+                        help='Convert bam file to bed file; same functionality as bedtools bamToBed with default settings, i.e. assuming single-end.')                  
 options.add_argument('bam_file',
                         help='Required; Coordinate sorted bam file. Index file needs to be in the same location as the bam file.')
 args = options.parse_args()
@@ -36,41 +49,45 @@ def getReadLen(cig):
     return readLen
 
 #function that performs bamToBed functionality, i.e. single-end mode
-def bamToBed(bamFile):
+def bamToBed(bamFile, chrPattern):
 
     #Read the bam file line-by-line
     for read in bamFile.fetch():
-        #get chromosome name, as chromosomes are encoded as integers in sam/bam file
-        chromName = bamFile.get_reference_name(read.reference_id)
-        
-        #get read length, start position, end position from current line
-        readLen = getReadLen(read.cigartuples)
-        start = int(read.pos)
-        end = start + readLen
 
-        #Get strand direction from column 9 in bam file
-        if int(read.tlen) > 0:
-            strand = "+"
-        else:
-            strand = "-"
+        #Check flags and chromosome and skip reads that don't fit user specified criteria
+        if (int(read.flag) & inFlags == inFlags) and (int(read.flag) & exFlags != exFlags) and (chrPattern.match(bamFile.get_reference_name(read.reference_id))) :
 
-        #check if the current line is the first segment or last segment of the read
-        if int(read.flag) & 64 == 64 :
-            tail = "/1"
-        elif int(read.flag) & 128 == 128 :
-            tail = "/2"
+            #get chromosome name, as chromosomes are encoded as integers in sam/bam file
+            chromName = bamFile.get_reference_name(read.reference_id)
+            
+            #get read length, start position, end position from current line
+            readLen = getReadLen(read.cigartuples)
+            start = int(read.pos)
+            end = start + readLen
 
-        #get read name and add suffix according to order of segment in template
-        readName = read.qname + tail
+            #Get strand direction from column 9 in bam file
+            if int(read.tlen) > 0:
+                strand = "+"
+            else:
+                strand = "-"
 
-        #print read
-        printLine = [chromName, start, end, readName, read.mapq, strand]
-        print(*printLine, sep="\t")
+            #check if the current line is the first segment or last segment of the read
+            if int(read.flag) & 64 == 64 :
+                tail = "/1"
+            elif int(read.flag) & 128 == 128 :
+                tail = "/2"
+
+            #get read name and add suffix according to order of segment in template
+            readName = read.qname + tail
+
+            #print read
+            printLine = [chromName, start, end, readName, read.mapq, strand]
+            print(*printLine, sep="\t")
     return
 
 
 #function that converts coordinate-sorted bam file to a fragment.bed file, i.e. paired-end mode
-def bamToFrag(bamFile):
+def bamToFrag(bamFile, chrPattern):
     #create empty dictionary
     d = {}
 
@@ -90,8 +107,8 @@ def bamToFrag(bamFile):
     #iterate through each line in bam file
     for read in bamFile.fetch():
 
-        #Check flags and skip reads that don't fit user specified criteria
-        if (int(read.flag) & inFlags == inFlags) and (int(read.flag) & exFlags != exFlags) :
+        #Check flags and chromosome and skip reads that don't fit user specified criteria
+        if (int(read.flag) & inFlags == inFlags) and (int(read.flag) & exFlags != exFlags) and (chrPattern.match(bamFile.get_reference_name(read.reference_id))) :
 
             #get read name from current line
             readName = read.qname
@@ -149,13 +166,14 @@ def bamToFrag(bamFile):
 def main():
     #read input bam file
     bamFile = pysam.AlignmentFile(args.bam_file, "rb")
+    chrPattern = re.compile(str(args.chr_include))
 
     if (args.read) != False:
         #Run bamToBed if user uses -r flag in command line
-        bamToBed(bamFile)
+        bamToBed(bamFile, chrPattern)
     else:
         #Run bamToFrag otherwise
-        bamToFrag(bamFile)
+        bamToFrag(bamFile, chrPattern)
 
 if __name__ == "__main__":
     main()
