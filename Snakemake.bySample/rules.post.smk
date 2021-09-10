@@ -52,7 +52,7 @@ rule make_fragment:
 		module purge
 		module load Cutlery/1.0
 		mkdir -p {sampleDir}/{wildcards.sampleName}
-		ngs.bamToFragment.py -c {chrRegexAll} -f 0x2 -F 0x400 {input.bam} | gzip > {output}
+		ngs.bamToFragment.py -c "{chrRegexAll}" -f 0x2 -F 0x400 {input.bam} | gzip > {output}
 		"""
 
 
