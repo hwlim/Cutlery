@@ -34,6 +34,8 @@ adapter     = "AGATCGGAAGAGC"	# illumina universal adapter in default
 #trim_maxLen=100	## Maximum read length after trimming. ** NOT YET IMPLEMENTED **
 trim_minLen		= 20	# minimum fragment length. shorter fragments after trimming will be discarded
 trim_minQual	= 20	# minimum quality for quality trimming
+opt_cutadapt	= ""	# additional option for cutadapt
+
 
 ## Regular expressions for chromosome names
 ## Target chromosomes + spikein chromosome (if needed)

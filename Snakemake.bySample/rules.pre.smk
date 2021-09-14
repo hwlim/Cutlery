@@ -8,8 +8,10 @@
 
 ## default STAR module
 if 'star_module' not in locals():
-	star_module="STAR/2.5"
+	star_module = "STAR/2.5"
 
+if 'opt_cutadapt' not in locals():
+	opt_cutadapt = ""
 
 rule trim_pe:
 	input:
@@ -29,7 +31,8 @@ rule trim_pe:
 	shell:
 		"""
 		# Note: Needs to be implemented as a quantum transaction
-		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} \
+		#module load cutadapt/
+		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} {opt_cutadapt} \
 			-o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2>&1 | tee {log}
 		mv __temp__.$$.1.fq.gz {output.fq1}
 		mv __temp__.$$.2.fq.gz {output.fq2} 
