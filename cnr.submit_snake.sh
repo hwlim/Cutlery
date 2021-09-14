@@ -7,7 +7,7 @@
 source $COMMON_LIB_BASE/commonBash.sh
 
 
-nJob=30
+nJob=50
 totalWaitTime="48:00"
 #timestamp=$(date +%Y%m%d_%H%M%S)
 config=${CUTLERY}/Snakemake.bySample/cluster.yml
