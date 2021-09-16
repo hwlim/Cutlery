@@ -372,9 +372,9 @@ rule make_tagdir:
 
 
 
-def get_input_name(sampleName):
+def get_ctrl_name(sampleName):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
-	if len(ctrlName)==0:
+	if len(ctrlName)!=0:
 		return ctrlName.tolist()[0]
 	else:
 		return None
@@ -382,8 +382,9 @@ def get_input_name(sampleName):
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
 ## TODO: use get_input_name function
 def get_peakcall_input(sampleName, fragment):
-	ctrlName = samples.Ctrl[samples.Name == sampleName]
-	ctrlName = ctrlName.tolist()[0]
+	#ctrlName = samples.Ctrl[samples.Name == sampleName]
+	#ctrlName = ctrlName.tolist()[0]
+	ctrlName = get_ctrl_name(sampleName)
 	if ctrlName.upper() == "NULL":
 		return [ sampleDir + "/" + sampleName + "/TSV." + fragment ]
 	else:
@@ -562,7 +563,7 @@ rule draw_peak_heatmap_factor:
 	shell:
 		"""
 		module load Cutlery/1.0
-		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -c NFR,NUC -s 3,6 \
+		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -b 20 -c NFR,NUC -s 3,6 \
 			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
 			{input.bed} {input.nfr} {input.nuc}
 		"""
