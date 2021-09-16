@@ -100,6 +100,8 @@ if [ "$src" == "$des" ];then
 	exit 1
 fi
 tmp=${TMPDIR}/__temp__.$$.bam
+export _JAVA_OPTIONS=-Djava.io.tmpdir=$TMPDIR
+
 echo -e "Deduplicate by Picard" >&2
 echo -e "- Src = $src" >&2
 echo -e "- Des = $des" >&2
