@@ -85,7 +85,8 @@ sampleDir	= "3.Sample"
 ###########################################################
 ## ** Developmental feature. Please ignore this section
 ## Parameters for k-mer bias correction
-kmer_genome	= "/data/limlab/Resource/Jellyfish.Kmer/%s.6mer.txt" % genome
+#kmer_genome	= "/data/limlab/Resource/Jellyfish.Kmer/%s.6mer.txt" % genome
+kmer_genome = "NULL"
 kmer_pseudo	= 1
 
 
@@ -102,7 +103,7 @@ samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
 ## Cluster configuration
 import yaml
 with open(os.path.expanduser(cluster_yml), 'r') as fh:
-	cluster = yaml.load(fh)
+	cluster = yaml.safe_load(fh)
 
 
 #################################################
@@ -120,6 +121,8 @@ sampleList = samples.Name.tolist()
 sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
 # Samples for histone modification (or broad peaks)
 sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
+# Number of highest scoring peaks to visualize
+numHighestPeaks = 5
 
 rule all:
 	input:
@@ -143,6 +146,13 @@ rule all:
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
 		## BigWig 1bp raw/abs (motivated for BPnet input file)
 		expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"])
+
+		## Draw peak examples
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.{ext}", sampleName=sampleListFactor, ext=["png","pdf"]),
+		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.{ext}", sampleName=sampleListHistone, ext=["png","pdf"]),
+
+		## Create final HTML report
+		"Report.html"
 
 '''
 Output files under Development
