@@ -165,8 +165,8 @@ else
 		> ${tmpTagCount}
 
 	paste <( sort -k4,4 ${tmpPeakMasked} ) <( sort -k1,1 ${tmpTagCount} ) \
-		| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.5f\t%s\t%d\n", $1,$2,$3,NR,$8*1000000/'${ttc}'*1000/($3-$2),$6,$3-$2 }' \
-		| sort -k7,7nr \
+		| gawk '{ printf "%s\t%d\t%d\tpeak.%d\t%.5f\t%s\t%d\t%.1f\n", $1,$2,$3,NR,$8*1000000/'${ttc}'*1000/($3-$2),$6,$3-$2,$8*1000000/'${ttc}' }' \
+		| sort -k8,8nr \
 		| cut -f 1-6 \
 		> $peakMasked
 fi
