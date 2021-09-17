@@ -732,3 +732,107 @@ rule make_bigwig_allfrag_rpsm:
 		"""
 
 '''
+
+#take sampleName and sample.tsv file as input
+#return peakMode
+def get_peak_mode(sampleName, sampleTSV):
+	import pandas as pd
+	sampleTSVdf = pd.read_csv(sampleTSV, sep='\t')
+	sampleRow = sampleTSVdf[sampleTSVdf['Name'].str.match(sampleName)]
+	return sampleRow.iloc[0]['PeakMode']
+
+#take sampleName and sample.tsv file as input
+#return control sample name
+# def get_ctrl_sample(sampleName, sampleTSV):
+# 	import pandas as pd
+# 	sampleTSVdf = pd.read_csv(sampleTSV, sep='\t')
+# 	sampleRow = sampleTSVdf[sampleTSVdf['Name'].str.match(sampleName)]
+# 	return sampleRow.iloc[0]['Ctrl']
+
+#returns partial path to peak file (ex: "/HomerPeak.histone/peak.exBL.bed" or "/HomerPeak.factor/peak.exBL.1rpm.bed")
+def get_peak_file_path(peakMode):
+	if peakMode == "histone":
+		return "/HomerPeak.histone/peak.exBL.bed"
+	else:
+		return "/HomerPeak.factor/peak.exBL.1rpm.bed"
+
+#returns partial path to homer folder
+def get_homer_folder_path(peakMode):
+	if peakMode == "histone":
+		return "/HomerPeak.histone"
+	else:
+		return "/HomerPeak.factor"
+
+rule draw_peak_examples_histone:
+	input:
+		peakFilePath = lambda wildcards: sampleDir + "/{sampleName}" + get_peak_file_path(get_peak_mode(wildcards.sampleName, src_sampleInfo))
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/peak.examples.{ext}", ext=["png", "pdf"])
+	message:
+		"Getting snapshot of highest scoring peaks... [{wildcards.sampleName}]"
+	params:
+		peakMode = lambda wildcards: get_peak_mode(wildcards.sampleName, src_sampleInfo),
+		ctrlSampleName = lambda wildcards: get_ctrl_name(wildcards.sampleName),
+		numPeaks = numHighestPeaks
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.visualizePeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone \
+			-m {params.peakMode} -c {params.ctrlSampleName} -n {params.numPeaks} {input.peakFilePath}
+		"""
+
+rule draw_peak_examples_factor:
+	input:
+		peakFilePath = lambda wildcards: sampleDir + "/{sampleName}" + get_peak_file_path(get_peak_mode(wildcards.sampleName, src_sampleInfo))
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/peak.examples.{ext}", ext=["png", "pdf"])
+	message:
+		"Getting snapshot of highest scoring peaks... [{wildcards.sampleName}]"
+	params:
+		peakMode = lambda wildcards: get_peak_mode(wildcards.sampleName, src_sampleInfo),
+		ctrlSampleName = lambda wildcards: get_ctrl_name(wildcards.sampleName),
+		numPeaks = numHighestPeaks
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.visualizePeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor \
+			-m {params.peakMode} -c {params.ctrlSampleName} -n {params.numPeaks} {input.peakFilePath}
+		"""
+
+rule create_final_report:
+	input:
+		hist = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		tf = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
+		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
+		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
+	output:
+		"Report.html"
+	message:
+		"Creating final report in HTML..."
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.createReportHTML.r -s {sampleDir} -q {qcDir}
+		"""
+
+# rule draw_peak.examples:
+# 	input:
+# 		peakFilePath = lambda wildcards: sampleDir + "/{sampleName}" + get_peak_file_path(get_peak_mode(wildcards.sampleName, src_sampleInfo))
+# 	output:
+# 		# lambda wildcards: sampleDir + "/{sampleName}" + get_homer_folder_path(get_peak_mode(wildcards.sampleName, src_sampleInfo)) + "/peak.examples.png",
+# 		# lambda wildcards: sampleDir + "/{sampleName}" + get_homer_folder_path(get_peak_mode(wildcards.sampleName, src_sampleInfo)) + "/peak.examples.pdf"
+# 		expand(sampleDir + "/{{sampleName}}/QC/peak.examples.{ext}", ext=["png", "pdf"])
+# 	message:
+# 		"Getting snapshot of highest scoring peaks... [{wildcards.sampleName}]"
+# 	params:
+# 		peakMode = lambda wildcards: get_peak_mode(wildcards.sampleName, src_sampleInfo),
+# 		ctrlSampleName = lambda wildcards: get_ctrl_name(wildcards.sampleName, src_sampleInfo),
+# 		numPeaks = numHighestPeaks
+# 		# outDir = lambda wildcards: sampleDir + "/{sampleName}" + get_homer_folder_path(get_peak_mode(wildcards.sampleName, src_sampleInfo))
+# 	shell:
+# 		"""
+# 		module load Cutlery/1.0
+# 		/data/limlab/ChristopherAhn/create_pdf_py/cnr.visualizePeakExamples.r -o {sampleDir}/{wildcards.sampleName}/QC \
+# 			-m {params.peakMode} -c {params.ctrlSampleName} -n {params.numPeaks} {input.peakFilePath}
+# 		"""
