@@ -41,15 +41,8 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 #binsize for extractBigWigData is 20 by default
 #window size for extractBigWigData is 10000 by default
 #required packages: ggplot2, reshape2, cowplot
-
-	# bed = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_H3K4me3/QC/top6peaks.bed"
-	# nucBW = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_H3K4me3/igv.nuc.con.bw"
-	# nfrBW = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_H3K4me3/igv.nfr.con.bw"
-	# ctrlNucBW = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_IgG/igv.nuc.con.bw"
-	# ctrlNfrBW = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_IgG/igv.nfr.con.bw"
-	# ctrlNucBW = "NULL"
-	# ctrlNfrBW = "NULL"
     
+    #if control sample exists
     if (!is.null(ctrlNucBW)) {
 
 		#extract by 10bp
@@ -156,7 +149,7 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                         ylim(0, 5)
                         #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             
-            #if max RPM in nfr bw is not zero:
+            #if max RPM in nfr bw is not zero, let ggplot automatically set ylim
             } else {
                 NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
                         geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
@@ -238,20 +231,21 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
             newMerged <- ggdraw(merged) +
             draw_label("RPM", x=0.01, y=0.5, vjust=0.5, hjust=0.5, angle = 90, fontface="bold", size = 12)
 
+            #append current sample's peak example visualization to a list
             listOfPlots <- append(listOfPlots, list(newMerged))
 
-            #ggsave(paste0(des, "/", col, "_peak.examples.png"), newMerged, width = 10, height = 6, dpi = 600, units = "in", device = "png")
-            #ggsave(paste0(des, "/", col, "_peak.examples.pdf"), newMerged, width = 10, height = 6, dpi = 600, units = "in", device = "pdf")
-
-		
         } #end of loop to create plots
 
+        #merge all peak examples
         allMerged <- plot_grid(plotlist=listOfPlots, ncol = 1, align = "v")
 
+        #save peak examples as png and pdf
         ggsave(paste0(des, "/", "peak.examples.png"), allMerged, width = 10, height = (strtoi(numHighestPeaks) * 6), dpi = 500, units = "in", device = "png")
         ggsave(paste0(des, "/", "peak.examples.pdf"), allMerged, width = 10, height = (strtoi(numHighestPeaks) * 6), dpi = 500, units = "in", device = "pdf")
 
-
+    
+    #if a control sample does not exist
+    #do not visualize control samples
 	} else {
 
 		#extract by 10bp
@@ -324,6 +318,7 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
             nucMax <- max(tempNUC.melt$value, na.rm = TRUE)
             nfrMax <- max(tempNFR.melt$value, na.rm = TRUE)
 
+            #if max RPM in nfr bw is zero, set ylim manually
             if (nfrMax == 0) {
                 NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
                         geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
@@ -349,6 +344,8 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                         theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
                         ylim(0, 5)
                         #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
+            
+            #if max RPM in nfr bw is zero, set ylim automatically
             } else {
                 NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
                         geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
@@ -375,6 +372,7 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                         #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             }
 
+            #if max RPM in nuc bw is zero, set ylim manually
             if (nucMax == 0) {
                 NUC <- ggplot(tempNUC.melt, aes(rows,value)) +
                     geom_area(colour=tempNUC.melt$color, fill=tempNUC.melt$color) + 
@@ -397,6 +395,8 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                     theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
                     ylim(0, 5)
                     #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
+            
+            #if max RPM in nuc bw is zero, set ylim automatically
             } else {
                 NUC <- ggplot(tempNUC.melt, aes(rows,value)) +
                     geom_area(colour=tempNUC.melt$color, fill=tempNUC.melt$color) + 
@@ -420,21 +420,22 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                     #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             }
 
+            #merge nfr and nuc plots for the current sample
 			merged <- plot_grid(NFR, NUC, ncol = 1, align = "v")
 
+            #create y-axis label
             newMerged <- ggdraw(merged) +
             draw_label("RPM", x=0.01, y=0.5, vjust=0.5, hjust=0.5, angle = 90, fontface="bold", size = 12)
 
+            #append current sample's peak example visualization to a list
             listOfPlots <- append(listOfPlots, list(newMerged))
-
-			# ggsave(paste0(des, "/", col, "_peaks.png"), newMerged, width = 10, height = 6, dpi = 600, units = "in", device = "png")
-            # ggsave(paste0(des, "/", col, "_peaks.pdf"), newMerged, width = 10, height = 6, dpi = 600, units = "in", device = "pdf")
-
 
 		}
 
+        #merge all peak examples
         allMerged <- plot_grid(plotlist=listOfPlots, ncol = 1, align = "v")
 
+        #save peak examples as png and pdf
         ggsave(paste0(des, "/", "peak.examples.png"), allMerged, width = 10, height = (strtoi(numHighestPeaks) * 3), dpi = 500, units = "in", device = "png")
         ggsave(paste0(des, "/", "peak.examples.pdf"), allMerged, width = 10, height = (strtoi(numHighestPeaks) * 3), dpi = 500, units = "in", device = "pdf")
 
@@ -454,9 +455,7 @@ sampleName <- tail(unlist(strsplit(sampDir, "/")), n=1)
 nucBW <- paste(sampDir, "/igv.nuc.con.bw", sep="")
 nfrBW <- paste(sampDir, "/igv.nfr.con.bw", sep="")
 
-# sampleTSV <- read.table(paste0(getwd(), "/sample.tsv"), sep='\t', header = TRUE)
-# getCtrl <- subset(sampleTSV, Name == sampleName)$Ctrl
-
+#parse control sample
 if (ctrlSampleName == "None") {
     ctrlNucBW <- NULL
     ctrlNfrBW <- NULL
@@ -464,10 +463,6 @@ if (ctrlSampleName == "None") {
     ctrlNucBW <- (paste0(getwd(), "/3.Sample/", ctrlSampleName, "/igv.nuc.con.bw"))
     ctrlNfrBW <- (paste0(getwd(), "/3.Sample/", ctrlSampleName, "/igv.nfr.con.bw"))
 }
-
-print(ctrlSampleName)
-print(ctrlNucBW)
-print(ctrlNfrBW)
 
 system(sprintf(paste0("head -n ", numHighestPeaks, " ", peakFilePath, " > ", outDir, "/topPeaks.bed")))
 
@@ -478,19 +473,6 @@ if (mode == 'factor') {
     windowSize = 10000
     binsize = 20
 }
-
-# print(peakFilePath)
-# print(numHighestPeaks)
-# print(mode)
-# print(sampDir)
-# print(sampleName)
-# print(nucBW)
-# print(nfrBW)
-# print(ctrlSampleName)
-# print(ctrlNucBW)
-# print(ctrlNfrBW)
-# print(outDir)
-# print(windowSize)
 
 draw_peak_example(paste0(outDir, "/topPeaks.bed"), nucBW = nucBW, nfrBW = nfrBW, ctrlNucBW = ctrlNucBW, ctrlNfrBW = ctrlNfrBW, windowSize = windowSize, binsize = binsize, des=outDir)
 

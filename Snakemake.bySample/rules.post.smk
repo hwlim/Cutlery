@@ -818,8 +818,6 @@ rule create_final_report:
 		cnr.createReportHTML.r -s {sampleDir} -q {qcDir}
 		"""
 
-
-
 # rule draw_peak.examples:
 # 	input:
 # 		peakFilePath = lambda wildcards: sampleDir + "/{sampleName}" + get_peak_file_path(get_peak_mode(wildcards.sampleName, src_sampleInfo))
