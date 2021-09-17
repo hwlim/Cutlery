@@ -40,7 +40,7 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 #ctrl bigwig files are "NULL" by default, unless specified
 #binsize for extractBigWigData is 20 by default
 #window size for extractBigWigData is 10000 by default
-#required packages: ggplot2, reshape2, magick
+#required packages: ggplot2, reshape2, cowplot
 
 	# bed = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_H3K4me3/QC/top6peaks.bed"
 	# nucBW = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_H3K4me3/igv.nuc.con.bw"
@@ -49,8 +49,6 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 	# ctrlNfrBW = "/Volumes/limlab/ChristopherAhn/CnR_1/3.Sample/Cp_IgG/igv.nfr.con.bw"
 	# ctrlNucBW = "NULL"
 	# ctrlNfrBW = "NULL"
-
-	
     
     if (!is.null(ctrlNucBW)) {
 

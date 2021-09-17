@@ -46,7 +46,7 @@ histoneTable <- data.table(Sample=character(), peakcount=numeric(), widths=numer
 factorTable <- data.table(Sample=character(), peakcount=numeric())
 
 #make a copy of the original Rmd file
-template <- paste0(Sys.getenv("CUTLERY"), "/reportTemplate.Rmd")
+template <- paste0(Sys.getenv("CUTLERY"), "/cnr.reportTemplate.Rmd")
 system(sprintf("cp %s Report.Rmd", template))
 
 #create separate coverage html files for each sample
@@ -85,8 +85,6 @@ for (sample in sampleQC) {
 	}
 
 	#get all 6 peak coverage plots
-	#coveragePlots <- list.files(paste0(homerFolderPath, "/peak.examples"), pattern = "*_peaks.png", full.names = TRUE)
-	#peakExamplePlot <- list.files(sample, pattern = "*peak_examples.png", full.names = TRUE)
 	peakExamplePlot <- list.files(homerFolderPath, pattern = "*peak.examples.png", full.names = TRUE)
 
 	#write Genome Coverage section of Rmd file

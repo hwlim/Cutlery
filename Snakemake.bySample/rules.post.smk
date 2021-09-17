@@ -801,7 +801,7 @@ rule draw_peak_examples_factor:
 			-m {params.peakMode} -c {params.ctrlSampleName} -n {params.numPeaks} {input.peakFilePath}
 		"""
 
-rule make_final_report:
+rule create_final_report:
 	input:
 		hist = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		tf = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
