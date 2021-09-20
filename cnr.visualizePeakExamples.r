@@ -33,7 +33,7 @@ outDir=opt$outDir
 mode=opt$mode
 ctrlSampleName=opt$ctrlName
 numHighestPeaks=opt$numPeaks
-peakFilePath <- arguments$args
+peakFile <- arguments$args
 
 draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize = 10000, binsize = 20, des=NULL){
 #draw coverage plot for all peaks in a bed file. Requires a bed file and at least two bigwig files.
@@ -62,7 +62,7 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 		#Add x axis numbering
 		tempNUC <- cbind(rows = 1:nrow(tempNUC), tempNUC)
 
-		#remove unnecessary columns
+		#extract first three cols
 		#this is due to errors when trying to create a new dataframe. Tedious work...
         tempNUC = tempNUC[,1:3]
 
@@ -71,7 +71,9 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 
 		#Add x axis numbering
 		tempNFR <- cbind(rows = 1:nrow(tempNFR), tempNFR)
-		#this is due to errors when trying to create a new dataframe. Tedious work...
+		
+        #extract first three cols
+        #this is due to errors when trying to create a new dataframe. Tedious work...
 		tempNFR = tempNFR[,1:3]
 
 		#rename column headers
@@ -93,7 +95,6 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 
 			#get x axis range
 			xRange <- peakStart:(peakStart + (windowSize/binsize) - 1)
-			xRange <- xRange * binsize
 
 			#modify column values
 			tempNUC[1] <- xRange
@@ -127,8 +128,6 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                 NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
                         geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
                         facet_grid(series ~ .) + 
-                        #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
-                        #labs(x = chr, y = "Score") +
                         labs(title=paste0("Highest Scoring Peak #", col), y = "Score") +
                         theme(plot.title = element_text(hjust = 0.5, face="bold"),
                             panel.background = element_blank(),
@@ -140,22 +139,16 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                             axis.text.x = element_blank(),
                             axis.ticks.x = element_blank(),
                             axis.title.y = element_text(colour="white")
-                            #axis.title.y = element_blank()
-                            #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                            #aspect.ratio=1/4
                             ) +
                         theme(strip.background = element_rect(fill="red")) +
                         theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
                         ylim(0, 5)
-                        #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             
             #if max RPM in nfr bw is not zero, let ggplot automatically set ylim
             } else {
                 NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
                         geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
                         facet_grid(series ~ .) + 
-                        #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
-                        #labs(x = chr, y = "Score") +
                         labs(title=paste0("Highest Scoring Peak #", col), y = "Score") +
                         theme(plot.title = element_text(hjust = 0.5, face="bold"),
                             panel.background = element_blank(),
@@ -167,13 +160,9 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                             axis.text.x = element_blank(),
                             axis.ticks.x = element_blank(),
                             axis.title.y = element_text(colour="white")
-                            #axis.title.y = element_blank()
-                            #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                            #aspect.ratio=1/4
                             ) +
                         theme(strip.background = element_rect(fill="red")) +
                         theme(strip.text = element_text(colour = 'white', face="bold", size = 14))
-                        #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             }
 
             #if max RPM in nuc bw is zero, set ylim manually
@@ -181,47 +170,37 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                 NUC <- ggplot(tempNUC.melt, aes(rows,value)) +
                     geom_area(colour=tempNUC.melt$color, fill=tempNUC.melt$color) + 
                     facet_grid(series ~ .) + 
-                    #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
                     labs(x = chr, y = "Score") +
-                    theme(#plot.title = element_text(hjust = 0.5, face="bold"),
+                    theme(
                         panel.background = element_blank(),
                         panel.grid.major = element_blank(),
                         panel.grid.minor = element_blank(),
                         axis.line = element_line(colour = "black"),
                         panel.border = element_rect(colour = "black", fill=NA),
                         axis.title.x = element_text(face="bold"),
-                        #axis.title.y = element_blank()
                         axis.title.y = element_text(colour="white")
-                        #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                        #aspect.ratio=1/4
                         ) +
                     theme(strip.background = element_rect(fill="blue")) +
                     theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
                     ylim(0, 5)
-                    #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             
             #if max RPM in nuc bw is not zero:
             } else {
                 NUC <- ggplot(tempNUC.melt, aes(rows,value)) +
                     geom_area(colour=tempNUC.melt$color, fill=tempNUC.melt$color) + 
                     facet_grid(series ~ .) + 
-                    #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
                     labs(x = chr, y = "Score") +
-                    theme(#plot.title = element_text(hjust = 0.5, face="bold"),
+                    theme(
                         panel.background = element_blank(),
                         panel.grid.major = element_blank(),
                         panel.grid.minor = element_blank(),
                         axis.line = element_line(colour = "black"),
                         panel.border = element_rect(colour = "black", fill=NA),
                         axis.title.x = element_text(face="bold"),
-                        #axis.title.y = element_blank()
                         axis.title.y = element_text(colour="white")
-                        #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                        #aspect.ratio=1/4
                         ) +
                     theme(strip.background = element_rect(fill="blue")) +
                     theme(strip.text = element_text(colour = 'white', face="bold", size = 14))
-                    #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             }
 
             #merge both nfr and nuc visualizations vertically
@@ -260,7 +239,8 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 
 		#Add x axis numbering
 		tempNUC <- cbind(rows = 1:nrow(tempNUC), tempNUC)
-		#remove unnecessary columns (last two)
+		
+        #extract first two cols
 		#this is due to errors when trying to create a new dataframe. Tedious work...
         tempNUC = tempNUC[,1:2]
 
@@ -269,7 +249,8 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 
 		#Add x axis numbering
 		tempNFR <- cbind(rows = 1:nrow(tempNFR), tempNFR)
-		#remove unnecessary columns (last two)
+		
+        #extract first two cols
 		#this is due to errors when trying to create a new dataframe. Tedious work...
         tempNFR = tempNFR[,1:2]
 
@@ -293,7 +274,6 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 
 			#get x axis range
 			xRange <- peakStart:(peakStart + (windowSize/binsize) - 1)
-			xRange <- xRange * binsize
 
 			#modify column values
 			tempNUC[1] <- xRange
@@ -323,8 +303,6 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                 NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
                         geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
                         facet_grid(series ~ .) + 
-                        #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
-                        #labs(x = chr, y = "Score") +
                         labs(title=paste0("Highest Scoring Peak #", col), y = "Score") +
                         theme(plot.title = element_text(hjust = 0.5, face="bold"),
                             panel.background = element_blank(),
@@ -336,22 +314,16 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                             axis.text.x = element_blank(),
                             axis.ticks.x = element_blank(),
                             axis.title.y = element_text(colour="white")
-                            #axis.title.y = element_blank()
-                            #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                            #aspect.ratio=1/4
                             ) +
                         theme(strip.background = element_rect(fill="red")) +
                         theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
                         ylim(0, 5)
-                        #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             
             #if max RPM in nfr bw is zero, set ylim automatically
             } else {
                 NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
                         geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
                         facet_grid(series ~ .) + 
-                        #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
-                        #labs(x = chr, y = "Score") +
                         labs(title=paste0("Highest Scoring Peak #", col), y = "Score") +
                         theme(plot.title = element_text(hjust = 0.5, face="bold"),
                             panel.background = element_blank(),
@@ -363,13 +335,9 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                             axis.text.x = element_blank(),
                             axis.ticks.x = element_blank(),
                             axis.title.y = element_text(colour="white")
-                            #axis.title.y = element_blank()
-                            #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                            #aspect.ratio=1/4
                             ) +
                         theme(strip.background = element_rect(fill="red")) +
                         theme(strip.text = element_text(colour = 'white', face="bold", size = 14))
-                        #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             }
 
             #if max RPM in nuc bw is zero, set ylim manually
@@ -377,47 +345,37 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
                 NUC <- ggplot(tempNUC.melt, aes(rows,value)) +
                     geom_area(colour=tempNUC.melt$color, fill=tempNUC.melt$color) + 
                     facet_grid(series ~ .) + 
-                    #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
                     labs(x = chr, y = "Score") +
-                    theme(#plot.title = element_text(hjust = 0.5, face="bold"),
+                    theme(
                         panel.background = element_blank(),
                         panel.grid.major = element_blank(),
                         panel.grid.minor = element_blank(),
                         axis.line = element_line(colour = "black"),
                         panel.border = element_rect(colour = "black", fill=NA),
                         axis.title.x = element_text(face="bold"),
-                        #axis.title.y = element_blank()
                         axis.title.y = element_text(colour="white")
-                        #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                        #aspect.ratio=1/4
                         ) +
                     theme(strip.background = element_rect(fill="blue")) +
                     theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
                     ylim(0, 5)
-                    #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             
             #if max RPM in nuc bw is zero, set ylim automatically
             } else {
                 NUC <- ggplot(tempNUC.melt, aes(rows,value)) +
                     geom_area(colour=tempNUC.melt$color, fill=tempNUC.melt$color) + 
                     facet_grid(series ~ .) + 
-                    #labs(title=paste0("Highest Scoring Peak #", col), x = chr, y = "Score") +
                     labs(x = chr, y = "Score") +
-                    theme(#plot.title = element_text(hjust = 0.5, face="bold"),
+                    theme(
                         panel.background = element_blank(),
                         panel.grid.major = element_blank(),
                         panel.grid.minor = element_blank(),
                         axis.line = element_line(colour = "black"),
                         panel.border = element_rect(colour = "black", fill=NA),
                         axis.title.x = element_text(face="bold"),
-                        #axis.title.y = element_blank()
                         axis.title.y = element_text(colour="white")
-                        #plot.margin=grid::unit(c(0,0,0,0), "mm"),
-                        #aspect.ratio=1/4
                         ) +
                     theme(strip.background = element_rect(fill="blue")) +
                     theme(strip.text = element_text(colour = 'white', face="bold", size = 14))
-                    #scale_y_continuous(labels = scales::number_format(accuracy = 0.1))
             }
 
             #merge nfr and nuc plots for the current sample
@@ -445,7 +403,7 @@ draw_peak_example=function(bed, nucBW, nfrBW, ctrlNucBW, ctrlNfrBW, windowSize =
 
 
 #__main__
-sampTemp <- head(unlist(strsplit(peakFilePath, "/")), -2)
+sampTemp <- head(unlist(strsplit(peakFile, "/")), -2)
 sampDir <- paste(sampTemp, collapse = '/')
 
 #Parse string to get sample Name
@@ -464,7 +422,7 @@ if (ctrlSampleName == "NULL") {
     ctrlNfrBW <- (paste0(getwd(), "/3.Sample/", ctrlSampleName, "/igv.nfr.con.bw"))
 }
 
-system(sprintf(paste0("head -n ", numHighestPeaks, " ", peakFilePath, " > ", outDir, "/topPeaks.bed")))
+system(sprintf(paste0("head -n ", numHighestPeaks, " ", peakFile, " > ", outDir, "/topPeaks.bed")))
 
 if (mode == 'factor') {
     windowSize = 1000

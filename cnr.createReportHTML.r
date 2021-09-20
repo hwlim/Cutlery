@@ -8,9 +8,9 @@ suppressPackageStartupMessages(library('data.table', quiet=TRUE))
 suppressPackageStartupMessages(library('cowplot', quiet=TRUE))
 
 option_list <- list(
+	make_option(c("-o","--outFilePrefix"), help="prefix to output file; Can include path as well"),
 	make_option(c("-s","--sampleDir"), help="Path to '3.Sample' directory"),
-	make_option(c("-q","--qcDirectory"), help="Path to '2.1.QualtyControl' directory")#,
-	#make_option(c("-l","--logoImg"), help="Path to Cutlery logo.png")
+	make_option(c("-q","--qcDirectory"), help="Path to '2.1.QualtyControl' directory")
 )
 parser <- OptionParser(usage = "%prog [options]",
 	description="Description:
@@ -26,7 +26,7 @@ arguments <- parse_args(parser, positional_arguments = TRUE)
 opt=arguments$options
 sampDir=opt$sampleDir
 qcDir=opt$qcDirectory
-#logo=opt$logoImg
+outputFile=opt$outFile
 logo = paste0(Sys.getenv("CUTLERY"), "/Plan/logo.png")
 
 #count peaks
@@ -110,7 +110,7 @@ for (sample in sampleQC) {
 
 #create master Report Template
 #includes everything except for genome coverage plots
-rmarkdown::render('Report.Rmd', output_file = 'Report.html')
+rmarkdown::render('Report.Rmd', output_file = paste0(outputFile, ".html"))
 
 #Delete intermediate coverage Reports and plots
 system(sprintf("rm Report.Rmd"))
