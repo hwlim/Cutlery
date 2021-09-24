@@ -94,9 +94,12 @@ exportFile(){
 	fi
 
 	if [ -f $src ] || [ -d $src ];then
+		local desDir=`dirname $des`
+		mkdir -p $desDir
+
 		if [ -f $des ];then
-		       if [ "$force" == "TRUE" ];then
-			       echo -e "Warning: Overwriting $des" >&2
+			if [ "$force" == "TRUE" ];then
+				echo -e "Warning: Overwriting $des" >&2
 				cp $optStr -f -v $src $des
 			else
 				echo -e "Warning: $des already exists, skip" >&2
@@ -129,7 +132,7 @@ do
 	# fragment length distribution
 	if [ "$exportQC" == "y" ] || [ "$exportQC" == "Y" ];then
 		echo -e "0) Exporting fragment length distribution" >&2
-		mkdir -p ${desDir}/QualityControl
+		#mkdir -p ${desDir}/QualityControl
 		src=${srcDir}/${sample}/QC/fragLen.dist.png
 		des=${desDir}/QualityControl/${sample}.fragLen.png
 		exportFile $src $des FALSE
@@ -140,7 +143,7 @@ do
 	# - bigwig: all / nfr / nuc
 	if [ "$exportBW" == "y" ] || [ "$exportBW" == "Y" ];then
 		echo -e "1) Exporting bigwig files" >&2
-		mkdir -p ${desDir}/BigWig
+		#mkdir -p ${desDir}/BigWig
 		for frag in all nfr nuc
 		do
 			src=${srcDir}/${sample}/igv.${frag}.ctr.bw
@@ -154,19 +157,23 @@ do
 	# - peak & heatmap: all / 1rpm
 	if [ "$exportPeak" == "y" ] || [ "$exportPeak" == "Y" ];then
 		echo -e "2) Exporting peak files & heatmaps" >&2
-		mkdir -p ${desDir}/Peak
+		#mkdir -p ${desDir}/Peak
 		for mode in factor histone
 		do
 			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.bed
-			des=${desDir}/Peak/${sample}.all.bed
+			des=${desDir}/Peak.${mode}/${sample}.all.bed
 			exportFile $src $des FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.1rpm.bed
-			des=${desDir}/Peak/${sample}.1rpm.bed
+			des=${desDir}/Peak.${mode}/${sample}.1rpm.bed
 			exportFile $src $des FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.1rpm.png
-			des=${desDir}/Peak/${sample}.1rpm.heatmap.png
+			des=${desDir}/Peak.${mode}/${sample}.1rpm.heatmap.png
+			exportFile $src $des FALSE
+
+			src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.png
+			des=${desDir}/Peak.${mode}/${sample}.heatmap.png
 			exportFile $src $des FALSE
 		done
 	else
@@ -176,11 +183,11 @@ do
 	# - motif
 	if [ "$exportMotif" == "y" ] || [ "$exportMotif" == "Y" ];then
 		echo -e "3) Exporting motif search results" >&2
-		mkdir -p ${desDir}/Motif
+		#mkdir -p ${desDir}/Motif
 		for src in ${srcDir}/${sample}/Motif/Homer.all  ${srcDir}/${sample}/Motif/MEME.random5k
 		do
-			mode=`basename $src`
-			des=${desDir}/Motif/${sample}.${mode}
+			suffix=`basename $src`
+			des=${desDir}/Motif/${sample}.${suffix}
 			exportFile $src $des TRUE
 		done
 	else
