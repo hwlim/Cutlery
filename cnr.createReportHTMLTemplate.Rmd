@@ -1,0 +1,306 @@
+---
+title: "<span style='font-size: 70px; color:white'>Cutlery</span>"
+date: "`r Sys.Date()`"
+output:
+    html_document:
+    df_print: kable
+---
+
+<!-- <style type="text/css"> -->
+<!-- .main-container { -->
+<!--   max-width: 1100px; -->
+<!--   margin-left: auto; -->
+<!--   margin-right: auto; -->
+<!-- } -->
+<!-- </style> -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri("cropped.png"), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:1; padding:1px;')
+```
+
+# {.tabset}
+
+## Alignment Statistics {.tabset}
+\
+```{r insert-tables, echo=FALSE, message=FALSE, warning=FALSE}
+	alnStat <-read.table(paste0(qcDir, "/alignStat.txt"), sep="	", header=T, check.names = FALSE)
+	colnames(alnStat) <- c("Sample","Total Fragments","Uniquely Aligned","Multi-Aligned","% Uniquely Aligned", "% Multi-Aligned", "% Too Many Multi-Aligned", "% Mismatch", "% Too Short", "% Other")
+	kable(format(alnStat, big.mark=",", scientific=FALSE), align="lrrrrrrrrr") %>%
+	kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+	row_spec(0, align = "c", extra_css = 'vertical-align: middle !important;') %>%
+	column_spec(1, bold = T)
+```
+
+## Unique Fragment Counts {.tabset}
+\
+```{r insert-uniq-stats, echo=FALSE, message=FALSE, warning=FALSE}
+    uniqCnt <-read.table(paste0(qcDir, "/uniqFragCnt.txt"), sep="\t", header=T)
+	colnames(uniqCnt) <- c("Sample","Total Fragments","Unique Fragments","% Unique Fragments")
+	kable(format(uniqCnt, big.mark=",", scientific=FALSE), align="lrrr") %>%
+	kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+	row_spec(0, align = "c") %>%
+	column_spec(1, bold = T)
+```
+\
+```{r TTCvsUniqFrac, echo=FALSE, out.width='100%', message=FALSE, warning=FALSE}
+	inTable <- read.table(paste0(qcDir, "/uniqFragCnt.txt"), header= T)
+	data <- as.data.frame.matrix(inTable)
+	data[,"logTTC"] <- log10(data[2]+1)
+	fig <- plot_ly(data = inTable, x = ~data$logTTC, y = ~data$UniqFrac, mode = "markers", color = ~data$Name, marker=list(size=11), width = 900, height = 700) %>%
+	layout(title= 'Total Fragment Count vs % of Unique Fragments', xaxis = list(title = 'log10(Total Fragments)', range=list(0, max(data$logTTC, na.rm = TRUE)+1)), yaxis = list(title = 'Unique Fragments (%)', range=list(0,100)), plot_bgcolor="gray89",
+		xaxis = list(gridcolor = "white"),
+		yaxis = list(gridcolor = "white"))
+	fig
+```
+\
+```{r TTCvsCount, echo=FALSE, message=FALSE, fig.align="center", warning=FALSE}
+	inTable <- read.table(paste0(qcDir, "/uniqFragCnt.txt"), header= T)
+	data <- as.data.frame.matrix(inTable)
+	fig1 <- plot_ly(data = inTable, x = ~data$TTC, y = ~data$Name, type = "bar", width = 900, height = 700) %>%
+	layout(title="Total Number of Fragments", xaxis = list(title = 'Count'), yaxis = list(title = 'Sample'))
+	fig1
+```
+\
+```{r uniqFragvsCount, echo=FALSE, fig.align="center", message=FALSE, warning=FALSE}
+	inTable <- read.table(paste0(qcDir, "/uniqFragCnt.txt"), header= T)
+	data <- as.data.frame.matrix(inTable)
+	fig2 <- plot_ly(data = inTable, x = ~data$UniqCnt, y = ~data$Name, type = "bar", width = 900, height = 700) %>%
+	layout(title="Number of Unique Fragments", xaxis = list(title = 'Count'), yaxis = list(title = 'Sample'))
+	fig2
+```
+\
+```{r percentUniqFragvsCount, echo=FALSE, fig.align="center", message=FALSE, warning=FALSE}
+	inTable <- read.table(paste0(qcDir, "/uniqFragCnt.txt"), header= T)
+	data <- as.data.frame.matrix(inTable)
+	fig3 <- plot_ly(data = inTable, x = ~data$UniqFrac, y = ~data$Name, type = "bar", width = 900, height = 700) %>%
+	layout(title="% of Unique Fragments", xaxis = list(title = 'Fraction (%)'), yaxis = list(title = 'Sample'))
+	fig3
+```
+
+## Base Frequencies {.tabset}
+\
+```{r PCA_base_freq, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
+	#initialize df and sample name list for header labeling
+	df <- data.frame(matrix(NA, nrow = 160, ncol = length(sampleQC)))
+	sampleNameList <- list()
+	i = 1
+
+	#loop through all samples' QC directories to get baseFreq.txt file
+	for (sample in sampleQC) {
+
+		sampleName <- tail(unlist(strsplit(sample, "/")), n=2)[1]
+
+		#read table
+		inTable <- read.table(paste0(sample, "/base_freq.txt"), header = TRUE, sep = "\t")
+
+		#get rid of first column with offset values
+		inTable$Offset = NULL
+
+		#collapse matrix into 1d array
+		collapsed <- data.frame( samp = c(t(inTable)), stringsAsFactors=FALSE)
+
+		#add 1d array to df
+		df[, i] <- collapsed
+
+		#append sample name to sample name list
+		sampleNameList = append(sampleNameList, sampleName)
+		i = i + 1
+	}
+
+	#transpose
+	tdf = t(df)
+
+	#transposing a df somehow does not allow me to change the data type to num. Saving and reloading automatically reads values as num. Strange and tedious
+	write.table(tdf, file='tdf.tsv', quote=FALSE, sep='\t', col.names = FALSE, row.names = FALSE)
+	inTotalTable <- read.table("tdf.tsv", header = FALSE, sep = "\t")
+
+	system(sprintf(paste0("rm tdf.tsv")))
+
+	#change row names to headers
+	row.names(inTotalTable) <- sampleNameList
+
+	#PCA on data with more datapoints than number of samples causes errors
+	#Workaround by clustering (k = number of samples)
+	pcaSamples <- prcomp(inTotalTable)
+	samplesHC <- hclust(dist(pcaSamples$x),method = "ward.D2")
+	samplesClusters <- cutree(samplesHC,k=nrow(inTotalTable))
+	samplesDF <- data.frame(pcaSamples$x,"cluster"=factor(samplesClusters))
+	samplesDF <- transform(samplesDF, cluster_name = rownames(samplesDF))
+
+	#Draw PCA plot
+	p <- plot_ly(samplesDF, x=pcaSamples$x[,1], y=pcaSamples$x[,2], text=rownames(samplesDF),
+				mode="markers", color = rownames(samplesDF), marker=list(size=11))
+	p <- layout(p,title="Base Frequencies PCA Analysis",
+				xaxis=list(title="PC1 (% of Variance Explained)"),
+				yaxis=list(title="PC2 (% of Variance Explained)"))
+	p
+
+```
+\
+\
+```{r insert-base-freq, echo=FALSE, out.width="50%", message=FALSE, warning=FALSE}
+	baseFreqPaths <- list.files(sampleQC, pattern = "*_freq.png", full.names = TRUE)
+	knitr::include_graphics(baseFreqPaths)
+```
+
+## Fragment Distribution {.tabset}
+\
+```{r PCA_frag_dist, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
+	#initialize df and sample name list for header labeling
+	df <- data.frame(matrix(NA, nrow = 1000, ncol = length(sampleQC)))
+	sampleNameList <- list()
+	i = 1
+
+	#loop through all samples' QC directories to get baseFreq.txt file
+	for (sample in sampleQC) {
+
+		sampleName <- tail(unlist(strsplit(sample, "/")), n=2)[1]
+
+		#read table
+		inTable <- read.table(paste0(sample, "/fragLen.dist.txt"), header = TRUE, sep = "\t")
+
+		#get rid of first column with offset values
+		inTable$fragLen = NULL
+
+		#collapse matrix into 1d array
+		collapsed <- data.frame( samp = c(t(inTable)), stringsAsFactors=FALSE)
+
+		#add 1d array to df
+		df[, i] <- collapsed
+
+		#append sample name to sample name list
+		sampleNameList = append(sampleNameList, sampleName)
+		i = i + 1
+	}
+
+	#transpose
+	tdf = t(df)
+
+	#transposing a df somehow does not allow me to change the data type to num. Saving and reloading automatically reads values as num. Strange and tedious
+	write.table(tdf, file='tdf.tsv', quote=FALSE, sep='\t', col.names = FALSE, row.names = FALSE)
+	inTotalTable <- read.table("tdf.tsv", header = FALSE, sep = "\t")
+
+	system(sprintf(paste0("rm tdf.tsv")))
+
+	#change row names to headers
+	row.names(inTotalTable) <- sampleNameList
+
+	#PCA on data with more datapoints than number of samples causes errors
+	#Workaround by clustering (k = number of samples)
+	pcaSamples <- prcomp(inTotalTable)
+	samplesHC <- hclust(dist(pcaSamples$x),method = "ward.D2")
+	samplesClusters <- cutree(samplesHC,k=nrow(inTotalTable))
+	samplesDF <- data.frame(pcaSamples$x,"cluster"=factor(samplesClusters))
+	samplesDF <- transform(samplesDF, cluster_name = rownames(samplesDF))
+
+	#Draw PCA plot
+	p <- plot_ly(samplesDF, x=pcaSamples$x[,1], y=pcaSamples$x[,2], text=rownames(samplesDF),
+				mode="markers", color = rownames(samplesDF), marker=list(size=11))
+	p <- layout(p,title="Fragment Distribution PCA Analysis",
+				xaxis=list(title="PC1 (% of Variance Explained)"),
+				yaxis=list(title="PC2 (% of Variance Explained)"))
+	p
+
+```
+\
+```{r frag-dist, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
+	tableList <- list.files(sampleQC, pattern = "fragLen.dist.txt", full.names = TRUE)
+
+	#fix x-axis since it's the same throughout all distribution.txt files
+	fragLen <- read.table(tableList[1], header=T)[1]
+	data <- data.frame(fragLen)
+
+	#merge a data into one dataframe
+	for (currTable in tableList) {
+		#get sampleName
+		sampleName <- toString(tail(as.list(strsplit(currTable, "/")[[1]]), 3)[1])
+
+		#read in current sample data as a table
+		tmpData <- read.table(currTable, header=T)
+
+		#insert sample distribution as a new column to the existing dataframe
+		data[,sampleName] <- tmpData[2]
+	}
+
+	#overlay plots
+	fig <- plot_ly(data, x=~fragLen, width = 850, height = 400)
+	for (col in 2:ncol(data)) {
+		#get col name
+		colName <- colnames(data[col])
+
+		#insert data into figure
+		fig <- fig %>% add_trace(y = data[ , col], name = colName, type= 'scatter', mode = 'lines') %>%
+		layout(title= 'Fragment Distribution (Raw)', xaxis = list(title = 'Fragment Length'), yaxis = list(title = 'Fragment Count'))
+	}
+
+	fig
+```
+\
+
+```{r frag-density, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
+	tableList <- list.files(sampleQC, pattern = "fragLen.dist.txt", full.names = TRUE)
+
+	#fix x-axis since it's the same throughout all distribution.txt files
+	fragLen <- read.table(tableList[1], header=T)[1]
+	data <- data.frame(fragLen)
+
+	#merge a data into one dataframe
+	for (currTable in tableList) {
+		#get sampleName
+		sampleName <- toString(tail(as.list(strsplit(currTable, "/")[[1]]), 3)[1])
+
+		#read in current sample data as a table
+		tmpData <- read.table(currTable, header=T)
+
+		#insert sample distribution as a new column to the existing dataframe
+		data[,sampleName] <- tmpData[2]
+	}
+
+	#overlay plots
+	fig <- plot_ly(data, x=~fragLen, width = 850, height = 400)
+	dataNormTemp <- sweep(data, 2,colSums(data), "/")
+	dataNorm <- sweep(dataNormTemp, 2, 1000, "*")
+	for (col in 2:ncol(dataNorm)) {
+		#get col name
+		colName <- colnames(dataNorm[col])
+
+		#insert data into figure
+		fig <- fig %>% add_trace(y = dataNorm[ , col], name = colName, type= 'scatter', mode = 'lines') %>%
+		layout(title= 'Fragment Distribution (Normalized)', xaxis = list(title = 'Fragment Length'), yaxis = list(title = 'Density (RPK)'))
+	}
+
+	fig
+```
+
+## Peak Counts {.tabset}
+\
+```{r peak-counts-TF, echo=FALSE, message=FALSE, warning=FALSE}
+	if (nrow(factorTable) != 0) {
+		colnames(factorTable) <- c("Sample","Number of Peaks")
+		kable(format(factorTable, big.mark=",", scientific=FALSE), align="lr", caption = "Peak counts for Transcription Factor samples") %>%
+		kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+		row_spec(0, align = "c") %>%
+		column_spec(1, bold = T)
+	}
+
+```
+
+\
+```{r peak-counts-hist, echo=FALSE, message=FALSE, warning=FALSE}
+	if (nrow(histoneTable) != 0) {
+		colnames(histoneTable) <- c("Sample","Number of Peaks","Total Peak Width (bp)")
+		kable(format(histoneTable, big.mark=",", scientific=FALSE), align="lrr", caption = "Peak counts for Histone samples") %>%
+		kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+		row_spec(0, align = "c") %>%
+		column_spec(1, bold = T)
+	}
+
+```
+
+## Peak Examples {.tabset}
