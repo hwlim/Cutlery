@@ -28,8 +28,9 @@ opt=arguments$options
 sampDir=opt$sampleDir
 qcDir=opt$qcDir
 outputFile=opt$outputFile
-logo = paste0(Sys.getenv("CUTLERY"), "/Plan/logo.png")
 
+#Read in and crop logo
+logo = paste0(Sys.getenv("CUTLERY"), "/Plan/logo.png")
 logo = image_read(logo)
 logo = image_scale(logo, "300")
 logo = image_crop(logo, "240x100+33+10")
@@ -93,8 +94,9 @@ for (sample in sampleQC) {
 	#get all 6 peak coverage plots
 	peakExamplePlot <- list.files(homerFolderPath, pattern = "*peak.examples.png", full.names = TRUE)
 
-	#write Genome Coverage section of Rmd file
+	#write peak examples section of Rmd file
 	#add histone heatmap at the end
+	#This is required as tabs need to be generated based on the number of samples in the sample.tsv file
 	line = paste0("### ", sampleName, " {.tabset}")
 	write(line,file="Report.Rmd",append=TRUE)
 	line="```{r, echo=FALSE, out.width='100%', fig.align='center', message=FALSE, warning=FALSE}"

@@ -19,7 +19,7 @@ option_list <- list(
 
 parser <- OptionParser(usage = "%prog",
 	description="Description:
-	Takes a peak file to visualize the top 6 high scoring peak regions and save as images.
+	Takes a peak file to visualize the top scoring peak regions and save as images.
 Input:
 	sample/directory
 Output:
