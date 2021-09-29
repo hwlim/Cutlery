@@ -2,3 +2,4 @@
 
 # Cutlery: automated pipeline and utilities for CUT&RUN data analysis
 
+Read Cutlery Wiki for detailed instruction
