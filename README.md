@@ -1,4 +1,4 @@
-![alt text](Plan/logo.png){:height="50%" width="50%"}
+<img src="Plan/logo.png" width=50% height=50%>
 
 # Cutlery: automated pipeline and utilities for CUT&RUN data analysis
 
