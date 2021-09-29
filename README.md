@@ -1,4 +1,4 @@
-![alt text](plan/logo.png)
+![alt text](Plan/logo.png)
 
 # Cutlery: automated pipeline and utilities for CUT&RUN data analysis
 
