@@ -18,7 +18,7 @@ option_list <- list(
 	make_option(c("-w","--width"), default=2000, help="Visualization window, default=2000"),
 	make_option(c("-b","--binSize"), default=20, help="Bin size for tiled-average, default=20"),
 	make_option(c("-m","--margin"), default="0,0.5,2,0.5", help="Outside margin (oma), default=0,0.5,2,0.5"),
-	make_option(c("-s","--size"), default="3,6", help="Comma-separated figure size, xSize,ySize, in inch, default=3,6"),
+	make_option(c("-s","--size"), default="3,3", help="Comma-separated figure size, xSize,ySize, in inch, default=3,3"),
 	make_option(c("-q","--maxColor"), default="red", help="Color for the maximum value to use for color function, default=red"),
 	make_option(c("-p","--dpi"), default=200, help="DPI for pdf->png conversion, default=200"),
 	make_option(c("-d","--dataDir"), default="NULL", help="Data directory. default=<outPrefix>.data"),
@@ -90,6 +90,7 @@ if( N.bw == 4 ){
     srcL.bw = srcL.bw[c(1,3,2,4)]
 }else{
     nameL.bw = c("NFR", "NUC")
+	margin = "0,3.8,1.5,3.8"
 }
 
 nameL.bed = sapply(srcL.bed, function(x) sub(".bed$","",basename(x)))
@@ -180,7 +181,7 @@ colorFun=function(n){
 pdf(sprintf("%s.pdf", outPrefix), width=size[1], height=size[2], bg="white")
 par(oma=margin)
 drawHeatmapList2(dataL, maxVal=axisLim, colorFun=colorFun, margin=c(2,0.2,3,0.2), cex=0.5)
-mtext(mainTitle, outer=TRUE)
+mtext(paste0(mainTitle, "\n", width, "bp"), outer=TRUE, cex=0.7)
 dev.off()
 system(sprintf("convert -density %d %s.pdf %s.png", dpi, outPrefix, outPrefix))
 system(sprintf("rm %s.pdf", outPrefix))

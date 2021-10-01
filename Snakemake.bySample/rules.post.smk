@@ -52,7 +52,7 @@ rule make_fragment:
 		module purge
 		module load Cutlery/1.0
 		mkdir -p {sampleDir}/{wildcards.sampleName}
-		ngs.bamToFragment.py -c "{chrRegexAll}" -f 0x2 -F 0x400 {input.bam} | gzip > {output}
+		ngs.bamToFragment.py -c "{chrRegexAll}" -f 0x2 -F 0x400 {input.bam} | sort -S 2G -k1,1 -k2,2n -k3,3n | gzip > {output}
 		"""
 
 
@@ -556,7 +556,7 @@ def get_ctrl_bw(sampleName, bwType):
 	return sampleDir + "/" + ctrlName + "/igv." + bwType + ".con.bw"
 
 #get bw files for the sample and the corresponding ctrl
-def get_bw(sampleName):
+def get_bw_pairs(sampleName):
 	
 	#get bw files for sample and add them to list
 	sampleNfrBW = sampleDir + "/" + sampleName + "/igv.nfr.con.bw"
@@ -579,7 +579,7 @@ def get_bw(sampleName):
 rule draw_peak_heatmap_factor:
 	input:
 		bed=sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
-		bw=lambda wildcards: get_bw(wildcards.sampleName)
+		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png"
 	message:
@@ -596,7 +596,7 @@ rule draw_peak_heatmap_factor:
 rule draw_peak_heatmap_histone:
 	input:
 		bed = sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed",
-		bw=lambda wildcards: get_bw(wildcards.sampleName)
+		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png"
 	message:
@@ -769,7 +769,7 @@ def get_peak_mode(sampleName):
 rule draw_peak_examples_histone:
 	input:
 		peak = sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed",
-		bw=lambda wildcards: get_bw(wildcards.sampleName)
+		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/peak.examples.{ext}", ext=["png", "pdf"])
 	message:
@@ -787,7 +787,7 @@ rule draw_peak_examples_histone:
 rule draw_peak_examples_factor:
 	input:
 		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
-		bw=lambda wildcards: get_bw(wildcards.sampleName)
+		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/peak.examples.{ext}", ext=["png", "pdf"])
 	message:
