@@ -11,7 +11,7 @@ suppressPackageStartupMessages(library('reshape2', quiet=TRUE))
 suppressPackageStartupMessages(library('cowplot', quiet=TRUE))
 
 option_list <- list(
-    make_option(c("-o","--outDir"), help="Path to output directory"),
+    make_option(c("-o","--outPrefix"), help="Path to output prefix"),
     make_option(c("-m","--mode"), help="Peak mode; Enter 'histone' or 'factor'"),
     make_option(c("-n","--numPeaks"), help="Number of highest scoring peaks to visualize; should be an integer"),
     make_option(c("-p","--peak"), help="Peak.bed file")
@@ -29,7 +29,7 @@ arguments <- parse_args(parser, positional_arguments = TRUE)
 
 # Option handling
 opt=arguments$options
-outDir=opt$outDir
+outPrefix=opt$outPrefix
 mode=opt$mode
 numHighestPeaks=opt$numPeaks
 peakFile <- opt$peak
@@ -277,7 +277,7 @@ for (i in seq_along(bwFiles)) {
 }
 
 #Draw peak examples
-draw_peak_example(tmpBed, extractedBW, windowSize = windowSize, binsize = binsize, des=outDir)
+draw_peak_example(tmpBed, extractedBW, windowSize = windowSize, binsize = binsize, des=outPrefix)
 
 #remove temp peak.bed file
 unlink(tmpBed)
