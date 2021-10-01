@@ -95,3 +95,7 @@ analyze_footprint_homer_corrected:
     cpu         : 4
     memory      : 10000
 
+create_final_report:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"

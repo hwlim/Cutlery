@@ -52,7 +52,7 @@ rule make_fragment:
 		module purge
 		module load Cutlery/1.0
 		mkdir -p {sampleDir}/{wildcards.sampleName}
-		ngs.bamToFragment.py -c "{chrRegexAll}" -f 0x2 -F 0x400 {input.bam} | sort -S 2G -k1,1 -k2,2n -k3,3n | gzip > {output}
+		ngs.bamToFragment.py -c "{chrRegexAll}" -f 0x2 -F 0x400 {input.bam} | gzip > {output}
 		"""
 
 
@@ -371,14 +371,12 @@ rule make_tagdir:
 		"""
 
 
-
 def get_ctrl_name(sampleName):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
-	if len(ctrlName)!=0:
-		return ctrlName.tolist()[0]
-	else:
-		return None
-	
+	assert(len(ctrlName.tolist()[0]) != 0)
+	return ctrlName.tolist()[0]
+
+
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
 def get_peakcall_input(sampleName, fragment):
 	#ctrlName = samples.Ctrl[samples.Name == sampleName]
@@ -550,11 +548,38 @@ rule run_meme_motif_rand5k_allfrag:
 		"""
 
 
+#get bw file for control sample
+#bwType variable should be either "nuc" or "nfr"
+#this function assumes that a ctrl sample exists and is not NULL
+def get_ctrl_bw(sampleName, bwType):
+	ctrlName = get_ctrl_name(sampleName)
+	return sampleDir + "/" + ctrlName + "/igv." + bwType + ".con.bw"
+
+#get bw files for the sample and the corresponding ctrl
+def get_bw(sampleName):
+	
+	#get bw files for sample and add them to list
+	sampleNfrBW = sampleDir + "/" + sampleName + "/igv.nfr.con.bw"
+	sampleNucBW = sampleDir + "/" + sampleName + "/igv.nuc.con.bw" 
+
+	#get ctrl sample name
+	ctrlName = get_ctrl_name(sampleName)
+	
+	#return sample bw only if ctrl = NULL
+	if ctrlName == "NULL":
+		return [sampleNfrBW, sampleNucBW]
+	
+	#return sample and ctrl bw 
+	else:
+		ctrlNfrBW = get_ctrl_bw(sampleName, "nfr")
+		ctrlNucBW = get_ctrl_bw(sampleName, "nuc")
+		return [sampleNfrBW, sampleNucBW, ctrlNfrBW, ctrlNucBW]
+
+
 rule draw_peak_heatmap_factor:
 	input:
 		bed=sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
-		nfr=sampleDir + "/{sampleName}/igv.nfr.ctr.bw",
-		nuc=sampleDir + "/{sampleName}/igv.nuc.ctr.bw"
+		bw=lambda wildcards: get_bw(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png"
 	message:
@@ -562,17 +587,16 @@ rule draw_peak_heatmap_factor:
 	shell:
 		"""
 		module load Cutlery/1.0
-		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 2000 -b 20 -c NFR,NUC -s 3,6 \
+		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 \
 			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
-			{input.bed} {input.nfr} {input.nuc}
+			{input.bed} {input.bw}
 		"""
 
 
 rule draw_peak_heatmap_histone:
 	input:
 		bed = sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed",
-		nfr=sampleDir + "/{sampleName}/igv.nfr.ctr.bw",
-		nuc=sampleDir + "/{sampleName}/igv.nuc.ctr.bw"
+		bw=lambda wildcards: get_bw(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png"
 	message:
@@ -580,9 +604,9 @@ rule draw_peak_heatmap_histone:
 	shell:
 		"""
 		module load Cutlery/1.0
-		drawBigWigHeatmap.r -t {wildcards.sampleName} -m 0,0.5,2,0.5 -w 10000 -b 20 -c NFR,NUC -s 3,6 \
+		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 \
 			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/heatmap.exBL \
-			{input.bed} {input.nfr} {input.nuc}
+			{input.bed} {input.bw}
 		"""
 
 
@@ -732,3 +756,66 @@ rule make_bigwig_allfrag_rpsm:
 		"""
 
 '''
+
+
+#take sampleName and sample.tsv file as input
+#return peakMode
+def get_peak_mode(sampleName):
+	peakMode = samples.PeakMode[samples.Name == sampleName]
+	assert(len(peakMode.tolist()[0]) != 0)
+	return peakMode.tolist()[0]
+
+
+rule draw_peak_examples_histone:
+	input:
+		peak = sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed",
+		bw=lambda wildcards: get_bw(wildcards.sampleName)
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/peak.examples.{ext}", ext=["png", "pdf"])
+	message:
+		"Getting snapshot of highest scoring peaks... [{wildcards.sampleName}]"
+	params:
+		peakMode = lambda wildcards: get_peak_mode(wildcards.sampleName)
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.visualizePeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/peak.examples \
+			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
+		"""
+
+
+rule draw_peak_examples_factor:
+	input:
+		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
+		bw=lambda wildcards: get_bw(wildcards.sampleName)
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/peak.examples.{ext}", ext=["png", "pdf"])
+	message:
+		"Getting snapshot of highest scoring peaks... [{wildcards.sampleName}]"
+	params:
+		peakMode = lambda wildcards: get_peak_mode(wildcards.sampleName)
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.visualizePeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/peak.examples \
+			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
+		"""
+
+
+rule create_final_report:
+	input:
+		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
+		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
+		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
+	output:
+		"Report.html"
+	message:
+		"Creating final report in HTML..."
+	shell:
+		"""
+		module load Cutlery/1.0
+		module load ImageMagick/6.9.12
+		cnr.createReportHTML.r -o Report -s {sampleDir} -q {qcDir}
+		"""
