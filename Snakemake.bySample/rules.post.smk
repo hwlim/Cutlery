@@ -779,7 +779,7 @@ rule draw_peak_examples_histone:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.visualizePeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/peak.examples \
+		cnr.drawPeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/peak.examples \
 			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
 		"""
 
@@ -797,7 +797,7 @@ rule draw_peak_examples_factor:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.visualizePeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/peak.examples \
+		cnr.drawPeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/peak.examples \
 			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
 		"""
 
