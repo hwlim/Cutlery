@@ -54,7 +54,7 @@ histoneTable <- data.table(Sample=character(), peakcount=numeric(), widths=numer
 factorTable <- data.table(Sample=character(), peakcount=numeric())
 
 #make a copy of the original Rmd file
-template <- paste0(Sys.getenv("CUTLERY"), "/cnr.createReportHTMLTemplate.Rmd")
+template <- paste0(Sys.getenv("CUTLERY"), "/Script/cnr.createReportHTMLTemplate.Rmd")
 system(sprintf("cp %s Report.Rmd", template))
 
 #create separate coverage html files for each sample
