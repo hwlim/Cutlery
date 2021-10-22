@@ -25,8 +25,8 @@ arguments <- parse_args(parser, positional_arguments = TRUE)
 
 # Option handling
 opt=arguments$options
-sampDir=paste0(normalizePath(opt$sampleDir))
-qcDir=paste0(normalizePath(opt$qcDir))
+sampDir=normalizePath(opt$sampleDir)
+qcDir=normalizePath(opt$qcDir)
 outputFile=opt$outputFile
 
 #Read in and crop logo
