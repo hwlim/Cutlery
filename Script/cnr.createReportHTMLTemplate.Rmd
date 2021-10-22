@@ -274,8 +274,8 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 \
 ```{r peak-counts-TF, echo=FALSE, message=FALSE, warning=FALSE}
 	if (nrow(factorTable) != 0) {
-		colnames(factorTable) <- c("Sample","Number of Peaks")
-		kable(format(factorTable, big.mark=",", scientific=FALSE), align="lr", caption = "Peak counts for Transcription Factor samples") %>%
+		colnames(factorTable) <- c("Sample","Number of Peaks","% of Fragments overlapping with a peak")
+		kable(format(factorTable, big.mark=",", scientific=FALSE), align="lrr", caption = "Peak counts for Transcription Factor samples") %>%
 		kable_styling(full_width = T, bootstrap_options = "bordered") %>%
 		row_spec(0, align = "c") %>%
 		column_spec(1, bold = T)
@@ -286,8 +286,8 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 \
 ```{r peak-counts-hist, echo=FALSE, message=FALSE, warning=FALSE}
 	if (nrow(histoneTable) != 0) {
-		colnames(histoneTable) <- c("Sample","Number of Peaks","Total Peak Width (bp)")
-		kable(format(histoneTable, big.mark=",", scientific=FALSE), align="lrr", caption = "Peak counts for Histone samples") %>%
+		colnames(histoneTable) <- c("Sample","Number of Peaks","Total Peak Width (bp)","% of Fragments overlapping with a peak")
+		kable(format(histoneTable, big.mark=",", scientific=FALSE), align="lrrr", caption = "Peak counts for Histone samples") %>%
 		kable_styling(full_width = T, bootstrap_options = "bordered") %>%
 		row_spec(0, align = "c") %>%
 		column_spec(1, bold = T)
