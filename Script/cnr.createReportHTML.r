@@ -104,7 +104,7 @@ for (sample in sampleQC) {
 	fragQCfile <- paste0(sample, "/frag.QC.txt")
 	fragQC <- read.table(fragQCfile, header = TRUE)
 
-	#skip visualization of control samples
+	# skip visualization of control samples, but retrieve fragQC
 	if (is.null(peakMode)) {
 		peakMode = "ctrl"
 		fragQCtable <- rbind(fragQCtable, list(sampleName, peakMode, formatC(as.numeric(fragQC[[1]]), format="f", digits=2), 
@@ -125,6 +125,7 @@ for (sample in sampleQC) {
 		histoneTable <- rbind(histoneTable, list(sampleName, countPeaks(peakFile), sumPeaks(peakFile),  paste0(intersectPerc, "%")))
 	}
 
+	#update fragQC table
 	fragQCtable <- rbind(fragQCtable, list(sampleName, peakMode, formatC(as.numeric(fragQC[[1]]), format="f", digits=2), 
 	formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
 	formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))

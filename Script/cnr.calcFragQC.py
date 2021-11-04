@@ -13,8 +13,6 @@ from scipy.stats import norm
 from sklearn.mixture import GaussianMixture as GMM
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
-# import astropy
-# import matplotlib as mpl
 
 options = argparse.ArgumentParser(description="Get fragment QC stats", usage="python3 getFragQC.py (options)")
 options.add_argument('-f', '--fragmentBed_file',
@@ -31,6 +29,7 @@ totalCount = 0
 nfrCount = 0
 nucCount = 0
 
+# open fragment.bed.gz file
 with gzip.open(args.fragmentBed_file, mode="rt") as fragBed:
     for frag in fragBed:
         
@@ -41,11 +40,13 @@ with gzip.open(args.fragmentBed_file, mode="rt") as fragBed:
         end = int(splitStr[2])
         fragLen = end - start
         
+        # separate fragments by size
         if fragLen <= 120:
             nfrCount = nfrCount + 1
         elif fragLen >= 150:
             nucCount = nucCount + 1
 
+# get fragment ratio
 nfrFrac = nfrCount / totalCount * 100
 nucFrac = nucCount / totalCount * 100
 
@@ -56,30 +57,26 @@ densityFile = csv.reader(fragLenDist, delimiter="\t")
 next(densityFile)
 
 tmpList = []
-
-check = 0
-
 for row in densityFile:
     count = int(row[1])
     i = 0
-    check = check + 1
     while i < count:
         tmpList.append(int(row[0]))
-        #print(row[0], temp)
         i = i + 1
 
+# convert to df
 npArray = np.asarray(tmpList)
-
 df = pd.DataFrame(npArray)
 
 # Get weights of distribution from GMM
-# define number of clusters/components
+# define number of clusters/components as 3
 comp = 3
 
-# fit a Gaussian Mixture Model with two components
+# fit a Gaussian Mixture Model
 gmm = GMM(n_components = comp, max_iter=100, random_state=10, covariance_type = 'full')
 gmm.fit(df)
 
+# Sort mean, covariances and weights
 me = gmm.means_
 mean = [me[0][0],me[1][0],me[2][0]]
 mean = np.asarray(mean)
@@ -97,6 +94,7 @@ mean = mean[sortedInd[:]]
 covs = covs[sortedInd[:]]
 weights = weights[sortedInd[:]]
 
+# Create and save fragQC table
 outName = args.outputFile + "/frag.QC.txt"
 with open(outName, mode = 'w') as outFile:
     outFile_write = csv.writer(outFile, delimiter='\t')
