@@ -18,11 +18,11 @@ genome		= "mm10"
 star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
 
 ## Human
-#genomeFa	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/genome.fa"
-#chrom_size	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/chrom.size"
-#peak_mask	= "/data/limlab/Resource/GenomeData/hg/hg38/ENCODE-blacklist.bed"
-#genome		= "hg38"
-#star_index	= "/Volumes/limlab/Resource/STAR_Index/2.7.4/hg38_allChr_v29"
+# genomeFa	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/genome.fa"
+# chrom_size	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/chrom.size"
+# peak_mask	= "/data/limlab/Resource/GenomeData/hg/hg38/ENCODE-blacklist.bed"
+# genome		= "hg38"
+# star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/hg38_allChr_v29"
 
 ## Other STAR index also available under /data/limlab/Resource/STAR_Index/2.7.4
 ## If not, send a request to Lim Lab
@@ -34,8 +34,6 @@ adapter     = "AGATCGGAAGAGC"	# illumina universal adapter in default
 #trim_maxLen=100	## Maximum read length after trimming. ** NOT YET IMPLEMENTED **
 trim_minLen		= 20	# minimum fragment length. shorter fragments after trimming will be discarded
 trim_minQual	= 20	# minimum quality for quality trimming
-opt_cutadapt	= ""	# additional option for cutadapt
-
 
 ## Regular expressions for chromosome names
 ## Target chromosomes + spikein chromosome (if needed)
@@ -73,11 +71,11 @@ doDedup		= False		## Perform deduplication, NOT recommended
 
 #########################
 ## Directories
-fastqDir	= "0.Fastq"			# Directory containing fastq files
-trimDir		= "0.Fastq.Trim"	# Directory for trimmed fastq files
-alignDir	= "1.1.Align"		# Directory for alignment results
-filteredDir	= "1.2.Align.filtered"	# Directory for filtered alignment results, i.e. chromosome, 
-dedupDir	= "1.3.Align.dedup"	# ignored if doDeup==False
+fastqDir 	= "NULL"
+trimDir 	= "NULL"
+alignDir 	= "NULL"
+filteredDir = "NULL"
+dedupDir 	= "NULL"
 qcDir		= "2.1.QualityControl"
 
 sampleDir	= "3.Sample"
@@ -85,8 +83,7 @@ sampleDir	= "3.Sample"
 ###########################################################
 ## ** Developmental feature. Please ignore this section
 ## Parameters for k-mer bias correction
-#kmer_genome	= "/data/limlab/Resource/Jellyfish.Kmer/%s.6mer.txt" % genome
-kmer_genome = "NULL"
+kmer_genome	= "NULL"
 kmer_pseudo	= 1
 
 
@@ -122,14 +119,14 @@ sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
 # Samples for histone modification (or broad peaks)
 sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
 # Number of highest scoring peaks to visualize
-numHighestPeaks = 5
+numHighestPeaks = 3
 
 rule all:
 	input:
 		##### Basic Output Files #####
 		## QC output
 		qcDir + "/alignStat.txt",
-		expand(qcDir + "/uniqFragCnt.{ext}", ext=[ "txt", "pdf" ]),
+		expand(qcDir + "/uniqFragCnt.{ext}", ext=[ "txt", "pdf", "png" ]),
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
 		## BigWig files	
@@ -140,18 +137,20 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
-
 		## Motif search
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
 		## BigWig 1bp raw/abs (motivated for BPnet input file)
-		expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"])
+		expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"]),
 
-		## Draw peak examples
+		## Take genome coverage snapshot
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.{ext}", sampleName=sampleListFactor, ext=["png","pdf"]),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.{ext}", sampleName=sampleListHistone, ext=["png","pdf"]),
 
-		## Create final report
+		## Calculate fragment QC
+		expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=sampleList),
+
+		## Create final HTML report
 		"Report.html"
 
 '''

@@ -801,13 +801,27 @@ rule draw_peak_examples_factor:
 			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
 		"""
 
+rule calc_frag_QC:
+	input:
+		fragBed = sampleDir + "/{sampleName}/fragment.bed.gz",
+		fragDist = sampleDir + "/{sampleName}/QC/fragLen.dist.txt"
+	output:
+		sampleDir + "/{sampleName}/QC/frag.QC.txt"
+	message:
+		"Performing fragment QC on sample... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.calcFragQC.py -o {sampleDir}/{wildcards.sampleName}/QC \
+		-d {input.fragDist} -f {input.fragBed}
+		"""
 
 rule create_final_report:
 	input:
 		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
 		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
-		fragBed = expand(sampleDir + "/{sampleName}/fragment.bed.gz", sampleName=samples.Name.tolist()),
+		fragQC = expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=samples.Name.tolist()),
 		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
 	output:
