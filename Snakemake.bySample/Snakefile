@@ -151,6 +151,13 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.{ext}", sampleName=sampleListFactor, ext=["png","pdf"]),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.{ext}", sampleName=sampleListHistone, ext=["png","pdf"]),
 
+		## Calculate fragment QC
+		expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=sampleList),
+
+		## Create report per sample
+		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListFactor),
+
 		## Create final report
 		"Report.html"
 

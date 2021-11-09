@@ -29,11 +29,11 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 	column_spec(1, bold = T)
 ```
 
-## Unique Fragment Counts {.tabset}
+## Fragment Library Complexity {.tabset}
 \
 ```{r insert-uniq-stats, echo=FALSE, message=FALSE, warning=FALSE}
     uniqCnt <-read.table(paste0(qcDir, "/uniqFragCnt.txt"), sep="\t", header=T)
-	colnames(uniqCnt) <- c("Sample","Total Fragments","Unique Fragments","% Unique Fragments")
+	colnames(uniqCnt) <- c("Sample","Total Fragments (Filtered)","Unique Fragments","% Unique Fragments")
 	kable(format(uniqCnt, big.mark=",", scientific=FALSE), align="lrrr") %>%
 	kable_styling(full_width = T, bootstrap_options = "bordered") %>%
 	row_spec(0, align = "c") %>%
@@ -128,7 +128,7 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 	#Draw PCA plot
 	p <- plot_ly(samplesDF, x=pcaSamples$x[,1], y=pcaSamples$x[,2], text=rownames(samplesDF),
 				mode="markers", color = rownames(samplesDF), marker=list(size=11))
-	p <- layout(p,title="Base Frequencies PCA Analysis",
+	p <- layout(p,title="PCA: Base Frequencies",
 				xaxis=list(title="PC1 (% of Variance Explained)"),
 				yaxis=list(title="PC2 (% of Variance Explained)"))
 	p
@@ -142,6 +142,14 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 ```
 
 ## Fragment Distribution {.tabset}
+\
+```{r insert-fragQC-table, echo=FALSE, message=FALSE, warning=FALSE}
+	colnames(fragQCtable) <- c("Sample","Peak Mode","NFR Frags (%)","NUC Frags (%)","W~0~", "W~1~", "W~2~")
+	kable(format(fragQCtable, big.mark=",", scientific=FALSE), align="llrrrrr") %>%
+	kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+	row_spec(0, align = "c", extra_css = 'vertical-align: middle !important;') %>%
+	column_spec(1, bold = T)
+```
 \
 ```{r PCA_frag_dist, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
 	#initialize df and sample name list for header labeling
@@ -194,7 +202,7 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 	#Draw PCA plot
 	p <- plot_ly(samplesDF, x=pcaSamples$x[,1], y=pcaSamples$x[,2], text=rownames(samplesDF),
 				mode="markers", color = rownames(samplesDF), marker=list(size=11))
-	p <- layout(p,title="Fragment Distribution PCA Analysis",
+	p <- layout(p,title="PCA: Fragment Length Distribution",
 				xaxis=list(title="PC1 (% of Variance Explained)"),
 				yaxis=list(title="PC2 (% of Variance Explained)"))
 	p
@@ -228,7 +236,7 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 
 		#insert data into figure
 		fig <- fig %>% add_trace(y = data[ , col], name = colName, type= 'scatter', mode = 'lines') %>%
-		layout(title= 'Fragment Distribution (Raw)', xaxis = list(title = 'Fragment Length'), yaxis = list(title = 'Fragment Count'))
+		layout(title= 'Fragment Length Distribution (Raw)', xaxis = list(title = 'Fragment Length'), yaxis = list(title = 'Fragment Count'))
 	}
 
 	fig
@@ -264,7 +272,7 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 
 		#insert data into figure
 		fig <- fig %>% add_trace(y = dataNorm[ , col], name = colName, type= 'scatter', mode = 'lines') %>%
-		layout(title= 'Fragment Distribution (Normalized)', xaxis = list(title = 'Fragment Length'), yaxis = list(title = 'Density (RPK)'))
+		layout(title= 'Fragment Length Distribution (Normalized)', xaxis = list(title = 'Fragment Length'), yaxis = list(title = 'Density (RPK)'))
 	}
 
 	fig

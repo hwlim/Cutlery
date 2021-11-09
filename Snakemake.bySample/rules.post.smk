@@ -801,13 +801,73 @@ rule draw_peak_examples_factor:
 			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
 		"""
 
+rule calc_frag_QC:
+	input:
+		fragBed = sampleDir + "/{sampleName}/fragment.bed.gz",
+		fragDist = sampleDir + "/{sampleName}/QC/fragLen.dist.txt"
+	output:
+		sampleDir + "/{sampleName}/QC/frag.QC.txt"
+	message:
+		"Performing fragment QC on sample... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.calcFragQC.py -o {sampleDir}/{wildcards.sampleName}/QC \
+		-d {input.fragDist} -f {input.fragBed}
+		"""
+
+#take sampleName as input
+#return group
+def get_group(sampleName):
+	group = samples.Group[samples.Name == sampleName]
+	assert(len(group.tolist()[0]) != 0)
+	return group.tolist()[0]
+
+#take sampleName as input
+#return path to peak examples and heatmap png
+def get_peak_example(sampleName):
+	peakMode = get_peak_mode(sampleName)
+	if peakMode == "histone":
+		return sampleDir + "/" + sampleName + "/HomerPeak.histone/peak.examples.png"
+	elif peakMode == "factor":
+		return sampleDir + "/" + sampleName + "/HomerPeak.factor/peak.examples.png"
+
+def get_heatmap(sampleName):
+	peakMode = get_peak_mode(sampleName)
+	if peakMode == "histone":
+		return sampleDir + "/" + sampleName + "/HomerPeak.histone/heatmap.exBL.png"
+	elif peakMode == "factor":
+		return sampleDir + "/" + sampleName + "/HomerPeak.factor/heatmap.exBL.1rpm.png"
+
+rule create_report_per_sample:
+	input:
+		alnStat = qcDir + "/alignStat.txt",
+		uniqFragCnt = qcDir + "/uniqFragCnt.txt",
+		baseFreqPNG = sampleDir + "/{sampleName}/QC/base_freq.png",
+		fragDistPNG = sampleDir + "/{sampleName}/QC/fragLen.dist.png",
+		fragQC = sampleDir + "/{sampleName}/QC/frag.QC.txt",
+		peakExample = lambda wildcards: get_peak_example(wildcards.sampleName),
+		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/QC/Report.html"
+	message:
+		"Creating report for sample... [{wildcards.sampleName}]"
+	params:
+		group = lambda wildcards: get_group(wildcards.sampleName)
+	shell:
+		"""
+		module load Cutlery/1.0
+		module load ImageMagick/6.9.12
+		cnr.createSampleReportHTML.r -o Report -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}		
+		"""
+
 
 rule create_final_report:
 	input:
 		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
 		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
-		fragBed = expand(sampleDir + "/{sampleName}/fragment.bed.gz", sampleName=samples.Name.tolist()),
+		fragQC = expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=samples.Name.tolist()),
 		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
 	output:
