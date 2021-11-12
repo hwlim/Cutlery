@@ -17,7 +17,9 @@ parser <- OptionParser(usage = "%prog [options]",
 	description="Description:
 	Creates final HTML report.
 Input:
+	'2.1.QualityControl' directory path
 	'3.Sample' directory path
+	Output file name
 Output:
     - Report.html",
 	 option_list=option_list)
@@ -69,8 +71,10 @@ fragIntersect=function(fragBed, bed) {
 }
 
 #make two tables, one each for histone mode and factor mode
+#make a fragQC table
 histoneTable <- data.table(Sample=character(), peakcount=numeric(), widths=numeric(), fraction=numeric())
 factorTable <- data.table(Sample=character(), peakcount=numeric(), fraction=numeric())
+fragQCtable <- data.table(Sample=character(), mode=character(), nfrFrac=numeric(), nucFrac=numeric(), w0=numeric(), w1=numeric(), w2=numeric())
 
 #make a copy of the original Rmd file
 template <- paste0(Sys.getenv("CUTLERY"), "/Script/cnr.createReportHTMLTemplate.Rmd")
@@ -93,15 +97,23 @@ for (sample in sampleQC) {
 	
 	#get heatmap and coverage
 	homerFolderName <- grep("Homer", fileList, value=TRUE)
-	factorMode <- tail(unlist(strsplit(homerFolderName, ".", fixed = TRUE)))[2]
+	peakMode <- tail(unlist(strsplit(homerFolderName, ".", fixed = TRUE)))[2]
 	homerFolderPath <- paste0(sampleDirectory, "/", homerFolderName)
 	
-	#skip visualization of control samples
-	if (is.null(factorMode)) {
+	#get fragmentQC file for the sample
+	fragQCfile <- paste0(sample, "/frag.QC.txt")
+	fragQC <- read.table(fragQCfile, header = TRUE)
+
+	# skip visualization of control samples, but retrieve fragQC
+	if (is.null(peakMode)) {
+		peakMode = "ctrl"
+		fragQCtable <- rbind(fragQCtable, list(sampleName, peakMode, formatC(as.numeric(fragQC[[1]]), format="f", digits=2), 
+		formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
+		formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
 		next
 	}
 
-	if (factorMode == "factor") {
+	if (peakMode == "factor") {
 		heatmap <- list.files(homerFolderPath, pattern = "*heatmap.exBL.1rpm.png", full.names = TRUE)
 		peakFile <- list.files(homerFolderPath, pattern = "*peak.exBL.1rpm.bed", full.names = TRUE)
 		intersectPerc <- signif(fragIntersect(fragBed, peakFile), digits=3)
@@ -112,6 +124,11 @@ for (sample in sampleQC) {
 		intersectPerc <- signif(fragIntersect(fragBed, peakFile), digits=3)
 		histoneTable <- rbind(histoneTable, list(sampleName, countPeaks(peakFile), sumPeaks(peakFile),  paste0(intersectPerc, "%")))
 	}
+
+	#update fragQC table
+	fragQCtable <- rbind(fragQCtable, list(sampleName, peakMode, formatC(as.numeric(fragQC[[1]]), format="f", digits=2), 
+	formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
+	formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
 
 	#get peak-examples png file
 	peakExamplePlot <- list.files(homerFolderPath, pattern = "*peak.examples.png", full.names = TRUE)
