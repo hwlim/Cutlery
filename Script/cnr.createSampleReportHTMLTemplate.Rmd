@@ -1,0 +1,124 @@
+---
+title: "<span style='font-size: 1px; color:white'>Cutlery</span>"
+date: "`r Sys.Date()`"
+output:
+    html_document:
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri(tempLogo), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:1; padding:1px;')
+```
+
+##### Sample: `r sampleName`
+##### Group: `r groupName`
+
+# {.tabset}
+
+## Alignment Statistics {.tabset}
+\
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+	#add commas
+	addCommasToNumber=function(number) {
+		#convert int to string
+		strNum = toString(number)
+		#reverse string
+		reversed = intToUtf8(rev(utf8ToInt(strNum)))
+		#split string by three characters
+		splitted = gsub("(.{3})", "\\1 ", reversed)
+		#split by space and collapse by comma
+		merged = gsub(" ", ",", splitted, fixed=TRUE)
+		#return reversed
+		return(intToUtf8(rev(utf8ToInt(merged))))
+	}
+
+	alnStatFile <- read.table(paste0(qcDir, "/alignStat.txt"), sep="\t", header=T)
+	alnStat <- alnStatFile[which(alnStatFile$Sample == sampleName), ]
+	alnStat <- subset(alnStat, select = -c(Sample))
+	colnames(alnStat) <- c("Total Fragments", "Uniquely Aligned", "Multi-Aligned", "% Uniquely Aligned", "% Multi-Aligned", "% Too Many Multi-Aligned", "% Mismatch", "% Too Short", "% Other")
+	alnStat = as.data.frame(t(alnStat))
+	
+	#Need to convert the first item into a string to eliminate trailing zeros
+	alnStat[1,1] = addCommasToNumber(alnStat[1,1])
+	alnStat[2,1] = addCommasToNumber(alnStat[2,1])
+	x = kable(format(alnStat, big.mark=",", scientific = FALSE), align="rrrrrrrr", format="html", table.attr = "style='width:50%;'") %>%
+		kable_styling(bootstrap_options = "bordered", position="left") %>%
+		column_spec(1, bold = T)
+	gsub("<thead>.*</thead>", "", x)
+```
+
+## Library Complexity {.tabset}
+\
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+	uniqCntFile <-read.table(paste0(qcDir, "/uniqFragCnt.txt"), sep="\t", header=T)
+	uniqCnt <- uniqCntFile[which(uniqCntFile$Name == sampleName), ]
+	uniqCnt <- subset(uniqCnt, select = -c(Name))
+	colnames(uniqCnt) <- c("Total Fragments (Filtered)","Unique Fragments","% Unique Fragments")
+	uniqCnt = as.data.frame(t(uniqCnt))
+	uniqCnt[1,1] = addCommasToNumber(uniqCnt[1,1])
+	uniqCnt[2,1] = addCommasToNumber(uniqCnt[2,1])
+	y = kable(format(uniqCnt, big.mark=",", scientific = FALSE), align="rrr", format="html", table.attr = "style='width:50%;'") %>%
+		kable_styling(bootstrap_options = "bordered", position="left") %>%
+		column_spec(1, bold = T)
+	gsub("<thead>.*</thead>", "", y)
+```
+
+## Base Frequencies {.tabset}
+\
+```{r insert-base-freq, echo=FALSE, out.width="100%", message=FALSE, warning=FALSE}
+	knitr::include_graphics(baseFreq)
+```
+
+## Fragment Distribution {.tabset}
+\
+```{r insert-fragQC-table, echo=FALSE, message=FALSE, warning=FALSE}
+	colnames(fragQCtable) <- c("Peak Mode","NFR Frags (%)","NUC Frags (%)","W~0~", "W~1~", "W~2~")
+	kable(format(fragQCtable, big.mark=",", scientific=FALSE), align="crrrrr") %>%
+	kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+	row_spec(0, align = "c", extra_css = 'vertical-align: middle !important;') %>%
+	column_spec(1, bold = T)
+```
+\
+```{r frag-dist, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
+	knitr::include_graphics(fragLenDist)
+```
+
+## Peak Examples {.tabset}
+\
+```{r peak-counts-TF, echo=FALSE, message=FALSE, warning=FALSE}
+	if (nrow(factorTable) != 0) {
+		colnames(factorTable) <- c("Number of Peaks","% of Fragments overlapping with a peak")
+		kable(format(factorTable, big.mark=",", scientific=FALSE), align="rr") %>%
+		kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+		row_spec(0, align = "c") %>%
+		column_spec(1, bold = T)
+	}
+
+```
+
+\
+```{r peak-counts-hist, echo=FALSE, message=FALSE, warning=FALSE}
+	if (nrow(histoneTable) != 0) {
+		colnames(histoneTable) <- c("Number of Peaks","Total Peak Width (bp)","% of Fragments overlapping with a peak")
+		kable(format(histoneTable, big.mark=",", scientific=FALSE), align="rrr") %>%
+		kable_styling(full_width = T, bootstrap_options = "bordered") %>%
+		row_spec(0, align = "c") %>%
+		column_spec(1, bold = T)
+	}
+
+```
+\
+```{r peak-example, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
+	knitr::include_graphics(peakExamplePlot)
+```
+\
+```{r peak-heatmap, echo=FALSE, out.width='70%', fig.align="center", message=FALSE, warning=FALSE}
+	knitr::include_graphics(heatmap)
+```
