@@ -62,8 +62,8 @@ if [ $# -lt 2 ];then
 	exit 1
 fi
 
-srcDir=$1
-desDir=$2
+srcDir="$1"
+desDir="$2"
 
 assertDirExist $srcDir
 mkdir -p $desDir
@@ -75,7 +75,7 @@ echo -e "  des: $desDir" >&2
 echo -e "  force: $force" >&2
 
 
-sampleL=( `ls -d ${srcDir}/*/` )
+sampleL=( `ls -d "${srcDir}"/*/` )
 
 ## export list
 # - bigwig: all / nfr / nuc
@@ -93,19 +93,19 @@ exportFile(){
 		optStr=""
 	fi
 
-	if [ -f $src ] || [ -d $src ];then
-		local desDir=`dirname $des`
-		mkdir -p $desDir
+	if [ -f "$src" ] || [ -d "$src" ];then
+		local desDir=`dirname "$des"`
+		mkdir -p "$desDir"
 
-		if [ -f $des ];then
+		if [ -f "$des" ];then
 			if [ "$force" == "TRUE" ];then
 				echo -e "Warning: Overwriting $des" >&2
-				cp $optStr -f -v $src $des
+				cp $optStr -f -v "$src" "$des"
 			else
 				echo -e "Warning: $des already exists, skip" >&2
 			fi
 		else
-			cp $optStr -v $src $des
+			cp $optStr -v "$src" "$des"
 		fi
 	else
 		echo -e "Warning: $src does not exist, skipping" >&2
@@ -135,7 +135,7 @@ do
 		#mkdir -p ${desDir}/QualityControl
 		src=${srcDir}/${sample}/QC/fragLen.dist.png
 		des=${desDir}/QualityControl/${sample}.fragLen.png
-		exportFile $src $des FALSE
+		exportFile "$src" "$des" FALSE
 	else
 		echo -e "0) Skipping fragment length distribution" >&2
 	fi
@@ -148,7 +148,7 @@ do
 		do
 			src=${srcDir}/${sample}/igv.${frag}.ctr.bw
 			des=${desDir}/BigWig/${sample}.${frag}.ctr.bw
-			exportFile $src $des FALSE
+			exportFile "$src" "$des" FALSE
 		done
 	else
 		echo -e "1) Skipping bigwig files" >&2
@@ -162,19 +162,19 @@ do
 		do
 			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.bed
 			des=${desDir}/Peak.${mode}/${sample}.all.bed
-			exportFile $src $des FALSE
+			exportFile "$src" "$des" FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.1rpm.bed
 			des=${desDir}/Peak.${mode}/${sample}.1rpm.bed
-			exportFile $src $des FALSE
+			exportFile "$src" "$des" FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.1rpm.png
 			des=${desDir}/Peak.${mode}/${sample}.1rpm.heatmap.png
-			exportFile $src $des FALSE
+			exportFile "$src" "$des" FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.png
 			des=${desDir}/Peak.${mode}/${sample}.heatmap.png
-			exportFile $src $des FALSE
+			exportFile "$src" "$des" FALSE
 		done
 	else
 		echo -e "2) Skipping peak files & heatmaps" >&2
@@ -188,7 +188,7 @@ do
 		do
 			suffix=`basename $src`
 			des=${desDir}/Motif/${sample}.${suffix}
-			exportFile $src $des TRUE
+			exportFile "$src" "$des" FALSE
 		done
 	else
 		echo -e "3) Skipping motif search results" >&2
