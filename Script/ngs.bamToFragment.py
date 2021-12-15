@@ -21,17 +21,18 @@ import os
 import re
 
 #parse command line arguments
-options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed file. 5th column of the fragment bed file represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
+options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed format. 5th column of the output represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
 options.add_argument('-f', '--flags_include', default='0x2',
-                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks. Type NULL to include everything (make sure to not use the -F flag at all in this case).')
+                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks. Type NULL to include everything (make sure not to use the -F flag in this case).')
 options.add_argument('-F', '--flags_exclude', default='0x400',
                         help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks')
 options.add_argument('-c', '--chr_include', default='.',
                         help='Regular expression of chromosomes to select. Default = . (all). e.g.) ^chr[0-9XY]+$|^chrM$ : regular/sex/chrM, ^chr[0-9XY]+$ : autosomal and sex chromosomes only.')
-options.add_argument('-r', '--read', default=False,
-                        help='Convert bam file to bed file; same functionality as bedtools bamToBed with default settings, i.e. assuming single-end.')
-options.add_argument('-p', '--pair', default=False,
-                        help='Print a pair of reads in one line; same functionality as bamToBed -bedpe.')   
+group = options.add_mutually_exclusive_group()
+group.add_argument('-p', action='store_true',
+                        help='Print a pair of reads in one line; same functionality as bamToBed -bedpe. Add the -p flag to use. Cannot be used with the -r flag. Using this option will not create fragments.')
+group.add_argument('-r', action='store_true',
+                        help='Convert bam file to bed format; same functionality as bedtools bamToBed with default settings, i.e. assuming single-end. Add the -r flag to use. Cannot be used with the -p flag. Using this option will not create fragments.')
 options.add_argument('bam_file',
                         help='Required; Coordinate sorted bam file. Index file needs to be in the same location as the bam file.')
 args = options.parse_args()
@@ -274,13 +275,14 @@ def main():
     bamFile = pysam.AlignmentFile(args.bam_file, "rb")
     chrPattern = re.compile(str(args.chr_include))
 
-    if (args.read) != False:
-        #Run bamToBed if user uses -r flag in command line
-        bamToBed(bamFile, chrPattern)
-    elif (args.pair) != False:
+    if args.p:
+        ##Print a pair of reads if user uses -p flag
         bedpe(bamFile, chrPattern)
+    elif args.r:
+        ##Run bamToBed if user uses -r flag
+        bamToBed(bamFile, chrPattern)
     else:
-        #Run bamToFrag otherwise
+        ##Run bamToFrag otherwise
         bamToFrag(bamFile, chrPattern)
 
 if __name__ == "__main__":
