@@ -21,15 +21,18 @@ import os
 import re
 
 #parse command line arguments
-options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed file. 5th column of the fragment bed file represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
+options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed format. 5th column of the output represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
 options.add_argument('-f', '--flags_include', default='0x2',
-                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
+                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. Use \'-f NULL\' to include all SAM flags (make sure not to use the -F flag in this case). User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
 options.add_argument('-F', '--flags_exclude', default='0x400',
-                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
+                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. Make sure not to use this flag when using \'-f NULL\'. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
 options.add_argument('-c', '--chr_include', default='.',
                         help='Regular expression of chromosomes to select. Default = . (all). e.g.) ^chr[0-9XY]+$|^chrM$ : regular/sex/chrM, ^chr[0-9XY]+$ : autosomal and sex chromosomes only.')
-options.add_argument('-r', '--read', default=False,
-                        help='Convert bam file to bed file; same functionality as bedtools bamToBed with default settings, i.e. assuming single-end.')                  
+group = options.add_mutually_exclusive_group()
+group.add_argument('-p', action='store_true',
+                        help='Print a pair of reads in one line; same functionality as bamToBed -bedpe. Add the -p flag to use. Cannot be used with the -r flag. Using this option will not create fragments.')
+group.add_argument('-r', action='store_true',
+                        help='Convert bam file to bed format; same functionality as bedtools bamToBed with default settings, i.e. assuming single-end. Add the -r flag to use. Cannot be used with the -p flag. Using this option will not create fragments.')
 options.add_argument('bam_file',
                         help='Required; Coordinate sorted bam file. Index file needs to be in the same location as the bam file.')
 args = options.parse_args()
@@ -50,6 +53,24 @@ def getReadLen(cig):
 
 #function that performs bamToBed functionality, i.e. single-end mode
 def bamToBed(bamFile, chrPattern):
+
+    if args.flags_include != "NULL":
+        #parse command line flags and convert hexadecimal inputs accordingly
+        try:
+            int(args.flags_include)
+            inFlags = int(args.flags_include)
+        except ValueError:
+            inFlags = int(args.flags_include, 16)
+
+        try:
+            int(args.flags_exclude)
+            exFlags = int(args.flags_exclude)
+        except ValueError:
+            exFlags = int(args.flags_exclude, 16)
+
+    else:
+        inFlags = 0
+        exFlags = 4096
 
     #Read the bam file line-by-line
     for read in bamFile.fetch():
@@ -91,18 +112,23 @@ def bamToFrag(bamFile, chrPattern):
     #create empty dictionary
     d = {}
 
-    #parse command line flags and convert hexadecimal inputs accordingly
-    try:
-        int(args.flags_include)
-        inFlags = int(args.flags_include)
-    except ValueError:
-        inFlags = int(args.flags_include, 16)
+    if args.flags_include != "NULL":
+        #parse command line flags and convert hexadecimal inputs accordingly
+        try:
+            int(args.flags_include)
+            inFlags = int(args.flags_include)
+        except ValueError:
+            inFlags = int(args.flags_include, 16)
 
-    try:
-        int(args.flags_exclude)
-        exFlags = int(args.flags_exclude)
-    except ValueError:
-        exFlags = int(args.flags_exclude, 16)
+        try:
+            int(args.flags_exclude)
+            exFlags = int(args.flags_exclude)
+        except ValueError:
+            exFlags = int(args.flags_exclude, 16)
+
+    else:
+        inFlags = 0
+        exFlags = 4096
 
     #iterate through each line in bam file
     for read in bamFile.fetch():
@@ -161,6 +187,87 @@ def bamToFrag(bamFile, chrPattern):
                 d[readName] = [POS, strand]
     return
 
+def bedpe(bamFile, chrPattern):
+    #iterate through each line in bam file
+    d = {}
+    
+    if args.flags_include != "NULL":
+        #parse command line flags and convert hexadecimal inputs accordingly
+        try:
+            int(args.flags_include)
+            inFlags = int(args.flags_include)
+        except ValueError:
+            inFlags = int(args.flags_include, 16)
+
+        try:
+            int(args.flags_exclude)
+            exFlags = int(args.flags_exclude)
+        except ValueError:
+            exFlags = int(args.flags_exclude, 16)
+
+    else:
+        inFlags = 0
+        exFlags = 4096
+        
+    for read in bamFile.fetch():
+
+        #Check flags and chromosome and skip reads that don't fit user specified criteria
+        if (int(read.flag) & inFlags == inFlags) and (int(read.flag) & exFlags != exFlags) and (chrPattern.match(bamFile.get_reference_name(read.reference_id))) :
+
+            #get read name from current line
+            readName = read.qname
+
+            #if read name exists in dictionary, pop key and get value
+            if readName in d:
+                firstEncounteredRead = d.pop(readName, None)
+
+                #assign relevant variables to the values after popping the key
+                firstStart = firstEncounteredRead[0]
+                firstEnd = firstEncounteredRead[1]
+                firstSTRAND = firstEncounteredRead[2]
+                firstChrom = firstEncounteredRead[3]
+                
+                #work on current read
+                readLen = getReadLen(read.cigartuples)
+                currentStart = int(read.pos)
+                currentEnd = int(read.pos) + readLen
+                currentChrom = bamFile.get_reference_name(read.reference_id)
+
+                #define start and end according to strand direction
+                #if the first read is a "+" strand, the end position would be read_length + start_position of current line in the bam file
+                if firstSTRAND == "+":
+                    currentSTRAND = "-"
+
+                #build fragment as if it were a "+" strand if the first read seen was a "-"
+                else:
+                    currentSTRAND = "+"
+
+                    
+                #print fragment info to STDOUT
+                readInfo = [firstChrom, firstStart, firstEnd, currentChrom, currentStart, currentEnd, readName, read.mapq, firstSTRAND, currentSTRAND]
+                print(*readInfo, sep="\t")
+
+
+            #if read name doesn't exist in dictionary, add relevant info to the dictionary
+            else:
+                #get read length of current line
+                readLen = getReadLen(read.cigartuples)
+
+                #get strand direction using TLEN column in bam file
+                if int(read.tlen) > 0:
+                    strand = "+"
+
+                #if the strand is "-", the end position would be the starting position + read length of the current line in the bam file
+                else:
+                    strand = "-"
+                
+                start = int(read.pos)
+                end = int(read.pos) + readLen
+                chromName = bamFile.get_reference_name(read.reference_id)
+
+                #create key and value for new unseen read and add to dictionary
+                d[readName] = [start, end, strand, chromName]
+    return
 
 #main function
 def main():
@@ -168,11 +275,14 @@ def main():
     bamFile = pysam.AlignmentFile(args.bam_file, "rb")
     chrPattern = re.compile(str(args.chr_include))
 
-    if (args.read) != False:
-        #Run bamToBed if user uses -r flag in command line
+    if args.p:
+        ##Print a pair of reads if user uses -p flag
+        bedpe(bamFile, chrPattern)
+    elif args.r:
+        ##Run bamToBed if user uses -r flag
         bamToBed(bamFile, chrPattern)
     else:
-        #Run bamToFrag otherwise
+        ##Run bamToFrag otherwise
         bamToFrag(bamFile, chrPattern)
 
 if __name__ == "__main__":
