@@ -25,7 +25,7 @@ options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam 
 options.add_argument('-f', '--flags_include', default='0x2',
                         help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. Use \'-f NULL\' to include all SAM flags (make sure not to use the -F flag in this case). User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
 options.add_argument('-F', '--flags_exclude', default='0x400',
-                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. Make sure not to use this flag when using \'-f NULL\' to include all SAM flags. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
+                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. Make sure not to use this flag when using \'-f NULL\'. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
 options.add_argument('-c', '--chr_include', default='.',
                         help='Regular expression of chromosomes to select. Default = . (all). e.g.) ^chr[0-9XY]+$|^chrM$ : regular/sex/chrM, ^chr[0-9XY]+$ : autosomal and sex chromosomes only.')
 group = options.add_mutually_exclusive_group()
