@@ -23,9 +23,9 @@ import re
 #parse command line arguments
 options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed format. 5th column of the output represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
 options.add_argument('-f', '--flags_include', default='0x2',
-                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. Use \'-f NULL\' to include all SAM flags (make sure not to use the -F flag in this case). User can enter multiple flags by entering their sum; ex. if user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
+                        help='SAM flag to include; input can be either in decimal or hexadecimal format. Default = 0x2. Use \'-f NULL\' to include all SAM flags (this means no filtering; -F should be set to NULL as well in this case). User can enter multiple flags by entering their sum; ex. if the user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks.')
 options.add_argument('-F', '--flags_exclude', default='0x400',
-                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. Make sure not to use this flag when using \'-f NULL\'. User can enter multiple flags by entering their sum; ex. if user wants to include flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
+                        help='SAM flag to exclude; input can be either in decimal or hexadecimal format. Default = 0x400. Use \'-F NULL\' along with \'-f NULL\' to include all SAM flags (no exclusion). User can enter multiple flags by entering their sum; ex. if the user wants to exclude flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks.')
 options.add_argument('-c', '--chr_include', default='.',
                         help='Regular expression of chromosomes to select. Default = . (all). e.g.) ^chr[0-9XY]+$|^chrM$ : regular/sex/chrM, ^chr[0-9XY]+$ : autosomal and sex chromosomes only.')
 group = options.add_mutually_exclusive_group()
@@ -61,15 +61,17 @@ def bamToBed(bamFile, chrPattern):
             inFlags = int(args.flags_include)
         except ValueError:
             inFlags = int(args.flags_include, 16)
+    
+    else:
+        inFlags = 0
 
+    if args.flags_exclude != "NULL":
         try:
             int(args.flags_exclude)
             exFlags = int(args.flags_exclude)
         except ValueError:
             exFlags = int(args.flags_exclude, 16)
-
     else:
-        inFlags = 0
         exFlags = 4096
 
     #Read the bam file line-by-line
@@ -119,15 +121,17 @@ def bamToFrag(bamFile, chrPattern):
             inFlags = int(args.flags_include)
         except ValueError:
             inFlags = int(args.flags_include, 16)
+    
+    else:
+        inFlags = 0
 
+    if args.flags_exclude != "NULL":
         try:
             int(args.flags_exclude)
             exFlags = int(args.flags_exclude)
         except ValueError:
             exFlags = int(args.flags_exclude, 16)
-
     else:
-        inFlags = 0
         exFlags = 4096
 
     #iterate through each line in bam file
@@ -198,15 +202,17 @@ def bedpe(bamFile, chrPattern):
             inFlags = int(args.flags_include)
         except ValueError:
             inFlags = int(args.flags_include, 16)
+    
+    else:
+        inFlags = 0
 
+    if args.flags_exclude != "NULL":
         try:
             int(args.flags_exclude)
             exFlags = int(args.flags_exclude)
         except ValueError:
             exFlags = int(args.flags_exclude, 16)
-
     else:
-        inFlags = 0
         exFlags = 4096
         
     for read in bamFile.fetch():
