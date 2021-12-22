@@ -102,15 +102,16 @@ do
 	mkdir -p Fragments
 	cd Fragments
 	dirName=`getDir ../../../${src_smk} splitDir`
-	makeLink ../../../${dirName}/${sample}.all.con.bed.gz frag.all.con.bed.gz
-	makeLink ../../../${dirName}/${sample}.nfr.con.bed.gz frag.nfr.con.bed.gz
-	makeLink ../../../${dirName}/${sample}.nuc.con.bed.gz frag.nuc.con.bed.gz
-	makeLink ../../../${dirName}/${sample}.all.ctr.bed.gz frag.all.ctr.bed.gz
-	makeLink ../../../${dirName}/${sample}.nfr.ctr.bed.gz frag.nfr.ctr.bed.gz
-	makeLink ../../../${dirName}/${sample}.nuc.ctr.bed.gz frag.nuc.ctr.bed.gz
-	makeLink ../../../${dirName}/${sample}.all.sep.bed.gz frag.all.sep.bed.gz
-	makeLink ../../../${dirName}/${sample}.nfr.sep.bed.gz frag.nfr.sep.bed.gz
-	makeLink ../../../${dirName}/${sample}.nuc.sep.bed.gz frag.nuc.sep.bed.gz
+	makeLink ../../../${dirName}/${sample}.all.con.bed.gz fragment.bed.gz
+	#makeLink ../../../${dirName}/${sample}.all.con.bed.gz frag.all.con.bed.gz
+	#makeLink ../../../${dirName}/${sample}.nfr.con.bed.gz frag.nfr.con.bed.gz
+	#makeLink ../../../${dirName}/${sample}.nuc.con.bed.gz frag.nuc.con.bed.gz
+	#makeLink ../../../${dirName}/${sample}.all.ctr.bed.gz frag.all.ctr.bed.gz
+	#makeLink ../../../${dirName}/${sample}.nfr.ctr.bed.gz frag.nfr.ctr.bed.gz
+	#makeLink ../../../${dirName}/${sample}.nuc.ctr.bed.gz frag.nuc.ctr.bed.gz
+	#makeLink ../../../${dirName}/${sample}.all.sep.bed.gz frag.all.sep.bed.gz
+	#makeLink ../../../${dirName}/${sample}.nfr.sep.bed.gz frag.nfr.sep.bed.gz
+	#makeLink ../../../${dirName}/${sample}.nuc.sep.bed.gz frag.nuc.sep.bed.gz
 	cd ..
 
 	## bigwig ctr rpm
