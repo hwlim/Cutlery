@@ -99,10 +99,10 @@ do
 	makeLink ../../${dirName}/${sample}.bam align.bam
 
 	## fragments
-	mkdir -p Fragments
-	cd Fragments
-	dirName=`getDir ../../../${src_smk} splitDir`
-	makeLink ../../../${dirName}/${sample}.all.con.bed.gz fragment.bed.gz
+	#mkdir -p Fragments
+	#cd Fragments
+	dirName=`getDir ../../${src_smk} splitDir`
+	makeLink ../../${dirName}/${sample}.all.con.bed.gz fragment.bed.gz
 	#makeLink ../../../${dirName}/${sample}.all.con.bed.gz frag.all.con.bed.gz
 	#makeLink ../../../${dirName}/${sample}.nfr.con.bed.gz frag.nfr.con.bed.gz
 	#makeLink ../../../${dirName}/${sample}.nuc.con.bed.gz frag.nuc.con.bed.gz
@@ -112,7 +112,13 @@ do
 	#makeLink ../../../${dirName}/${sample}.all.sep.bed.gz frag.all.sep.bed.gz
 	#makeLink ../../../${dirName}/${sample}.nfr.sep.bed.gz frag.nfr.sep.bed.gz
 	#makeLink ../../../${dirName}/${sample}.nuc.sep.bed.gz frag.nuc.sep.bed.gz
-	cd ..
+	#cd ..
+
+	## Homer Tag Dir
+	dirName=`getDir ../../${src_smk} homerDir`
+	makeLink ../../${dirName}/${sample}/TSV.all TSV.all
+	makeLink ../../${dirName}/${sample}/TSV.nuc TSV.nuc
+	makeLink ../../${dirName}/${sample}/TSV.nfr TSV.nfr
 
 	## bigwig ctr rpm
 	dirName=`getDir ../../${src_smk} bigWigDir`
