@@ -132,7 +132,10 @@ printFrag(){
 				if( resize > -1 ){
 					c = ($3+$2)/2
 					h = resize / 2
-					printf "%s\t%d\t%d\tNULL\t0\t%s\n", $1, c-h, c+h, $6
+					s = c - h
+					e = c + h
+					if(s < 0) s = 0
+					printf "%s\t%d\t%d\tNULL\t0\t%s\n", $1, s, e, $6
 				}else{
 					printf "%s\t%d\t%d\tNULL\t0\t%s\n", $1, $2, $3, $6
 				}
