@@ -118,34 +118,38 @@ do
 
 	## actual pooling
 	mkdir -p ${desDir}/${group}
-	echo -ne $log
+	echo -ne "" > $log
 	for src in ${srcL[@]}
 	do
 		echo -e "- $src" >> $log
 	done
 
 
+	tmp=${TMPDIR}/__temp__.$$.bed.gz
 	if [ "$unsorted" == "TRUE" ];then
 		if [ "$bsub" == "TRUE" ];then
 			## Parallel processing using HPC:lsf
-			bsub -W 24:00 -n 1 "cat ${srcL[@]} > $des"
+			bsub -W 24:00 -n 1 "cat ${srcL[@]} > $tmp; mv $tmp $des"
 		else
 			## Sequential processing
-			cat ${srcL[@]} > $des
+			cat ${srcL[@]} > $tmp
+			mv $tmp $des
 		fi
 	else
 		inputStr=""
 		for src in ${srcL[@]}
 		do
-			inputStr="${inputStr} <( zcat $inputStr )"
+			inputStr="${inputStr} <( zcat $src )"
 		done
 
 		if [ "$bsub" == "TRUE" ];then
 			## Parallel processing using HPC:lsf
-			bsub -W 24:00 -n 1 "sort -m -k1,1 -k2,2n -k3,3n ${inputStr} | gzip > $des"
+			bsub -W 24:00 -n 1 "eval \"sort -m -k1,1 -k2,2n -k3,3n ${inputStr} | gzip > $tmp\"; mv $tmp $des"
 		else
 			## Sequential processing
-			sort -m -k1,1 -k2,2n -k3,3n ${inputStr} | gzip > $des
+			#echo -e "sort -m -k1,1 -k2,2n -k3,3n ${inputStr}"
+			eval "sort -m -k1,1 -k2,2n -k3,3n ${inputStr} | gzip > $tmp"
+			mv $tmp $des
 		fi
 	fi
 done
