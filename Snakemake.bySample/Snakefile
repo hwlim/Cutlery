@@ -157,9 +157,12 @@ rule all:
 		## Create report per sample
 		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListHistone),
 		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListFactor),
+		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListHistone),
+		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListFactor),
 
 		## Create final report
 		"Report.html"
+		# "Report_pooled.html"
 
 '''
 Output files under Development

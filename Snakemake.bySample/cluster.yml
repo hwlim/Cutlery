@@ -5,7 +5,7 @@
 #
 __default__:
     cpu         : 1
-    memory      : 5000
+    memory      : 50000
     walltime    : "12:00"
     name        : "{rule}.{wildcards.sampleName}"
     output      : "logs/{rule}.{wildcards.sampleName}.out"
@@ -94,6 +94,12 @@ analyze_footprint_homer:
 analyze_footprint_homer_corrected:
     cpu         : 4
     memory      : 10000
+
+
+create_final_report_pooled:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"
 
 create_final_report:
     name        : "{rule}"
