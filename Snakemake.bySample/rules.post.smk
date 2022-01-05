@@ -880,3 +880,43 @@ rule create_final_report:
 		module load ImageMagick/6.9.12
 		cnr.createReportHTML.r -o Report -s {sampleDir} -q {qcDir}
 		"""
+
+rule create_report_per_sample_pooled:
+	input:
+		uniqFragCnt = qcDir + "/uniqFragCnt.txt",
+		baseFreqPNG = sampleDir + "/{sampleName}/QC/base_freq.png",
+		fragDistPNG = sampleDir + "/{sampleName}/QC/fragLen.dist.png",
+		fragQC = sampleDir + "/{sampleName}/QC/frag.QC.txt",
+		peakExample = lambda wildcards: get_peak_example(wildcards.sampleName),
+		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/QC/Report_pooled.html"
+	message:
+		"Creating report for sample... [{wildcards.sampleName}]"
+	params:
+		group = lambda wildcards: get_group(wildcards.sampleName)
+	shell:
+		"""
+		module load Cutlery/1.0
+		module load ImageMagick/6.9.12
+		cnr.createPooledSampleReportHTML.r -o Report_pooled -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}		
+		"""
+
+rule create_final_report_pooled:
+	input:
+		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
+		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
+		fragQC = expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=samples.Name.tolist()),
+		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
+	output:
+		"Report_pooled.html"
+	message:
+		"Creating final report in HTML..."
+	shell:
+		"""
+		module load Cutlery/1.0
+		module load ImageMagick/6.9.12
+		cnr.createPooledReportHTML.r -o Report_pooled -s {sampleDir} -q {qcDir}
+		"""

@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
-# source("/Volumes/limlab/ChristopherAhn/create_pdf_py/genomeR.r")
-# source("/Volumes/limlab/ChristopherAhn/create_pdf_py/basicR.r")
+# source("/Volumes/limlab/ChristopherAhn/21.09.24_create_pdf_py/genomeR.r")
+# source("/Volumes/limlab/ChristopherAhn/21.09.24_create_pdf_py/basicR.r")
 source(sprintf("%s/genomeR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
@@ -196,8 +196,8 @@ draw_peak_example=function(bed, extractedBW, windowSize, binsize, des=NULL){
         xRange <- peakStart:(peakStart + (windowSize/binsize) - 1)
 
         #modify column values
-        tempNUC[1] <- xRange
-        tempNFR[1] <- xRange
+        tempNUC[1] <- xRange * binsize
+        tempNFR[1] <- xRange * binsize
 
         #if control exists
         if (length(extractedBW) == 4){
