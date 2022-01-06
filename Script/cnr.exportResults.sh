@@ -188,7 +188,7 @@ do
 		do
 			suffix=`basename $src`
 			des=${desDir}/Motif/${sample}.${suffix}
-			exportFile "$src" "$des" FALSE
+			exportFile "$src" "$des" TRUE
 		done
 	else
 		echo -e "3) Skipping motif search results" >&2
