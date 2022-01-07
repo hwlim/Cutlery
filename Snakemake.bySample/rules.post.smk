@@ -813,7 +813,7 @@ rule calc_frag_QC:
 		"""
 		module load Cutlery/1.0
 		cnr.calcFragQC.py -o {sampleDir}/{wildcards.sampleName}/QC \
-		-d {input.fragDist} -f {input.fragBed}
+		{input.fragBed} {input.fragDist}
 		"""
 
 #take sampleName as input

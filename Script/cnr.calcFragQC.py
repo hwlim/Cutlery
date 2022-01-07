@@ -14,13 +14,13 @@ from sklearn.mixture import GaussianMixture as GMM
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 
-options = argparse.ArgumentParser(description="Get fragment QC stats", usage="python3 getFragQC.py (options)")
-options.add_argument('-f', '--fragmentBed_file',
-                        help='frag.all.bed file')
-options.add_argument('-d', '--fragLenDist_file',
-                        help='fragLenDist.txt file from Cutlery')
-options.add_argument('-o', '--outputFile',
-                        help='Path to fragQC file')
+options = argparse.ArgumentParser(description="Get fragment QC stats. This script uses a Gaussian mixture model to determine the weights of nfr fragments and nuc fragments.", usage="python3 getFragQC.py (options) fragment.bed fragLenDist.txt")
+options.add_argument('fragmentBed_file',
+                        help='Required; frag.all.bed file from Cutlery')
+options.add_argument('fragLenDist_file',
+                        help='Required; fragLenDist.txt file from Cutlery')
+options.add_argument('-o', '--outputFile', default='QC',
+                        help='Path to output fragQC file; does not need a \'/\' at the end.')
 args = options.parse_args()
 
 
