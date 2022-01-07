@@ -4,18 +4,14 @@ suppressPackageStartupMessages(library('RColorBrewer', quiet=TRUE))
 suppressPackageStartupMessages(library('optparse', quiet=TRUE))
 suppressPackageStartupMessages(library('tools', quiet=TRUE))
 
-# source("/Volumes/limlab/ChristopherAhn/21.09.24_create_pdf_py/genomeR.r")
-# source("/Volumes/limlab/ChristopherAhn/21.09.24_create_pdf_py/basicR.r")
-# source("/Volumes/limlab/ChristopherAhn/21.09.24_create_pdf_py/commonR.r")
 source(sprintf("%s/commonR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/genomeR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
-
 # command line option handling
 option_list <- list(
 	make_option(c("-t","--title"), default="BigWig Heatmap", help="Main Title. default=BigWig Heatmap"),
-	make_option(c("-w","--width"), default=2000, help="Visualization window, default=2000"),
+	make_option(c("-w","--width"), default=2000, help="Visualization window, default=2000; Leave as 2000 for TF samples and use 10000 instead for histone samples."),
 	make_option(c("-b","--binSize"), default=20, help="Bin size for tiled-average, default=20"),
 	make_option(c("-m","--margin"), default="0,0.5,2,0.5", help="Outside margin (oma), default=0,0.5,2,0.5"),
 	make_option(c("-s","--size"), default="3,3", help="Comma-separated figure size, xSize,ySize, in inch, default=3,3"),
@@ -31,7 +27,8 @@ Note:
 	- Strand sensitive
 	- Not appropriate 1bp-sensitive Job.
 	- If data files are already exists, plots are re-drawn only.
-	- If colName or rowName is given, data files are named using this as prefix/suffix." )
+	- If colName or rowName is given, data files are named using this as prefix/suffix.
+	- If ctrl sample bw files exist, include them as well after the sample bw files." )
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) == 0) {
 	print_help(parser)

@@ -11,15 +11,15 @@ suppressPackageStartupMessages(library('reshape2', quiet=TRUE))
 suppressPackageStartupMessages(library('cowplot', quiet=TRUE))
 
 option_list <- list(
-    make_option(c("-o","--outPrefix"), help="Path to output prefix"),
-    make_option(c("-m","--mode"), help="Peak mode; Enter 'histone' or 'factor'"),
-    make_option(c("-n","--numPeaks"), help="Number of highest scoring peaks to visualize; should be an integer"),
-    make_option(c("-p","--peak"), help="Peak.bed file")
+    make_option(c("-o","--outPrefix"), help="Path + prefix for output file"),
+    make_option(c("-m","--mode"), help="Peak mode; Enter 'histone' or 'factor'. This will modify the bin size and window size used when extracting data from bw files"),
+    make_option(c("-n","--numPeaks"), help="Number of highest scoring peaks to visualize; should be an integer."),
+    make_option(c("-p","--peak"), help="Path to peak.bed file")
 )
 
 parser <- OptionParser(usage = "%prog",
 	description="Description:
-	Takes a peak file to visualize the top scoring peak regions and save as images.
+	Takes a peak file to visualize the top scoring peak regions and save as one png and one pdf file.
 Input:
 	sample/directory
 Output:

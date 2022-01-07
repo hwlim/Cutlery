@@ -16,7 +16,7 @@ option_list <- list(
 )
 parser <- OptionParser(usage = "%prog [options]",
 	description="Description:
-	Creates final HTML report.
+	Creates sample HTML report.
 Input:
 	'2.1.QualityControl' directory path
 	Individual sample directory path
