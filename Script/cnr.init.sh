@@ -15,6 +15,6 @@ echo -e "Initializing Cutlery analysis" >&2
 echo -e "  CUTLERY path = ${CUTLERY}" >&2
 
 
-cp -v ${CUTLERY}/Snakemake.bySample/sample.tsv .
-cp -v ${CUTLERY}/Snakemake.bySample/Snakefile .
+cp -i -v ${CUTLERY}/Snakemake.bySample/sample.tsv .
+cp -i -v ${CUTLERY}/Snakemake.bySample/Snakefile .
 #cp -v ${CUTLERY}/Snakemake.bySample/0.submit.snakemake.sh .
