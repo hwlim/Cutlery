@@ -20,6 +20,8 @@
 if "meme_db" not in locals():
 	meme_db = os.environ["LIMLAB_BASE"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
 
+if "numHighestPeaks" not in locals():
+	numHighestPeaks = 5
 
 
 #################################
@@ -864,6 +866,7 @@ rule create_report_per_sample:
 
 rule create_final_report:
 	input:
+		uniqFragCnt = qcDir + "/uniqFragCnt.txt",
 		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
 		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
