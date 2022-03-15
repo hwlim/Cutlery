@@ -125,7 +125,7 @@ do
 	done
 
 
-	tmp=${TMPDIR}/__temp__.$$.bed.gz
+	tmp=${TMPDIR}/__temp__.$$.${group}.bed.gz
 	if [ "$unsorted" == "TRUE" ];then
 		if [ "$bsub" == "TRUE" ];then
 			## Parallel processing using HPC:lsf
@@ -144,7 +144,11 @@ do
 
 		if [ "$bsub" == "TRUE" ];then
 			## Parallel processing using HPC:lsf
-			bsub -W 24:00 -n 1 "eval \"sort -m -k1,1 -k2,2n -k3,3n ${inputStr} | gzip > $tmp\"; mv $tmp $des"
+			bsub -W 24:00 -n 1  <<- EOF
+#!/usr/bin/env bash
+sort -m -k1,1 -k2,2n -k3,3n ${inputStr} | gzip > $tmp
+mv $tmp $des
+EOF
 		else
 			## Sequential processing
 			#echo -e "sort -m -k1,1 -k2,2n -k3,3n ${inputStr}"
