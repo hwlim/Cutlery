@@ -119,6 +119,7 @@ peak0=${desDir}/peak.txt
 peakBed=${desDir}/peak.bed
 peakMasked=${desDir}/peak.exBL.bed
 peak1rpm=${desDir}/peak.exBL.1rpm.bed
+peakStat=${desDir}/peak.exBL.1rpm.stat
 
 ## Homer Peak finding
 mkdir -p $desDir
@@ -131,27 +132,33 @@ else
 	findPeaks $target -i ${ctrl} ${optStr} 2>&1 | tee ${log}
 fi
 
+tmpAll=${TMPDIR}/__temp__.$$.all.bed
+tmpCtr=${TMPDIR}/__temp__.$$.ctr.bed
+tmpStat=${TMPDIR}/__temp__.$$.stat
 
 ## pos -> bed file
-## Note:
 ## - Filtering by $2 >1 : homer peak calling gives start coordinate 1 at the chromosome starting boundary with different size, which should be removed
 grep -v "^#" ${peak0} \
 	| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t+\n", $2, $3, $4, $1, $6 }' \
 	| gawk '$2 > 1' \
-	> ${peakBed}
+	> ${tmpAll}
 
 ## Peak centering using given NFR bigwig file
-tmpPeak=${TMPDIR}/__temp__.$$.bed
 if [ "$bw" != "NULL" ];then
-	cnr.centerPeaks.r -n 20 -o ${tmpPeak} ${peakBed} ${bw}
-	peakBed=${tmpPeak}
+	cnr.centerPeaks.r -n 20 -o ${tmpCtr} ${tmpAll} ${bw}
+	cat ${tmpCtr} | gawk '$2 > 0' > ${peakBed}
+	rm $tmpCtr
+else
+	cat ${tmpAll} > ${peakBed}
 fi
+rm $tmpAll
+
 
 ## Blacklist filtering if given
 if [ "$mask" != "NULL" ];then
 	intersectBed -a ${peakBed} -b $mask -v > ${peakMasked}
 else
-	cp ${peakBed} ${peakMasked}
+	cat ${peakBed} > ${peakMasked}
 fi
 
 ## > 1 RPM filtering
@@ -161,3 +168,12 @@ gawk '$5 > 1' ${peakMasked} > ${peak1rpm}
 N0=`cat ${peakBed} | wc -l`
 N1=`cat ${peak1rpm} | wc -l`
 echo -e "Final peaks: $N1 (/$N0), > 1rpm(/all)" >&2
+
+## peak statistics, % of fragments in peak > 1rpm
+N_frag_all=`grep genome ${target}/tagInfo.txt | gawk '{ printf "%d", $3}'`
+tagDir2bed.pl $target -separate \
+	| intersectBed -a stdin -b ${peak1rpm} -u \
+	| wc -l \
+	| gawk '{ printf "FragmentInPeakFrac\t%.2f\n", $1 / '$N_frag_all' * 100 }' \
+	> $tmpStat
+mv $tmpStat $peakStat
