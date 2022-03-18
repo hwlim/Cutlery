@@ -145,7 +145,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
 		## BigWig 1bp raw/abs (motivated for BPnet input file)
-		expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"]),
+		#expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"]),
 
 		## Draw peak examples
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.{ext}", sampleName=sampleListFactor, ext=["png","pdf"]),
