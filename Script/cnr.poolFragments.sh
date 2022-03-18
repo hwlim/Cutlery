@@ -15,8 +15,19 @@ Description:
 	Merge multiple fragment bed files of a group according to sample/group information within a given sample.tsv file
 Input:
 	- sample.tsv file: containing columns 'Name' and 'Group', from original/replicate Cutlery run
-	- src replicate sample directory: contanining sample directories
-	- des pooled sample directory: to write merged <sample>/fragment.bed.gz files
+	- src replicate sample directory
+	  e.g. <sample dir>
+	   <sample dir>/sample1
+	  ├── sample1
+	  │    └── fragment.bed.gz
+	  └── sample12
+	       └── fragment.bed.gz
+	- des directory pooling replicate samples per group
+	  e.g. <des dir>
+	  ├── group1
+	  │    └── fragment.bed.gz
+	  └── group2
+	       └── fragment.bed.gz
 Options:
 	-t: if set, dry run simply displaying pooling message, default=off
 	-b: if set, bsub are submitted for merging bam files, default=off

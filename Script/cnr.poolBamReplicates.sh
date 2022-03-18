@@ -5,6 +5,12 @@
 # Written by Hee-Wooong Lim
 # 
 # Pool bam files of multiple replicates by group
+#
+# NOTE:
+# Originally developed for CUT&Run pipeline. Cutlery
+# But, now Cutlery uses fragment files, thus has been integrated to ngs.poolBamReplicates.sh with -s option
+# Will be deprecated
+
 
 source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
@@ -15,9 +21,14 @@ Description:
 	Merge multiple bam files of a group according to sample/group information within a given sample.tsv file
 Input:
 	- sample.tsv file: containing columns 'Name' and 'Group', from original/replicate Cutlery run
-	- src bam directory: contanin replicate bam files
+	- src bam directory: contaning replicate bam files
+	  e.g. <src sample dir>
+	  ├── <sample1>.bam
+	  └── <sample2>.bam
 	- des bam directory: to write merged bam files
-		bam files are named as <group>.bam
+	  e.g. <des group dir>
+	  ├── <group1>.bam
+	  └── <group2>.bam
 Options:
 	-b: if set, bsub are submitted for merging bam files, default=off
 	-u: if set, assuming unsorted replicate bam file (name-sorted as in old version of Cutlery), default=off
