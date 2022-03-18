@@ -116,6 +116,8 @@ echo -e "" >&2
 peak0=${desDir}/peak.txt
 peakBed=${desDir}/peak.bed
 peakMasked=${desDir}/peak.exBL.bed
+peakStat=${desDir}/peak.exBL.stat
+
 #peak1rpm=${desDir}/peak.exBL.1rpm.bed
 tmpPeakMasked=${TMPDIR}/__temp__.$$.bed
 tmpTagCount=${TMPDIR}/__temp__.$$.target
@@ -185,3 +187,12 @@ N1=`cat ${peakMasked} | wc -l`
 echo -e "Final peaks:" >&2
 echo -e "  - Original = $N0" >&2
 echo -e "  - After filtering = $N1" >&2
+
+## peak statistics, % of fragments in peak > 1rpm
+N_frag_all=`grep genome ${target}/tagInfo.txt | gawk '{ printf "%d", $3}'`
+tagDir2bed.pl $target -separate \
+	| intersectBed -a stdin -b ${peakMasked} -u \
+	| wc -l \
+	| gawk '{ printf "FragmentInPeakFrac\t%.2f\n", $1 / '$N_frag_all' * 100 }' \
+	> $tmpStat
+mv $tmpStat $peakStat
