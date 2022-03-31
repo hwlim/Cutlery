@@ -67,6 +67,7 @@ for row in densityFile:
 # convert to df
 npArray = np.asarray(tmpList)
 df = pd.DataFrame(npArray)
+df = df[df[0]<1000].sample(1000000)
 
 # Get weights of distribution from GMM
 # define number of clusters/components as 3
