@@ -100,6 +100,9 @@ if [ "$genome" = "NULL" ];then
 fi
 isDirExist $genome
 
+## Thread
+optStr="${optStr} --runThreadN $thread"
+
 ## Temporary folder designation
 optStr="${optStr} --outTmpDir ${TMPDIR}/STARtmp_$$"
 
