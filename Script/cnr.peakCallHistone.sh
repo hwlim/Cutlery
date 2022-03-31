@@ -121,6 +121,7 @@ peakStat=${desDir}/peak.exBL.stat
 #peak1rpm=${desDir}/peak.exBL.1rpm.bed
 tmpPeakMasked=${TMPDIR}/__temp__.$$.bed
 tmpTagCount=${TMPDIR}/__temp__.$$.target
+tmpStat=${TMPDIR}/__temp__.$$.stat
 
 mkdir -p $desDir
 if [ "$ctrl" == "NULL" ];then
