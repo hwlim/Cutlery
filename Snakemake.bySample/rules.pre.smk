@@ -50,10 +50,23 @@ def get_fastq(wildcards):
 		else:
 			return [fastqDir + "/" + fq1, fastqDir + "/" + fq2]
 
+def get_fq1(wildcards):
+	if doTrim:
+		return trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_1.trim.fq.gz"
+	else:
+		return fastqDir + "/" + samples.Fq1[samples.Name == wildcards.sampleName].tolist()[0]
+
+def get_fq2(wildcards):
+	if doTrim:
+		return trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_2.trim.fq.gz"
+	else:
+		return fastqDir + "/" + samples.Fq2[samples.Name == wildcards.sampleName].tolist()[0]
+
 
 rule align_pe:
 	input:
-		get_fastq
+		fq1=get_fq1,
+		fq2=get_fq2
 	output:
 		bam = alignDir + "/{sampleName}/align.bam",
 		bai = alignDir + "/{sampleName}/align.bam.bai"
@@ -72,13 +85,34 @@ rule align_pe:
 		module load Cutlery/1.0
 		module load {params.star_module}
 
-		star.align.sh -g {params.index} \
-			-o {alignDir}/{wildcards.sampleName}/align \
-			-t {threads} \
-			-p '{params.option}' \
-			-s \
-			{input}
+		STAR --runMode alignReads \
+			--genomeDir {params.index} \
+			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
+			--genomeLoad NoSharedMemory \
+			--outFileNamePrefix {alignDir}/{wildcards.sampleName}/align. \
+			--runThreadN 4 \
+			--outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000 \
+			--outTmpDir ${{TMPDIR}}/STARtmp_$$ \
+			{star_option}
+
+		mv {alignDir}/{wildcards.sampleName}/align.Aligned.sortedByCoord.out.bam {alignDir}/{wildcards.sampleName}/align.bam
+		samtools index {alignDir}/{wildcards.sampleName}/align.bam
+
+		if [ -f {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate1 ];then
+			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate1
+			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate2
+		fi
+
+#		star.align.sh -g {params.index} \
+#			-o {alignDir}/{wildcards.sampleName}/align \
+#			-t {threads} \
+#			-p '{params.option}' \
+#			-s \
+#			{input}
 		"""
+
+
+
 
 def get_align_dir(bamList):
 	import os.path
