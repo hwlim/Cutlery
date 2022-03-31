@@ -589,7 +589,7 @@ rule draw_peak_heatmap_factor:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 \
+		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
 			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
 			{input.bed} {input.bw}
 		"""
@@ -606,7 +606,7 @@ rule draw_peak_heatmap_histone:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 \
+		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 100 \
 			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/heatmap.exBL \
 			{input.bed} {input.bw}
 		"""
