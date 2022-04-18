@@ -12,7 +12,8 @@ option_list <- list(
 	make_option(c("-o","--outputFile"), help="prefix to output file; Can include path as well"),
 	make_option(c("-g","--groupName"), help="Group name for the sample"),
 	make_option(c("-s","--sampleDir"), help="Path to the Sample Folder, defined by 'sampleDir'"),
-	make_option(c("-q","--qcDir"), help="Path to the Quality Control Folder, defined by 'qcDir'")
+	make_option(c("-q","--qcDir"), help="Path to the Quality Control Folder, defined by 'qcDir'"),
+	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule")
 )
 parser <- OptionParser(usage = "%prog [options]",
 	description="Description:
@@ -23,7 +24,7 @@ Input:
 	Output file name
 Output:
     - Report.html",
-	 option_list=option_list)
+	option_list=option_list)
 arguments <- parse_args(parser, positional_arguments = TRUE)
 
 # Option handling
@@ -97,7 +98,7 @@ peakMode <- tail(unlist(strsplit(homerFolderName, ".", fixed = TRUE)))[2]
 homerFolderPath <- paste0(sampDir, "/", homerFolderName)
 
 #get fragmentQC files for the sample
-fragQCfile <- paste0(sampleQC, "/frag.QC.txt")
+fragQCfile <- paste0(sampleQC, "/", opt$fragMixPrefix ,".txt")
 fragQC <- read.table(fragQCfile, header = TRUE)
 fragLenDist <- paste0(sampleQC, "/fragLen.dist.png")
 

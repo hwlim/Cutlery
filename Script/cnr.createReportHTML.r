@@ -11,7 +11,8 @@ suppressPackageStartupMessages(library('magick', quiet=TRUE))
 option_list <- list(
 	make_option(c("-o","--outputFile"), help="prefix to output file; Can include path as well"),
 	make_option(c("-s","--sampleDir"), help="Path to the Sample Folder, defined by 'sampleDir'"),
-	make_option(c("-q","--qcDir"), help="Path to the Quality Control Folder, defined by 'qcDir'")
+	make_option(c("-q","--qcDir"), help="Path to the Quality Control Folder, defined by 'qcDir'"),
+	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule")
 )
 parser <- OptionParser(usage = "%prog [options]",
 	description="Description:
@@ -101,7 +102,7 @@ for (sample in sampleQC) {
 	homerFolderPath <- paste0(sampleDirectory, "/", homerFolderName)
 	
 	#get fragmentQC file for the sample
-	fragQCfile <- paste0(sample, "/frag.QC.txt")
+	fragQCfile <- paste0(sample, "/", opt$fragMixPrefix ,".txt")
 	fragQC <- read.table(fragQCfile, header = TRUE)
 
 	# skip visualization of control samples, but retrieve fragQC
