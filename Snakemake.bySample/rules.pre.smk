@@ -90,7 +90,7 @@ rule align_pe:
 			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
 			--genomeLoad NoSharedMemory \
 			--outFileNamePrefix {alignDir}/{wildcards.sampleName}/align. \
-			--runThreadN 4 \
+			--runThreadN {thread} \
 			--outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000 \
 			--outTmpDir ${{TMPDIR}}/STARtmp_$$ \
 			{star_option}
@@ -102,6 +102,8 @@ rule align_pe:
 			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate1
 			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate2
 		fi
+		"""
+
 
 #		star.align.sh -g {params.index} \
 #			-o {alignDir}/{wildcards.sampleName}/align \
@@ -109,8 +111,6 @@ rule align_pe:
 #			-p '{params.option}' \
 #			-s \
 #			{input}
-		"""
-
 
 
 
