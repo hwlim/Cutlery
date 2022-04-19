@@ -14,44 +14,28 @@ from sklearn.mixture import GaussianMixture as GMM
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 
-options = argparse.ArgumentParser(description="Get fragment QC stats. This script uses a Gaussian mixture model to determine the weights of nfr fragments and nuc fragments.", usage="python3 getFragQC.py (options) fragment.bed fragLenDist.txt")
-options.add_argument('fragmentBed_file',
-                        help='Required; frag.all.bed file from Cutlery')
+options = argparse.ArgumentParser(description="Get fragment QC stats. This script uses a Gaussian mixture model to determine the weights of nfr fragments and nuc fragments.", usage="python3 getFragQC.py (options) fragLenDist.txt")
 options.add_argument('fragLenDist_file',
                         help='Required; fragLenDist.txt file from Cutlery')
-options.add_argument('-o', '--outputFile', default='QC',
-                        help='Path to output fragQC file; does not need a \'/\' at the end.')
+options.add_argument('-o', '--outputFile', default='fragMix',
+                        help='Prefix for output files. There are three output files in total: output.txt file containing the ratios and weights of nfr and nuc fragments, along with a GMM.pdf and a GMM.png file visualizing the mixture model.')
 args = options.parse_args()
 
+# open density file as df
+fragLenDist = pd.read_csv(args.fragLenDist_file, delimiter = "\t")
 
 # get nfr and nuc fragment percentages
-totalCount = 0
-nfrCount = 0
-nucCount = 0
-
-# open fragment.bed.gz file
-with gzip.open(args.fragmentBed_file, mode="rt") as fragBed:
-    for frag in fragBed:
-        
-        totalCount = totalCount + 1
-
-        splitStr = frag.split("\t")
-        start = int(splitStr[1])
-        end = int(splitStr[2])
-        fragLen = end - start
-        
-        # separate fragments by size
-        if fragLen <= 120:
-            nfrCount = nfrCount + 1
-        elif fragLen >= 150:
-            nucCount = nucCount + 1
+totalCount = fragLenDist['Cnt'].sum()
+nfrCount = fragLenDist['Cnt'][:120].sum()
+nucCount = fragLenDist['Cnt'][150:].sum()
 
 # get fragment ratio
 nfrFrac = nfrCount / totalCount * 100
 nucFrac = nucCount / totalCount * 100
 
-# convert density file to individual distances
+# open density file
 fragLenDist = open(args.fragLenDist_file)
+# convert density file to individual distances
 densityFile = csv.reader(fragLenDist, delimiter="\t")
 # skip header
 next(densityFile)
@@ -96,7 +80,7 @@ covs = covs[sortedInd[:]]
 weights = weights[sortedInd[:]]
 
 # Create and save fragQC table
-outName = args.outputFile + "/frag.QC.txt"
+outName = args.outputFile + ".txt"
 with open(outName, mode = 'w') as outFile:
     outFile_write = csv.writer(outFile, delimiter='\t')
     outFile_write.writerow(["NFR_Frags(%)", "NUC_Frags(%)", "W_0", "W_1", "W_2"])
@@ -118,5 +102,5 @@ plt.legend()
 #plt.xlim(0, 1000)
 plt.xlabel(r"Distance", fontsize=20)
 plt.ylabel(r"Density", fontsize=20)
-plt.savefig(args.outputFile + "/GMM.png")
-plt.savefig(args.outputFile + "/GMM.pdf")
+plt.savefig(args.outputFile + ".GMM.png")
+plt.savefig(args.outputFile + ".GMM.pdf")

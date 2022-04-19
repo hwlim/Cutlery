@@ -136,8 +136,8 @@ rule all:
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 		## Peak calling
-		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed", sampleName=sampleListFactor),
-		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.{ext}", sampleName=sampleListFactor, ext=["bed","stat"]),
+		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.{ext}", sampleName=sampleListHistone, ext=["bed","stat"]),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
 
@@ -152,7 +152,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.{ext}", sampleName=sampleListHistone, ext=["png","pdf"]),
 
 		## Calculate fragment QC
-		expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=sampleList),
+		expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=sampleList),
 
 		## Create report per sample
 		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListHistone),
@@ -178,4 +178,3 @@ Output files under Development
 ## Include Snakemake rules from separate files
 include: os.environ["CUTLERY"] + "/Snakemake.bySample/rules.pre.smk"
 include: os.environ["CUTLERY"] + "/Snakemake.bySample/rules.post.smk"
-

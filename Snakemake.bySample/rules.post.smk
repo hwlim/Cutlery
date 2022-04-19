@@ -395,7 +395,7 @@ rule call_peaks_factor:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr"),
 		bw = sampleDir + "/{sampleName}/igv.nfr.con.bw",
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/peak.exBL.1rpm.{ext}", ext=["bed", "stat"])
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
 		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
@@ -430,7 +430,7 @@ rule call_peaks_histone:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc"),
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed"
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/peak.exBL.{ext}", ext=["bed", "stat"])
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone",
 		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
@@ -805,17 +805,16 @@ rule draw_peak_examples_factor:
 
 rule calc_frag_QC:
 	input:
-		fragBed = sampleDir + "/{sampleName}/fragment.bed.gz",
 		fragDist = sampleDir + "/{sampleName}/QC/fragLen.dist.txt"
 	output:
-		sampleDir + "/{sampleName}/QC/frag.QC.txt"
+		sampleDir + "/{sampleName}/QC/fragMix.txt"
 	message:
 		"Performing fragment QC on sample... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.calcFragQC.py -o {sampleDir}/{wildcards.sampleName}/QC \
-		{input.fragBed} {input.fragDist}
+		cnr.calcFragMixture.py -o {sampleDir}/{wildcards.sampleName}/QC/fragMix \
+		{input.fragDist}
 		"""
 
 #take sampleName as input
@@ -833,6 +832,8 @@ def get_peak_example(sampleName):
 		return sampleDir + "/" + sampleName + "/HomerPeak.histone/peak.examples.png"
 	elif peakMode == "factor":
 		return sampleDir + "/" + sampleName + "/HomerPeak.factor/peak.examples.png"
+	elif peakMode == "NULL":
+		return ""
 
 def get_heatmap(sampleName):
 	peakMode = get_peak_mode(sampleName)
@@ -840,6 +841,17 @@ def get_heatmap(sampleName):
 		return sampleDir + "/" + sampleName + "/HomerPeak.histone/heatmap.exBL.png"
 	elif peakMode == "factor":
 		return sampleDir + "/" + sampleName + "/HomerPeak.factor/heatmap.exBL.1rpm.png"
+	elif peakMode == "NULL":
+		return ""
+
+def get_peakIntersectPerc(sampleName):
+	peakMode = get_peak_mode(sampleName)
+	if peakMode == "histone":
+		return sampleDir + "/" + sampleName + "/HomerPeak.histone/peak.exBL.stat"
+	elif peakMode == "factor":
+		return sampleDir + "/" + sampleName + "/HomerPeak.factor/peak.exBL.1rpm.stat"
+	elif peakMode == "NULL":
+		return ""
 
 rule create_report_per_sample:
 	input:
@@ -847,9 +859,10 @@ rule create_report_per_sample:
 		uniqFragCnt = qcDir + "/uniqFragCnt.txt",
 		baseFreqPNG = sampleDir + "/{sampleName}/QC/base_freq.png",
 		fragDistPNG = sampleDir + "/{sampleName}/QC/fragLen.dist.png",
-		fragQC = sampleDir + "/{sampleName}/QC/frag.QC.txt",
+		fragQC = sampleDir + "/{sampleName}/QC/fragMix.txt",
 		peakExample = lambda wildcards: get_peak_example(wildcards.sampleName),
-		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName)
+		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName),
+		peakStat = lambda wildcards: get_peakIntersectPerc(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/QC/Report.html"
 	message:
@@ -860,7 +873,7 @@ rule create_report_per_sample:
 		"""
 		module load Cutlery/1.0
 		module load ImageMagick/6.9.12
-		cnr.createSampleReportHTML.r -o Report -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}		
+		cnr.createSampleReportHTML.r -o Report -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir} -f fragMix
 		"""
 
 
@@ -870,9 +883,11 @@ rule create_final_report:
 		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
 		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
-		fragQC = expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=samples.Name.tolist()),
+		fragQC = expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=samples.Name.tolist()),
 		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
-		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
+		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
+		histonePeakIntersectPerc = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.stat", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		factorPeakIntersectPerc = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.stat", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
 	output:
 		"Report.html"
 	message:
@@ -881,7 +896,7 @@ rule create_final_report:
 		"""
 		module load Cutlery/1.0
 		module load ImageMagick/6.9.12
-		cnr.createReportHTML.r -o Report -s {sampleDir} -q {qcDir}
+		cnr.createReportHTML.r -o Report -s {sampleDir} -q {qcDir} -f fragMix
 		"""
 
 rule create_report_per_sample_pooled:
@@ -889,9 +904,10 @@ rule create_report_per_sample_pooled:
 		uniqFragCnt = qcDir + "/uniqFragCnt.txt",
 		baseFreqPNG = sampleDir + "/{sampleName}/QC/base_freq.png",
 		fragDistPNG = sampleDir + "/{sampleName}/QC/fragLen.dist.png",
-		fragQC = sampleDir + "/{sampleName}/QC/frag.QC.txt",
+		fragQC = sampleDir + "/{sampleName}/QC/fragMix.txt",
 		peakExample = lambda wildcards: get_peak_example(wildcards.sampleName),
-		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName)
+		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName),
+		peakStat = lambda wildcards: get_peakIntersectPerc(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/QC/Report_pooled.html"
 	message:
@@ -910,9 +926,11 @@ rule create_final_report_pooled:
 		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
 		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
 		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
-		fragQC = expand(sampleDir + "/{sampleName}/QC/frag.QC.txt", sampleName=samples.Name.tolist()),
+		fragQC = expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=samples.Name.tolist()),
 		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
-		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
+		factorHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
+		histonePeakIntersectPerc = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.stat", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
+		factorPeakIntersectPerc = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.stat", sampleName = samples.Name[samples.PeakMode=="factor"].tolist())
 	output:
 		"Report_pooled.html"
 	message:
