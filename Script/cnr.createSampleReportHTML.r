@@ -53,26 +53,6 @@ sumPeaks=function(bed) {
 	return(sum(strtoi(getDiffs)))
 }
 
-#get % of fragments that intersect at least one peak
-fragIntersect=function(fragBed, bed) {
-	tempFragBed <- tempfile()
-
-	#create temporary unzipped frag file
-	system(paste0("zcat ", fragBed, " > ", tempFragBed))
-
-	#count fragments
-	countLines <- system(paste0("wc -l ", tempFragBed), intern = TRUE, ignore.stdout = FALSE, ignore.stderr = FALSE, wait = TRUE)
-	print(countLines)
-	numFrags <- strtoi(strsplit(countLines, "\\s+")[[1]][1])
-	print(numFrags)
-
-	#get number of intersects
-	getIntersects <- system(paste0("bedtools intersect -u -a ", tempFragBed, " -b ", bed, " | wc -l"), intern = TRUE, ignore.stdout = FALSE, ignore.stderr = FALSE, wait = TRUE)
-	numIntersects <- strtoi(strsplit(getIntersects, "\\s+")[[1]][1])
-	unlink(tempFragBed)
-	return(numIntersects / numFrags * 100)
-}
-
 #make two tables, one each for histone mode and factor mode
 #make a fragQC table
 histoneTable <- data.table(peakcount=numeric(), widths=numeric(), fraction=numeric())
@@ -117,13 +97,15 @@ if (is.null(peakMode)) {
 if (peakMode == "factor") {
 	heatmap <- list.files(homerFolderPath, pattern = "*heatmap.exBL.1rpm.png", full.names = TRUE)
 	peakFile <- list.files(homerFolderPath, pattern = "*peak.exBL.1rpm.bed", full.names = TRUE)
-	intersectPerc <- signif(fragIntersect(fragBed, peakFile), digits=3)
+	percFile <- list.files(homerFolderPath, pattern = "*peak.exBL.1rpm.stat", full.names = TRUE)
+	intersectPerc <- read.table(file = percFile, sep = "\t", header = FALSE)[[2]]
 	factorTable <- rbind(factorTable, list(countPeaks(peakFile), paste0(intersectPerc, "%")))
 } else {
 	heatmap <- list.files(homerFolderPath, pattern = "*heatmap.exBL.png", full.names = TRUE)
 	peakFile <- list.files(homerFolderPath, pattern = "*peak.exBL.bed", full.names = TRUE)
-	intersectPerc <- signif(fragIntersect(fragBed, peakFile), digits=3)
-	histoneTable <- rbind(histoneTable, list(countPeaks(peakFile), sumPeaks(peakFile),  paste0(intersectPerc, "%")))
+	percFile <- list.files(homerFolderPath, pattern = "*peak.exBL.stat", full.names = TRUE)
+	intersectPerc <- read.table(file = percFile, sep = "\t", header = FALSE)[[2]]
+	histoneTable <- rbind(histoneTable, list(countPeaks(peakFile), sumPeaks(peakFile), paste0(intersectPerc, "%")))
 }
 
 #update fragQC table
