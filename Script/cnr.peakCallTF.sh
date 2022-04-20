@@ -12,7 +12,7 @@ source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
-	echo -e "Usage: `basename $0` (options) [taget tagDir]
+	echo -e "Usage: `basename $0` (options) [taget tagDir] (ctrl tagDir)
 Description: Make Homer data directory from BED file
 Input:
 	- Target homer tag directory
