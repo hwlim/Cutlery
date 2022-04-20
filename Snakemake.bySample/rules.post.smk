@@ -210,9 +210,9 @@ rule make_spikeintable:
 		ngs.makeSpikeCntTable.r -o {qcDir}/spikein {input}
 		"""
 
-## NOTE: input fragments are already chromosome-filtered in split step
-##	However, planning to add chrRegex option to cnr.fragToBigWig for better readibility & compatibility
-rule make_bigwig:
+
+## BigWig files from 100bp re-sized fragments
+rule make_bigwig_ctr:
 	input:
 		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
 		#all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz"
@@ -235,8 +235,31 @@ rule make_bigwig:
 		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -r 100 -m 5G -o {output.nuc} {input.frag}
 		"""
 
+## BigWig files from original sized fragments
+rule make_bigwig_frag:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		#all=sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
+		#nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
+		#nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz",
+		chrom = chrom_size
+	output:
+		all=sampleDir + "/{sampleName}/igv.all.con.bw",
+		nfr=sampleDir + "/{sampleName}/igv.nfr.con.bw",
+		nuc=sampleDir + "/{sampleName}/igv.nuc.con.bw"
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+#	params:
+#		memory = "5G"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output.all} {input.frag}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output.nfr} {input.frag}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -m 5G -o {output.nuc} {input.frag}
+		"""
 
-## 1bp-resolution bigwig files
+## BigWig files in 1bp-resolution using 5'-end 1bp
 rule make_bigwig1bp:
 	input:
 		#frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
@@ -258,7 +281,7 @@ rule make_bigwig1bp:
 #		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
 
-## Raw read-scale / nonnegative tracks (positive values even for minus track)
+## 5'-end 1bp BigWig file in raw read count scale & nonnegative values (positive values both for plus/minus track)
 rule make_bigwig1bp_raw_abs:
 	input:
 		#frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
@@ -293,6 +316,7 @@ rule count_kmers:
 		countKmersFromAlign.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -f -v {input} > {output}
 		"""
 
+## Calculate k-mer adjustment scale factor based on genomewide frequency
 rule calc_kmer_scale:
 	input:
 		sampleDir + "/{sampleName}/QC/kmer.freq.txt",
@@ -307,6 +331,7 @@ rule calc_kmer_scale:
 		"""
 
 
+## 1bp-resolution bigwig file after k-mer correction
 rule make_bigwig1bp_corrected:
 	input:
 		plus = sampleDir + "/{sampleName}/igv.1bp.plus.bw",
@@ -327,29 +352,7 @@ rule make_bigwig1bp_corrected:
 		"""
 
 
-rule make_bigwig_allfrag:
-	input:
-		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
-		#all=sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
-		#nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
-		#nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz",
-		chrom = chrom_size
-	output:
-		all=sampleDir + "/{sampleName}/igv.all.con.bw",
-		nfr=sampleDir + "/{sampleName}/igv.nfr.con.bw",
-		nuc=sampleDir + "/{sampleName}/igv.nuc.con.bw"
-	message:
-		"Making bigWig files... [{wildcards.sampleName}]"
-#	params:
-#		memory = "5G"
-	shell:
-		"""
-		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output.all} {input.frag}
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output.nfr} {input.frag}
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -m 5G -o {output.nuc} {input.frag}
-		"""
-
+## Create homer tag directories
 rule make_tagdir:
 	input:
 		frag = sampleDir + "/{sampleName}/fragment.bed.gz"
@@ -373,6 +376,7 @@ rule make_tagdir:
 		"""
 
 
+## Retrieve ctrl sample name for peak calling
 def get_ctrl_name(sampleName):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
 	assert(len(ctrlName.tolist()[0]) != 0)
@@ -387,9 +391,10 @@ def get_peakcall_input(sampleName, fragment):
 	if ctrlName.upper() == "NULL":
 		return [ sampleDir + "/" + sampleName + "/TSV." + fragment ]
 	else:
-		return [ sampleDir + "/" + ctrlName + "/TSV." + fragment, sampleDir + "/" + sampleName + "/TSV." + fragment ]
+		return [ sampleDir + "/" + sampleName + "/TSV." + fragment, sampleDir + "/" + ctrlName + "/TSV." + fragment ]
 
 
+## Peak calling in factor mode using resized fragment
 rule call_peaks_factor:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr"),
@@ -397,17 +402,17 @@ rule call_peaks_factor:
 	output:
 		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/peak.exBL.1rpm.{ext}", ext=["bed", "stat"])
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
-		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor"
+		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {input.tagDir}
 		"""
 
-
+## Peak calling in factor mode using original size fragment
 rule call_peaks_factor_allfrag:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
@@ -415,48 +420,48 @@ rule call_peaks_factor_allfrag:
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag",
-		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag"
+		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {params.optStr} {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {input.tagDir}
 		"""
 
-
+## Peak calling in histone mode using resized fragment
 rule call_peaks_histone:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nuc"),
 	output:
 		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/peak.exBL.{ext}", ext=["bed", "stat"])
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone",
-		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone"
+		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {input.tagDir}
 		"""
 
-
+## Peak calling in histone mode using original size fragment
 rule call_peaks_histone_allfrag:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag",
-		optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag"
+		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {params.optStr} {input.tagDir}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {input.tagDir}
 		"""
 
 
@@ -488,7 +493,7 @@ rule run_homermotif_allfrag:
 '''
 
 
-rule run_homer_motif:
+rule run_homer_motif_ctr:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	output:
@@ -502,7 +507,7 @@ rule run_homer_motif:
 			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all {input}
 		"""
 
-rule run_homermotif_allfrag:
+rule run_homermotif_frag:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	output:
@@ -823,6 +828,13 @@ def get_group(sampleName):
 	group = samples.Group[samples.Name == sampleName]
 	assert(len(group.tolist()[0]) != 0)
 	return group.tolist()[0]
+
+
+
+
+########################################
+## Rules for report generation
+########################################
 
 #take sampleName as input
 #return path to peak examples and heatmap png

@@ -12,15 +12,17 @@ source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
-	echo -e "Usage: `basename $0` (options) [taget tagDir]
+	echo -e "Usage: `basename $0` (options) [taget tagDir] (ctrl tagDir)
 Description: Make Homer data directory from BED file
+Input:
+	- Target homer tag directory
+	- Ctrl homer tag directory (optional)
 Output:
 	- <outDir>/peak.txt              Homer peak calling result
 	- <outDir>/peak.bed              Homer peak in bed format
 	- <outDir>/peak.exBL.bed         After blacklist filtering
 Options:
 	-o <outDir>: Destination tag directory, required
-	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
 	-m <mask>: mask bed file for filtering such as ENCODE blacklist
 	-s <optStr>: additional option for 'findPeaks' of Homer
 		to internally pre-set option: \"-style histone -tbp 0 -norm 1000000 -strand both\"
@@ -32,6 +34,8 @@ Options:
 #        echo -e "\t-h: Print help" >&2
 }
 
+#	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
+
 if [ $# -eq 0 ];then
 	printUsage
 	exit 1
@@ -41,18 +45,18 @@ fi
 ###################################
 ## option and input file handling
 desDir=NULL
-ctrl=NULL
+#ctrl=NULL
 mask=NULL
 optStr="-style histone -tbp 0 -norm 1000000 -strand both"
 #lengthParam=NULL,NULL
-while getopts ":o:i:m:s:" opt; do
+while getopts ":o:m:s:" opt; do
 	case $opt in
 		o)
 			desDir=$OPTARG
 			;;
-		i)
-			ctrl=$OPTARG
-			;;
+		#i)
+		#	ctrl=$OPTARG
+		#	;;
 		m)
 			mask=$OPTARG
 			;;
@@ -77,9 +81,14 @@ shift $((OPTIND-1))
 if [ $# -eq 0 ];then
 	printUsage
 	exit 1
+elif [ $# -eq 1 ];then
+	target=$1
+	ctrl=NULL
+else
+	target=$1
+	ctrl=$2
 fi
 
-target=$1
 assertDirExist $target
 
 if [ "$desDir" == "NULL" ];then

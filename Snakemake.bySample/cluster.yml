@@ -30,8 +30,11 @@ dedup_align:
     cpu         : 2
     memory      : 6000
 
-make_bigwig:
+make_bigwig_ctr:
     cpu         : 2
+    memory      : 10000
+
+make_bigwig_frag:
     memory      : 10000
 
 make_bigwig1bp:
@@ -49,9 +52,6 @@ make_bigwig1bp_corrected:
     memory      : 10000
     cpu         : 3
 
-make_bigwig_allfrag:
-    memory      : 10000
-
 make_spikeintable:
     name        : "{rule}"
     output      : "logs/{rule}.out"
@@ -62,11 +62,11 @@ make_uniqcnt_table:
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
 
-run_homermotif:
+run_homermotif_ctr:
     cpu         : 4
     memory      : 5000
 
-run_homermotif_allfrag:
+run_homermotif_frag:
     cpu         : 4
     memory      : 5000
 

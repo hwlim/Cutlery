@@ -14,6 +14,9 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [taget tagDir]
 Description: Make Homer data directory from BED file
+Input:
+	- Target homer tag directory
+	- Ctrl homer tag directory (optional)
 Output:
 	- <outDir>/peak.txt              Homer peak calling result
 	- <outDir>/peak.bed              Homer peak in bed format
@@ -21,7 +24,6 @@ Output:
 	- <outDir>/peak.exBL.1rpm.bed    > 1rpm after filtering
 Options:
 	-o <outDir>: Destination tag directory, required
-	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
 	-m <mask>: mask bed file for filtering such as ENCODE blacklist, default=NULL
 	-b <bigwig>: bigwig file of NFR fragments, i.e. *.nfr.con.bw
 		If specified, peak centering is performed using given bigwig file
@@ -33,6 +35,7 @@ Options:
 #        echo -e "\t-g <genome>: genome, default=NULL" >&2
 #        echo -e "\t-h: Print help" >&2
 }
+#	-i <ctrl>: (optional) ctrl homer tag directory, default=NULL
 
 if [ $# -eq 0 ];then
 	printUsage
@@ -43,19 +46,19 @@ fi
 ###################################
 ## option and input file handling
 desDir=NULL
-ctrl=NULL
+#ctrl=NULL
 mask=NULL
 bw=NULL
 optStr=""
 #lengthParam=NULL,NULL
-while getopts ":o:i:m:b:s:" opt; do
+while getopts ":o:m:b:s:" opt; do
 	case $opt in
 		o)
 			desDir=$OPTARG
 			;;
-		i)
-			ctrl=$OPTARG
-			;;
+		#i)
+		#	ctrl=$OPTARG
+		#	;;
 		m)
 			mask=$OPTARG
 			;;
@@ -83,7 +86,14 @@ shift $((OPTIND-1))
 if [ $# -eq 0 ];then
 	printUsage
 	exit 1
+elif [ $# -eq 1 ];then
+	target=$1
+	ctrl=NULL
+else
+	target=$1
+	ctrl=$2
 fi
+
 
 target=$1
 assertDirExist $target
