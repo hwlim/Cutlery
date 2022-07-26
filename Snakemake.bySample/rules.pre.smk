@@ -90,7 +90,7 @@ rule align_pe:
 			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
 			--genomeLoad NoSharedMemory \
 			--outFileNamePrefix {alignDir}/{wildcards.sampleName}/align. \
-			--runThreadN {thread} \
+			--runThreadN {threads} \
 			--outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000 \
 			--outTmpDir ${{TMPDIR}}/STARtmp_$$ \
 			{star_option}
