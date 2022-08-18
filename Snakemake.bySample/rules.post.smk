@@ -393,6 +393,21 @@ def get_peakcall_input(sampleName, fragment):
 	else:
 		return [ sampleDir + "/" + sampleName + "/TSV." + fragment, sampleDir + "/" + ctrlName + "/TSV." + fragment ]
 
+## Return peak calling option from sample.tsv
+def get_peakcall_opt(sampleName):
+	#default options
+	peakOpt = "-fragLength 100 -inputFragLength 100 -C 0"
+
+	if "PeakOpt" in samples:
+		optStr = samples.PeakOpt[samples.Name == sampleName]
+		assert( len(optStr) == 1 )
+		optStr = optStr.tolist()[0]
+
+	if optStr == "NULL":
+		return peakOpt
+	else:
+		return peakOpt + " " + optStr	
+
 
 ## Peak calling in factor mode using resized fragment
 rule call_peaks_factor:
@@ -402,14 +417,14 @@ rule call_peaks_factor:
 	output:
 		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/peak.exBL.1rpm.{ext}", ext=["bed", "stat"])
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor"
-		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
+		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s {params.optStr} {input.tagDir}
 		"""
 
 ## Peak calling in factor mode using original size fragment
@@ -420,14 +435,14 @@ rule call_peaks_factor_allfrag:
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag"
-		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag",
+		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s \"-fragLength 100 -inputFragLength 100\" {input.tagDir}
+		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s {params.optStr} {input.tagDir}
 		"""
 
 ## Peak calling in histone mode using resized fragment
@@ -437,14 +452,14 @@ rule call_peaks_histone:
 	output:
 		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/peak.exBL.{ext}", ext=["bed", "stat"])
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone"
-		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone",
+		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {input.tagDir}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s {params.optStr} {input.tagDir}
 		"""
 
 ## Peak calling in histone mode using original size fragment
@@ -454,14 +469,14 @@ rule call_peaks_histone_allfrag:
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag"
-		#optStr = lambda wildcards, input: "-i" if len(input.tagDir)>1 else ""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag",
+		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s \"-fragLength 100 -inputFragLength 100 -C 0\" {input.tagDir}
+		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s {params.optStr} {input.tagDir}
 		"""
 
 
