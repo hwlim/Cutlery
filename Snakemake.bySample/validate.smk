@@ -28,7 +28,7 @@ invalid_elem=[]
 for col in samples:
     #tmp = samples[col].str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-_\.]+$)')
     if col == "PeakOpt":
-        next
+        continue
     
     tmp = samples[col].str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-_\.]+$)')
     index_invalid = (tmp == 0)
