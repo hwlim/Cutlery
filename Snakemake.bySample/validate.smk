@@ -27,6 +27,9 @@ if not samples.Name.is_unique:
 invalid_elem=[]
 for col in samples:
     #tmp = samples[col].str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-_\.]+$)')
+    if col == "PeakOpt":
+        next
+    
     tmp = samples[col].str.count(r'(^[a-zA-Z0-9][a-zA-Z0-9-_\.]+$)')
     index_invalid = (tmp == 0)
     if index_invalid.any():
