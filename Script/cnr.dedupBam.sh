@@ -15,8 +15,9 @@ function printUsage {
 	echo -e "Options:" >&2
 	echo -e "\t-o <outFile>: output files, default=<src file name without path/.bam>.dedup.bam" >&2
         echo -e "\t-m <maxMem>: Maxmum memory, default=5G" >&2
+        echo -e "\t-n : If set, sort by name" >&2
 #        echo -e "\t-p <thread>: Maximum thread, default=1" >&2
-	echo -e "\t-r         : If set, remove duplicate. In default, duplicates are just makred only by 0x400 SAM flag" >&2
+	echo -e "\t-r : If set, remove duplicate. In default, duplicates are just makred only by 0x400 SAM flag" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -29,9 +30,10 @@ fi
 ## option and input file handling
 des=NULL
 maxMem=5G
+sortByName=FALSE
 #thread=1
 removeDuplicate=false
-while getopts ":o:m:r" opt; do
+while getopts ":o:m:rn" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
@@ -45,9 +47,9 @@ while getopts ":o:m:r" opt; do
 		r)
 			removeDuplicate=true
 			;;
-#		f)
-#			samFlag=$OPTARG
-#			;;
+		n)
+			sortByName=TRUE
+			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
 			printUsage
@@ -123,12 +125,18 @@ java $memOpt -jar ${PICARD_HOME}/picard.jar MarkDuplicates \
 	ASSUME_SORTED=true \
 	COMPRESSION_LEVEL=1 
 
-echo -e "  3) Sort by Queryname => $des" >&2
-java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam \
-	INPUT=${tmpDedupCsort} \
-	OUTPUT=${tmpDedup} \
-	SORT_ORDER=queryname 
+if [ "$sortByName" = "TRUE" ];then
+	echo -e "  3) Sort by Queryname => $des" >&2
+	java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam \
+		INPUT=${tmpDedupCsort} \
+		OUTPUT=${tmpDedup} \
+		SORT_ORDER=queryname 
+	mv $tmpDedup $des
+else
+	samtools index $tmpDedupCsort
+	mv ${tmpDedupCsort} $des
+	mv ${tmpDedupCsort}.bai ${des}.bai
+fi
 #java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam INPUT=${dedup} OUTPUT=${tmp} SORT_ORDER=queryname MAX_RECORDS_IN_RAM=$maxRead
 #samtools sort -n -l 5 -m $maxMem -T ${TMPDIR}/__temp__.$$ -@ $thread -o $tmpDedup $tmpDedupCsort
-mv $tmpDedup $des
 
