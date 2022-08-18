@@ -1,6 +1,14 @@
-Id	Name	Group	Fq1	Fq2	Ctrl	PeakMode
-hPSC_H3K9me3_Control_A6	hPSC_H3K9me3_Control_A6	hPSC_H3K9me3_Control	hPSC_H3K9me3_Control_CloneA6_DmChromSpikeIn_S3_R1_001.fastq.gz	hPSC_H3K9me3_Control_CloneA6_DmChromSpikeIn_S3_R2_001.fastq.gz	hPSC_Input_Control_A6	histone
-hPSC_H3K9me3_Control_H5	hPSC_H3K9me3_Control_H5	hPSC_H3K9me3_Control	hPSC_H3K9me3_Control_CloneH5_DmChromSpikeIn_S4_R1_001.fastq.gz	hPSC_H3K9me3_Control_CloneH5_DmChromSpikeIn_S4_R2_001.fastq.gz	hPSC_Input_Control_H5	NULL
-hPSC_Input_Control_A6	hPSC_Input_Control_A6	hPSC_Input_Control	hPSC_Input_Control_CloneA6_DmChromSpikeIn_S1_R1_001.fastq.gz	hPSC_Input_Control_CloneA6_DmChromSpikeIn_S1_R2_001.fastq.gz	NULL	NULL
-hPSC_Input_Control_H5	hPSC_Input_Control_H5	hPSC_Input_Control	hPSC_Input_Control_CloneH5_DmChromSpikeIn_S2_R1_001.fastq.gz	hPSC_Input_Control_CloneH5_DmChromSpikeIn_S2_R2_001.fastq.gz	NULL	NULL
-#DE_H3K9me3_Control_A6	DE_H3K9me3_Control_A6	DE_H3K9me3_Control	DE_H3K9me3_Control_CloneA6_DmChromSpikeIn_S9_R1_001.fastq.gz	DE_H3K9me3_Control_CloneA6_DmChromSpikeIn_S9_R2_001.fastq.gz	DE_Input_Control_A6	histone
+# Sample meta data sheet for Cutlery. Tab-delimited							
+# Id: unique sample ID							
+# Name: unique (human friendly & descriptive) sample name							
+# Group: sample group for pooled processing							
+# Fq1/2: fastq files for read1 and 2, Fq2==NULL if single-end							
+# Ctrl: Name of control sample for peak calling							
+# PeakMode: Peak calling mode {factor,histone,NULL}. NULL for no peak calling							
+# PeakOpt: string for peak callin option to use in cnr.peakCallTF.sh or cnr.peakCallHistone.sh. e.g. "-FDR 0.0001"							
+Id	Name	Group	Fq1	Fq2	Ctrl	PeakMode	PeakOpt
+hPSC_H3K9me3_Control_A6	hPSC_H3K9me3_Control_A6	hPSC_H3K9me3_Control	hPSC_H3K9me3_Control_CloneA6_DmChromSpikeIn_S3_R1_001.fastq.gz	hPSC_H3K9me3_Control_CloneA6_DmChromSpikeIn_S3_R2_001.fastq.gz	hPSC_Input_Control_A6	histone	-FDR 0.0001
+hPSC_H3K9me3_Control_H5	hPSC_H3K9me3_Control_H5	hPSC_H3K9me3_Control	hPSC_H3K9me3_Control_CloneH5_DmChromSpikeIn_S4_R1_001.fastq.gz	hPSC_H3K9me3_Control_CloneH5_DmChromSpikeIn_S4_R2_001.fastq.gz	hPSC_Input_Control_H5	NULL	-FDR 0.0001
+hPSC_Input_Control_A6	hPSC_Input_Control_A6	hPSC_Input_Control	hPSC_Input_Control_CloneA6_DmChromSpikeIn_S1_R1_001.fastq.gz	hPSC_Input_Control_CloneA6_DmChromSpikeIn_S1_R2_001.fastq.gz	NULL	NULL	NULL
+hPSC_Input_Control_H5	hPSC_Input_Control_H5	hPSC_Input_Control	hPSC_Input_Control_CloneH5_DmChromSpikeIn_S2_R1_001.fastq.gz	hPSC_Input_Control_CloneH5_DmChromSpikeIn_S2_R2_001.fastq.gz	NULL	NULL	NULL
+#DE_H3K9me3_Control_A6	DE_H3K9me3_Control_A6	DE_H3K9me3_Control	DE_H3K9me3_Control_CloneA6_DmChromSpikeIn_S9_R1_001.fastq.gz	DE_H3K9me3_Control_CloneA6_DmChromSpikeIn_S9_R2_001.fastq.gz	DE_Input_Control_A6	histone	-FDR 0.0001
