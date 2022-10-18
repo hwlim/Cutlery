@@ -402,11 +402,10 @@ def get_peakcall_opt(sampleName):
 		optStr = samples.PeakOpt[samples.Name == sampleName]
 		assert( len(optStr) == 1 )
 		optStr = optStr.tolist()[0]
+		if optStr != "NULL":
+			peakOpt = peakOpt + " " + optStr
 
-	if optStr == "NULL":
-		return peakOpt
-	else:
-		return peakOpt + " " + optStr	
+	return peakOpt
 
 
 ## Peak calling in factor mode using resized fragment
