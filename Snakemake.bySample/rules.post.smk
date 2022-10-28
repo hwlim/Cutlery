@@ -301,6 +301,26 @@ rule make_bigwig1bp_raw_abs:
 		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
 		"""
 
+## RNA-seq style bigwig file generation ## to correctly visualize spliced fragments
+## Incorporated to handle Collins ATAC-seq fly SPS data (Brian lab)
+rule make_bigwig_splice:
+	input:
+		bam = bamDir + "/{sampleName}/align.bam",
+		bai = bamDir + "/{sampleName}/align.bam.bai",
+		chrom = chrom_size
+	output:
+		sampleDir + "/{sampleName}/igv.all.splice.bw"
+	#params:
+	#	paired = "-p" if is_paired("{wildcards.sampleName}") else ""
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load RNAseq/1.0
+		rnaSeq.bamToBigWig.sh -g {input.chrom} -m unstranded -p -c "{chrRegexTarget}" -v -o {sampleDir}/{wildcards.sampleName}/igv.all.splice {input.bam}
+		"""
+
+
 ## Count k-mer frequency & Calculate k-mer correction scale factor
 rule count_kmers:
 	input:
