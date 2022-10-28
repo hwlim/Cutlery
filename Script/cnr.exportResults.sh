@@ -150,6 +150,11 @@ do
 			des=${desDir}/BigWig/${sample}.${frag}.ctr.bw
 			exportFile "$src" "$des" FALSE
 		done
+		
+		# splice bigwig
+		src=${srcDir}/${sample}/igv.all.splice.bw
+		des=${desDir}/BigWig/${sample}.all.splice.bw
+		exportFile "$src" "$des" FALSE
 	else
 		echo -e "1) Skipping bigwig files" >&2
 	fi
