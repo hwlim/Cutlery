@@ -4,7 +4,7 @@
 
 ## Sample information file with five columns: id / name / group / fq1 / fq2
 src_sampleInfo	= "sample.tsv"
-cluster_yml		= os.environ["CUTLERY"] + "/Snakemake.bySample/cluster.yml"
+cluster_yml		= os.environ["CUTLERY"] + "/Snakemake/cluster.yml"
 
 ## Essential reference data
 ## Other user-defined files can be used.
@@ -108,7 +108,7 @@ with open(os.path.expanduser(cluster_yml), 'r') as fh:
 
 #################################################
 ## Configuration & sample sheet validation
-include: os.environ["CUTLERY"] + "/Snakemake.bySample/validate.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/validate.smk"
 
 
 #########################
@@ -176,5 +176,5 @@ Output files under Development
 '''
 
 ## Include Snakemake rules from separate files
-include: os.environ["CUTLERY"] + "/Snakemake.bySample/rules.pre.smk"
-include: os.environ["CUTLERY"] + "/Snakemake.bySample/rules.post.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/rules.pre.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/rules.post.smk"
