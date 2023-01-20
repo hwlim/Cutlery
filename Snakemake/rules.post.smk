@@ -23,6 +23,9 @@ if "meme_db" not in locals():
 if "numHighestPeaks" not in locals():
 	numHighestPeaks = 5
 
+## 2kb bed file of all promoters for ATAC-seq QC
+if "bed_promoter" not in locals():
+	bed_promoter = "NULL"
 
 #################################
 ## Rule Start
@@ -862,6 +865,31 @@ def get_group(sampleName):
 	group = samples.Group[samples.Name == sampleName]
 	assert(len(group.tolist()[0]) != 0)
 	return group.tolist()[0]
+
+## measure % of fragments mapped to promoter regions
+rule measure_promoter_fraction:
+	input:
+		sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		sampleDir + "/{sampleName}/QC/promoter_portion.txt"
+	message:
+		"Checking fragments within promoters... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		N_all=`zcat {input} | wc -l`
+		N_prom=`zcat {input} \\
+			| gawk 'BEGIN{{ n=0 }}{{
+					c=($2+$3)/2
+					if(c<50) c=50
+					printf "%s\\t%d\\t%d\\n", $1,c-50,c+50
+				}}' \\
+			| intersectBed -a stdin -b {bed_promoter} -u \\
+			| wc -l`
+		echo -e "${{N_all}}\\t${{N_prom}}" | gawk '{{ printf "All: %d\\nPromoter: %d\\nPercentage: %.1f\\n", $1,$2,$2/$1*100 }}' > {output}
+		"""
+
+
 
 
 
