@@ -8,8 +8,10 @@
 
 ## default STAR module
 if 'star_module' not in locals():
-	star_module="STAR/2.5"
+	star_module = "STAR/2.5"
 
+if 'opt_cutadapt' not in locals():
+	opt_cutadapt = ""
 
 rule trim_pe:
 	input:
@@ -29,7 +31,8 @@ rule trim_pe:
 	shell:
 		"""
 		# Note: Needs to be implemented as a quantum transaction
-		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} \
+		#module load cutadapt/
+		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} {opt_cutadapt} \
 			-o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2>&1 | tee {log}
 		mv __temp__.$$.1.fq.gz {output.fq1}
 		mv __temp__.$$.2.fq.gz {output.fq2} 
@@ -47,12 +50,26 @@ def get_fastq(wildcards):
 		else:
 			return [fastqDir + "/" + fq1, fastqDir + "/" + fq2]
 
+def get_fq1(wildcards):
+	if doTrim:
+		return trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_1.trim.fq.gz"
+	else:
+		return fastqDir + "/" + samples.Fq1[samples.Name == wildcards.sampleName].tolist()[0]
+
+def get_fq2(wildcards):
+	if doTrim:
+		return trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_2.trim.fq.gz"
+	else:
+		return fastqDir + "/" + samples.Fq2[samples.Name == wildcards.sampleName].tolist()[0]
+
 
 rule align_pe:
 	input:
-		get_fastq
+		fq1=get_fq1,
+		fq2=get_fq2
 	output:
-		alignDir + "/{sampleName}/align.bam",
+		bam = alignDir + "/{sampleName}/align.bam",
+		bai = alignDir + "/{sampleName}/align.bam.bai"
 	message:
 		"Aligning... [{wildcards.sampleName}]"
 	params:
@@ -68,12 +85,34 @@ rule align_pe:
 		module load Cutlery/1.0
 		module load {params.star_module}
 
-		star.align.sh -g {params.index} \
-			-o {alignDir}/{wildcards.sampleName}/align \
-			-t {threads} \
-			-p '{params.option}' \
-			{input}
+		STAR --runMode alignReads \
+			--genomeDir {params.index} \
+			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
+			--genomeLoad NoSharedMemory \
+			--outFileNamePrefix {alignDir}/{wildcards.sampleName}/align. \
+			--runThreadN 4 \
+			--outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000 \
+			--outTmpDir ${{TMPDIR}}/STARtmp_$$ \
+			{star_option}
+
+		mv {alignDir}/{wildcards.sampleName}/align.Aligned.sortedByCoord.out.bam {alignDir}/{wildcards.sampleName}/align.bam
+		samtools index {alignDir}/{wildcards.sampleName}/align.bam
+
+		if [ -f {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate1 ];then
+			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate1
+			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate2
+		fi
+
+#		star.align.sh -g {params.index} \
+#			-o {alignDir}/{wildcards.sampleName}/align \
+#			-t {threads} \
+#			-p '{params.option}' \
+#			-s \
+#			{input}
 		"""
+
+
+
 
 def get_align_dir(bamList):
 	import os.path
@@ -83,7 +122,7 @@ rule make_align_stat_table:
 	input:
 		expand(alignDir+"/{sampleName}/align.bam", sampleName=samples.Name.tolist())
 	output:
-		alignDir + "/alignStat.txt"
+		qcDir + "/alignStat.txt"
 	params:
 		inputDir = get_align_dir(expand(alignDir+"/{sampleName}/align.bam", sampleName=samples.Name.tolist()))
 	message:
@@ -94,24 +133,30 @@ rule make_align_stat_table:
 		star.getAlignStats.r {params.inputDir} > {output}
 		"""
 
+'''
+## No more used since chromosome / flag filtering are now incorporated into bam to fragment conversion step
 rule filter_align:
 	input:
 		alignDir + "/{sampleName}/align.bam"
 	output:
-		filteredDir + "/{sampleName}.bam"
+		bam = filteredDir + "/{sampleName}.bam",
+		bai = filteredDir + "/{sampleName}.bam.bai"
 	message:
 		"Filtering... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.filterBam.sh  -o {output} -c "{chrRegexAll}" {input}
+		cnr.filterBam.sh  -o {output.bam} -c "{chrRegexAll}" {input}
+		samtools index {output.bam}
 		"""
+'''
 
 rule dedup_align:
 	input:
-		filteredDir + "/{sampleName}.bam"
+		alignDir + "/{sampleName}/align.bam"
 	output:
-		dedupDir + "/{sampleName}.bam"
+		bam = dedupDir + "/{sampleName}/align.bam",
+		bai = dedupDir + "/{sampleName}/align.bam.bai"
 	message:
 		"Deduplicating... [{wildcards.sampleName}]"
 	params:
@@ -119,5 +164,6 @@ rule dedup_align:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.dedupBam.sh -m {params.memory} -o {output} -r {input}
+		cnr.dedupBam.sh -m {params.memory} -o {output.bam} -r {input}
+		samtools index {output.bam}
 		"""

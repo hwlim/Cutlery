@@ -1,0 +1,65 @@
+# Cluster configurations
+#
+# "memory" must be integer >= 1000
+#
+#
+__default__:
+    cpu         : 1
+    memory      : 5000
+    walltime    : "12:00"
+    name        : "{rule}.{wildcards.sampleName}"
+    output      : "logs/{rule}.{wildcards.sampleName}.out"
+    error       : "logs/{rule}.{wildcards.sampleName}.err"
+    resource    : "\"span[hosts=1]\""
+
+trim_pe:
+    name        : "{rule}.{wildcards.sampleId}"
+    output      : "logs/{rule}.{wildcards.sampleId}.out"
+    error       : "logs/{rule}.{wildcards.sampleId}.err"
+
+trim_se:
+    name        : "{rule}.{wildcards.sampleId}"
+    output      : "logs/{rule}.{wildcards.sampleId}.out"
+    error       : "logs/{rule}.{wildcards.sampleId}.err"
+
+align_pe:
+    cpu         : 4
+    memory      : 50000
+    walltime    : "24:00"
+    resource    : "\"span[hosts=1]\""
+
+make_align_stat_table:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"
+
+check_baseFreq:
+    memory      : 6000
+
+dedup_align:
+    memory      : 6000
+
+make_bigwig:
+    memory      : 10000
+
+make_bigwig1bp:
+    memory      : 10000
+
+    make_bigwig1bp_raw_abs:
+    memory      : 10000
+
+make_bigwig_allfrag:
+    memory      : 10000
+
+make_spikeintable:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"
+
+#make_bigwig_avg:
+#    memory      : 30000
+#    name        : "{rule}.{wildcards.groupName}"
+#    output      : "logs/{rule}.{wildcards.groupName}.out"
+#    error       : "logs/{rule}.{wildcards.groupName}.err"
+
+
