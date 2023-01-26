@@ -970,7 +970,7 @@ rule create_final_report:
 		"""
 		module load Cutlery/1.0
 		module load ImageMagick/6.9.12
-		cnr.createReportHTML.r -o Report -s {sampleDir} -q {qcDir} -f fragMix
+		cnr.createReportHTML.r -o Report -t {src_sampleInfo} -s {sampleDir} -q {qcDir} -f fragMix
 		"""
 
 rule create_report_per_sample_pooled:
@@ -1013,5 +1013,5 @@ rule create_final_report_pooled:
 		"""
 		module load Cutlery/1.0
 		module load ImageMagick/6.9.12
-		cnr.createPooledReportHTML.r -o Report_pooled -s {sampleDir} -q {qcDir}
+		cnr.createPooledReportHTML.r -o Report_pooled -t {src_sampleInfo} -s {sampleDir} -q {qcDir} -f fragMix
 		"""

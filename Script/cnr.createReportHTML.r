@@ -12,7 +12,8 @@ option_list <- list(
 	make_option(c("-o","--outputFile"), help="prefix to output file; Can include path as well"),
 	make_option(c("-s","--sampleDir"), help="Path to the Sample Folder, defined by 'sampleDir'"),
 	make_option(c("-q","--qcDir"), help="Path to the Quality Control Folder, defined by 'qcDir'"),
-	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule")
+	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule"),
+	make_option(c("-t","--sampleTsvIn"), help="Path to sample.tsv")
 )
 parser <- OptionParser(usage = "%prog [options]",
 	description="Description:
@@ -31,6 +32,7 @@ opt=arguments$options
 sampDir=normalizePath(opt$sampleDir)
 qcDir=normalizePath(opt$qcDir)
 outputFile=opt$outputFile
+sampleTsvIn = opt$sampleTsvIn
 
 #Read in and crop logo
 logo = paste0(Sys.getenv("CUTLERY"), "/Plan/logo.png")
@@ -62,9 +64,12 @@ template <- paste0(Sys.getenv("CUTLERY"), "/Script/cnr.createReportHTMLTemplate.
 tempTemplate <- tempfile(fileext=".Rmd")
 system(sprintf("cp %s %s", template, tempTemplate))
 
+# Read sample.tsv
+sampleIn = read.table(file = sampleTsvIn, sep = '\t', header = TRUE)
+
 #create separate coverage html files for each sample
-samplePaths <- list.files(sampDir)
-sampleQC <- paste0(sampDir, "/", samplePaths, "/QC")
+sampleList = sampleIn["Name"][[1]]
+sampleQC <- paste0(sampDir, "/", sampleList, "/QC")
 
 for (sample in sampleQC) {
 
