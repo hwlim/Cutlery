@@ -33,25 +33,48 @@ nucCount = fragLenDist['Cnt'][150:].sum()
 nfrFrac = nfrCount / totalCount * 100
 nucFrac = nucCount / totalCount * 100
 
+''' previous redundant code
 # open density file
 fragLenDist = open(args.fragLenDist_file)
 # convert density file to individual distances
 densityFile = csv.reader(fragLenDist, delimiter="\t")
 # skip header
 next(densityFile)
+'''
 
+# Down-scaling + roundup to save memory
+fragLenDist = fragLenDist[fragLenDist.fragLen<1000]
+tmpSum = fragLenDist.Cnt.sum()
+if tmpSum > 1000000:
+    fragLenDist.Cnt = round(fragLenDist.Cnt * 1000000 / tmpSum).astype(int)
+
+# data series construction
 tmpList = []
-for row in densityFile:
+for index,row in fragLenDist.iterrows():
+    freq = int(row['fragLen'])
+    cnt = int(row['Cnt'])
+    i = 0
+    while i < cnt:
+        tmpList.append(freq)
+        i = i + 1
+
+
+'''
+for index,row in densityFile:
     count = int(row[1])
     i = 0
     while i < count:
         tmpList.append(int(row[0]))
         i = i + 1
+'''
+
+
 
 # convert to df
-npArray = np.asarray(tmpList)
-df = pd.DataFrame(npArray)
-df = df[df[0]<1000].sample(1000000)
+df = pd.DataFrame(tmpList)
+#npArray = np.asarray(tmpList)
+#df = pd.DataFrame(npArray)
+#df = df[df[0]<1000].sample(1000000)
 
 # Get weights of distribution from GMM
 # define number of clusters/components as 3
