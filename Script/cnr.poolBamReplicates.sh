@@ -30,6 +30,7 @@ Input:
 	  ├── <group1>.bam
 	  └── <group2>.bam
 Options:
+	-t: if set, dry run simply displaying pooling message, default=off
 	-b: if set, bsub are submitted for merging bam files, default=off
 	-u: if set, assuming unsorted replicate bam file (name-sorted as in old version of Cutlery), default=off
 		FYI, previosu Cutlery created unsorted bam file.
@@ -45,11 +46,15 @@ fi
 
 ###################################
 ## option and input file handling
+testOnly=FALSE
 bsub=FALSE
 unsortedBam=FALSE
 overwrite=FALSE
-while getopts ":buf" opt; do
+while getopts ":buft" opt; do
 	case $opt in
+		t)
+			testOnly=TRUE
+			;;
 		b)
 			bsub=TRUE
 			;;
@@ -102,6 +107,7 @@ echo -e "Pooling replicate bam files" >&2
 echo -e "  - sampleInfo: $sampleInfo" >&2
 echo -e "  - srcDir: $srcDir" >&2
 echo -e "  - desDir: $desDir" >&2
+echo -e "  - testOnly: $testOnly" >&2
 echo -e "  - unsorted bam: $unsortedBam" >&2
 echo -e "  - bsub:   $bsub" >&2
 
@@ -127,6 +133,10 @@ do
 	do
 		echo -e "  - $src" >&2
 	done 2>&1 | tee $log
+
+	if [ "$testOnly" == "TRUE" ];then
+		continue
+	fi
 
 	if [ "$unsortedBam" == "TRUE" ];then
 		optStr=""
