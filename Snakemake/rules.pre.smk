@@ -38,35 +38,36 @@ rule trim_pe:
 		mv __temp__.$$.2.fq.gz {output.fq2} 
 		"""
 
-def get_fastq(wildcards):
+def get_fastq(sampleName):
 	if doTrim:
-		return [trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_1.trim.fq.gz",
-			trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_2.trim.fq.gz"]
+		return [trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_1.trim.fq.gz",
+			trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_2.trim.fq.gz"]
 	else:
-		fq1=samples.Fq1[samples.Name == wildcards.sampleName].tolist()[0]
-		fq2=samples.Fq2[samples.Name == wildcards.sampleName].tolist()[0]
+		fq1=samples.Fq1[samples.Name == sampleName].tolist()[0]
+		fq2=samples.Fq2[samples.Name == sampleName].tolist()[0]
 		if(fq2=="NULL"):
 			return fastqDir + "/" + fq1
 		else:
 			return [fastqDir + "/" + fq1, fastqDir + "/" + fq2]
 
-def get_fq1(wildcards):
+def get_fq1(sampleName):
 	if doTrim:
-		return trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_1.trim.fq.gz"
+		return trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_1.trim.fq.gz"
 	else:
-		return fastqDir + "/" + samples.Fq1[samples.Name == wildcards.sampleName].tolist()[0]
+		return fastqDir + "/" + samples.Fq1[samples.Name == sampleName].tolist()[0]
 
-def get_fq2(wildcards):
+def get_fq2(sampleName):
 	if doTrim:
-		return trimDir + "/" + samples.Id[samples.Name == wildcards.sampleName].tolist()[0] + "_2.trim.fq.gz"
+		return trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_2.trim.fq.gz"
 	else:
-		return fastqDir + "/" + samples.Fq2[samples.Name == wildcards.sampleName].tolist()[0]
+		return fastqDir + "/" + samples.Fq2[samples.Name == sampleName].tolist()[0]
 
 
 rule align_pe:
 	input:
-		fq1=get_fq1,
-		fq2=get_fq2
+		fq = lambda wildcards: get_fastq(wildcards.sampleName)
+#		fq1=get_fq1,
+#		fq2=get_fq2
 	output:
 		bam = alignDir + "/{sampleName}/align.bam",
 		bai = alignDir + "/{sampleName}/align.bam.bai"
@@ -87,7 +88,8 @@ rule align_pe:
 
 		STAR --runMode alignReads \
 			--genomeDir {params.index} \
-			--readFilesIn <( zcat {input.fq1} ) <( zcat {input.fq2} ) \
+			--readFilesIn {input.fq} \
+			--readFilesCommand zcat \
 			--genomeLoad NoSharedMemory \
 			--outFileNamePrefix {alignDir}/{wildcards.sampleName}/align. \
 			--runThreadN {threads} \
@@ -103,15 +105,6 @@ rule align_pe:
 			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate2
 		fi
 		"""
-
-
-#		star.align.sh -g {params.index} \
-#			-o {alignDir}/{wildcards.sampleName}/align \
-#			-t {threads} \
-#			-p '{params.option}' \
-#			-s \
-#			{input}
-
 
 
 def get_align_dir(bamList):
