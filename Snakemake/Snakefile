@@ -27,6 +27,8 @@ star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
 ## Other STAR index also available under /data/limlab/Resource/STAR_Index/2.7.4
 ## If not, send a request to Lim Lab
 
+## promoter bed file for ATAC-seq quality control. TSS +/- 1kb
+bed_promoter	= "NULL"
 
 ## Other essential pameters
 adapter     = "AGATCGGAAGAGC"	# illumina universal adapter in default
@@ -159,6 +161,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListFactor),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListHistone),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/QC/promoter_portion.txt", sampleName=sampleList),
 
 		## Create final report
 		"Report.html"
