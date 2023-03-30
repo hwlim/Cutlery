@@ -104,7 +104,7 @@ isDirExist $genome
 optStr="${optStr} --runThreadN $thread"
 
 ## Temporary folder designation
-optStr="${optStr} --outTmpDir ${TMPDIR}/STARtmp_$$"
+optStr="${optStr} --outTmpDir ${TMPDIR}/STARtmp_$$_$RANDOM"
 
 ## Sort or Not
 if [ "$sortBam" == "TRUE" ];then
