@@ -94,7 +94,7 @@ rule align_pe:
 			--outFileNamePrefix {alignDir}/{wildcards.sampleName}/align. \
 			--runThreadN {threads} \
 			--outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000 \
-			--outTmpDir ${{TMPDIR}}/STARtmp_$$ \
+			--outTmpDir ${{TMPDIR}}/STARtmp_$$_$RANDOM \
 			{star_option}
 
 		mv {alignDir}/{wildcards.sampleName}/align.Aligned.sortedByCoord.out.bam {alignDir}/{wildcards.sampleName}/align.bam
