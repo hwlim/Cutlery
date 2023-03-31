@@ -28,6 +28,8 @@ options.add_argument('-F', '--flags_exclude', default='0x400',
                         help='SAM flag for negative selection; input can be either in decimal or hexadecimal format. Default = 0x400. User can enter multiple flags by entering their sum; ex. if the user wants to exclude flags 512 and 1024, type \"-F 1536\" or \"-f 0x600\" without the quotation marks. Use \'NULL\' to skip negative selection.')
 options.add_argument('-c', '--chr_include', default='.',
                         help='Regular expression of chromosomes to select. Default = . (all). e.g.) ^chr[0-9XY]+$|^chrM$ : regular/sex/chrM, ^chr[0-9XY]+$ : autosomal and sex chromosomes only.')
+options.add_argument('-s', '--set_strand', default='0',
+                        help='Set strand. Set to 1 to decide strand by read1. Set to 2 to decide strand by read2. Set to 0 to force all fragments to +. Default = 0 (all +)')
 group = options.add_mutually_exclusive_group()
 group.add_argument('-p', action='store_true',
                         help='Print a pair of reads in one line; same functionality as bamToBed -bedpe. Add the -p flag to use. Cannot be used with the -r flag. Using this option will not create fragments.')
@@ -89,7 +91,6 @@ def bamToBed(bamFile, chrPattern, inFlags, exFlags):
     return
 
 
-#function that converts coordinate-sorted bam file to a fragment.bed file, i.e. paired-end mode
 def bamToFrag(bamFile, chrPattern, inFlags, exFlags):
     #create empty dictionary
     d = {}
@@ -120,15 +121,24 @@ def bamToFrag(bamFile, chrPattern, inFlags, exFlags):
                     readLen = getReadLen(read.cigartuples)
                     end = int(read.pos) + readLen
                     start = firstPOS
+                    secondSTRAND = "-"
 
                 #build fragment as if it were a "+" strand if the first read seen was a "-"
                 else:
                     end = firstPOS
                     start = int(read.pos)
-                    firstSTRAND = "+"
+                    firstSTRAND = "-"
+                    secondSTRAND = "+"
+
+                if int(args.set_strand) == 0:
+                    printSTRAND = "+"
+                elif int(args.set_strand) == 1:
+                    printSTRAND = firstSTRAND
+                elif int(args.set_strand) == 2:
+                    printSTRAND = secondSTRAND
 
                 #print fragment info to STDOUT
-                readInfo = [chromName, start, end, readName, read.mapq, firstSTRAND]
+                readInfo = [chromName, start, end, readName, read.mapq, printSTRAND]
                 print(*readInfo, sep="\t")
             
 
@@ -150,6 +160,7 @@ def bamToFrag(bamFile, chrPattern, inFlags, exFlags):
                 #create key and value for new unseen read and add to dictionary
                 d[readName] = [POS, strand]
     return
+
 
 def bedpe(bamFile, chrPattern, inFlags, exFlags):
     #iterate through each line in bam file
