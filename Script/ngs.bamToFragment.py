@@ -111,7 +111,26 @@ def bamToFrag(bamFile, chrPattern, inFlags, exFlags):
                 #assign relevant variables to the values after popping the key
                 firstPOS = firstEncounteredRead[0]
                 firstSTRAND = firstEncounteredRead[1]
+                firstReadInPair = firstEncounteredRead[2]
                 
+                ## get the strand for the first and second read in pair; note that 'firstSTRAND' is the first encountered read strand, NOT the strand of the first read in the pair
+                if firstReadInPair == True:
+                    if firstSTRAND == "+":
+                        firstInPairStrand = "+"
+                        secondInPairStrand = "-"
+                    else:
+                        firstInPairStrand = "-"
+                        secondInPairStrand = "+"                        
+
+                else:
+                    if firstSTRAND == "+":
+                        firstInPairStrand = "-"
+                        secondInPairStrand = "+"
+                    else:
+                        firstInPairStrand = "+"
+                        secondInPairStrand = "-"
+
+
                 #obtain chromosome ID from current line
                 chromName = bamFile.get_reference_name(read.reference_id)
 
@@ -121,21 +140,19 @@ def bamToFrag(bamFile, chrPattern, inFlags, exFlags):
                     readLen = getReadLen(read.cigartuples)
                     end = int(read.pos) + readLen
                     start = firstPOS
-                    secondSTRAND = "-"
 
                 #build fragment as if it were a "+" strand if the first read seen was a "-"
                 else:
                     end = firstPOS
                     start = int(read.pos)
                     firstSTRAND = "-"
-                    secondSTRAND = "+"
 
                 if int(args.set_strand) == 0:
                     printSTRAND = "+"
                 elif int(args.set_strand) == 1:
-                    printSTRAND = firstSTRAND
+                    printSTRAND = firstInPairStrand
                 elif int(args.set_strand) == 2:
-                    printSTRAND = secondSTRAND
+                    printSTRAND = secondInPairStrand
 
                 #print fragment info to STDOUT
                 readInfo = [chromName, start, end, readName, read.mapq, printSTRAND]
@@ -157,8 +174,14 @@ def bamToFrag(bamFile, chrPattern, inFlags, exFlags):
                     strand = "-"
                     POS = int(read.pos) + readLen
 
+                ## check if read is first in pair or not
+                if int(read.flag) & 64 == 64:
+                    firstInPair = True
+                elif int(read.flag) & 128 == 128:
+                    firstInPair = False
+
                 #create key and value for new unseen read and add to dictionary
-                d[readName] = [POS, strand]
+                d[readName] = [POS, strand, firstInPair]
     return
 
 
