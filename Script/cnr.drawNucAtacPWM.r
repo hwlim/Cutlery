@@ -48,15 +48,20 @@ des=opt$out
 
 if(FALSE){
 	src="LBP_FOXA2.CnR.PWM.txt"
-	out="LBP_FOXA2.CnR.PWM.pdf"
+	des="LBP_FOXA2.CnR.PWM.pdf"
 }
 
 
 if(is.null(des)) des = sprintf("%s.pdf", sub(".txt$","", basename(src)))
 
+tmp=readLines(src)
+up=as.numeric(tmp[4])
+down=as.numeric(tmp[6])
+stopifnot( !is.na(up) && !is.na(down))
+
 data=read.delim(src,header=FALSE, skip = 9)
 rownames(data) = c("A","C","G","T")
-colnames(data) = 1:ncol(data)
+colnames(data) = seq(-up, down)
 data = t(data)
 
 df = melt(data)
