@@ -40,6 +40,7 @@ if "bamDir" not in locals():
 	else:
 		bamDir = alignDir
 
+
 ## Convert BAM to fragment bed file
 ## - Chromosome filtering
 ## - 0x2  : Concordant pairs only

@@ -50,17 +50,17 @@ def get_fastq(sampleName):
 		else:
 			return [fastqDir + "/" + fq1, fastqDir + "/" + fq2]
 
-def get_fq1(sampleName):
-	if doTrim:
-		return trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_1.trim.fq.gz"
-	else:
-		return fastqDir + "/" + samples.Fq1[samples.Name == sampleName].tolist()[0]
+# def get_fq1(sampleName):
+# 	if doTrim:
+# 		return trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_1.trim.fq.gz"
+# 	else:
+# 		return fastqDir + "/" + samples.Fq1[samples.Name == sampleName].tolist()[0]
 
-def get_fq2(sampleName):
-	if doTrim:
-		return trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_2.trim.fq.gz"
-	else:
-		return fastqDir + "/" + samples.Fq2[samples.Name == sampleName].tolist()[0]
+# def get_fq2(sampleName):
+# 	if doTrim:
+# 		return trimDir + "/" + samples.Id[samples.Name == sampleName].tolist()[0] + "_2.trim.fq.gz"
+# 	else:
+# 		return fastqDir + "/" + samples.Fq2[samples.Name == sampleName].tolist()[0]
 
 
 rule align_pe:
