@@ -21,7 +21,7 @@ import re
 import sys
 
 #parse command line arguments
-options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed format. 5th column of the output represents the map quality.", usage="python sortedBamToFrag.py (options) [bam]")
+options = argparse.ArgumentParser(description="Converts a coordinate-sorted bam file to a fragment bed format. 5th column of the output represents the map quality.", usage="ngs.bamToFragment.py (options) [bam]")
 options.add_argument('-f', '--flags_include', default='0x2',
                         help='SAM flag for positive selection; input can be either in decimal or hexadecimal format. Default = 0x2. User can enter multiple flags by entering their sum; ex. if the user wants to include flags 2 and 64, type \"-f 66\" or \"-f 0x42\" without the quotation marks. Use \'NULL\' to skip positive seletion.')
 options.add_argument('-F', '--flags_exclude', default='0x400',
