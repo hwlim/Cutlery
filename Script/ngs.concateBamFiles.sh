@@ -106,6 +106,9 @@ tmpSrtPrefix=${TMPDIR}/__temp__.$$.sorted
 if [ $# -eq 1 ];then
 	echo -e "Warning: Only one file is given; simply copying" >&2
 	cp ${srcL[0]} $des
+	if [ "$sortedBam" == "TRUE" ];then
+		samtools index $des
+	fi
 else
 	if [ "$sortedBam" == "TRUE" ];then
 		echo -e "- Input bam files are pre-sorted. Performing samtools merge & indexing" >&2
