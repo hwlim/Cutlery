@@ -90,7 +90,7 @@ assertDirExist $srcDir
 ###################################
 ## main code
 
-groupL=`tail -n +2 $sampleInfo | grep -v -e ^$ -e ^# | cut -f 3 | sort | uniq`
+groupL=`tail -n +2 $sampleInfo | grep -v -e ^$ -e "^#" -e ^Id | cut -f 3 | sort | uniq`
 
 echo -e "Pooling replicate fragment files" >&2
 echo -e "  - sampleInfo: $sampleInfo" >&2
@@ -113,7 +113,7 @@ do
 	fi
 
 	## List of replicate bam files
-	srcL=( `tail -n +2 $sampleInfo | grep -v -e ^$ -e "^#" | gawk '{ if($3 == "'$group'") printf "'$srcDir'/%s/fragment.bed.gz\n", $2 }'` )
+	srcL=( `cat $sampleInfo | grep -v -e ^$ -e "^#" -e ^Id | gawk '{ if($3 == "'$group'") printf "'$srcDir'/%s/fragment.bed.gz\n", $2 }'` )
 	assertFileExist ${srcL[@]}
 
 	## Merging to destination
