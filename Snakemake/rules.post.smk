@@ -655,6 +655,22 @@ rule draw_peak_heatmap_histone:
 		"""
 
 
+rule draw_peak_heatmap_factor_allfrag:
+	input:
+		bed=sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed",
+		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm.png"
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm \
+			{input.bed} {input.bw}
+		"""
+
 rule analyze_footprint_homer:
 	input:
 		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
