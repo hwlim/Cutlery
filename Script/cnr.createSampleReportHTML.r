@@ -13,7 +13,8 @@ option_list <- list(
 	make_option(c("-g","--groupName"), help="Group name for the sample"),
 	make_option(c("-s","--sampleDir"), help="Path to the Sample Folder, defined by 'sampleDir'"),
 	make_option(c("-q","--qcDir"), help="Path to the Quality Control Folder, defined by 'qcDir'"),
-	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule")
+	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule", default = "fragMix"),
+	make_option(c("-t","--sampleTsvIn"), help="Path to sample.tsv")
 )
 parser <- OptionParser(usage = "%prog [options]",
 	description="Description:
@@ -31,8 +32,10 @@ arguments <- parse_args(parser, positional_arguments = TRUE)
 opt=arguments$options
 sampDir=normalizePath(opt$sampleDir)
 qcDir=normalizePath(opt$qcDir)
-groupName = opt$groupName
+groupName=opt$groupName
 outputFile=opt$outputFile
+sampleTsvIn=opt$sampleTsvIn
+fragMixPrefix=opt$fragMixPrefix
 
 #Read in and crop logo
 logo = paste0(Sys.getenv("CUTLERY"), "/Plan/logo.png")
@@ -64,18 +67,20 @@ template <- paste0(Sys.getenv("CUTLERY"), "/Script/cnr.createSampleReportHTMLTem
 tempTemplate <- tempfile(fileext=".Rmd")
 system(sprintf("cp %s %s", template, tempTemplate))
 
+# Read sample.tsv
+sampleIn = read.table(file = sampleTsvIn, sep = '\t', header = TRUE)
+
 # Get sample name and sample QC directory
 sampleName = tail(unlist(strsplit(sampDir, "/")), n=1)
 sampleQC = paste0(sampDir, "/QC")
 
-#get path to sample Directory
-fragBed <- paste0(sampDir, "/fragment.bed.gz")
-fileList <- list.files(sampDir)
+## get sample info from sample.tsv file
+rowNum = which(grepl(sampleName, sampleIn$Name))
+rowData = sampleIn[rowNum,]
+peakMode = rowData$PeakMode
 
-#get heatmap and coverage
-homerFolderName <- grep("Homer", fileList, value=TRUE)
-peakMode <- tail(unlist(strsplit(homerFolderName, ".", fixed = TRUE)))[2]
-homerFolderPath <- paste0(sampDir, "/", homerFolderName)
+## get homer dir
+homerFolderPath <- paste0(sampDir, "/", "HomerPeak.", peakMode)
 
 #get fragmentQC files for the sample
 fragQCfile <- paste0(sampleQC, "/", opt$fragMixPrefix ,".txt")
@@ -86,7 +91,7 @@ fragLenDist <- paste0(sampleQC, "/fragLen.dist.png")
 baseFreq <- paste0(sampleQC, "/base_freq.png")
 
 # skip visualization of control samples, but still retrieve fragQC
-if (is.null(peakMode)) {
+if (peakMode == "NULL") {
 	peakMode = "ctrl"
 	fragQCtable <- rbind(fragQCtable, list(peakMode, formatC(as.numeric(fragQC[[1]]), format="f", digits=2), 
 	formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
@@ -95,15 +100,15 @@ if (is.null(peakMode)) {
 }
 
 if (peakMode == "factor") {
-	heatmap <- list.files(homerFolderPath, pattern = "*heatmap.exBL.1rpm.png", full.names = TRUE)
-	peakFile <- list.files(homerFolderPath, pattern = "*peak.exBL.1rpm.bed", full.names = TRUE)
-	percFile <- list.files(homerFolderPath, pattern = "*peak.exBL.1rpm.stat", full.names = TRUE)
+	heatmap <- paste0(homerFolderPath, "/heatmap.exBL.1rpm.png")
+	peakFile <- paste0(homerFolderPath, "/peak.exBL.1rpm.bed")
+	percFile <- paste0(homerFolderPath, "/peak.exBL.1rpm.stat")
 	intersectPerc <- read.table(file = percFile, sep = "\t", header = FALSE)[[2]]
 	factorTable <- rbind(factorTable, list(countPeaks(peakFile), paste0(intersectPerc, "%")))
 } else {
-	heatmap <- list.files(homerFolderPath, pattern = "*heatmap.exBL.png", full.names = TRUE)
-	peakFile <- list.files(homerFolderPath, pattern = "*peak.exBL.bed", full.names = TRUE)
-	percFile <- list.files(homerFolderPath, pattern = "*peak.exBL.stat", full.names = TRUE)
+	heatmap <- paste0(homerFolderPath, "/heatmap.exBL.png")
+	peakFile <- paste0(homerFolderPath, "/peak.exBL.bed")
+	percFile <- paste0(homerFolderPath, "/peak.exBL.stat")
 	intersectPerc <- read.table(file = percFile, sep = "\t", header = FALSE)[[2]]
 	histoneTable <- rbind(histoneTable, list(countPeaks(peakFile), sumPeaks(peakFile), paste0(intersectPerc, "%")))
 }
@@ -114,7 +119,7 @@ formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQ
 formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
 
 #get peak-examples png file
-peakExamplePlot <- list.files(homerFolderPath, pattern = "*peak.examples.png", full.names = TRUE)
+peakExamplePlot <- paste0(homerFolderPath, "/peak.examples.png")
 
 #Render report
 rmarkdown::render(tempTemplate, output_file = paste0(outputFile, ".html"), output_dir = sampleQC)
