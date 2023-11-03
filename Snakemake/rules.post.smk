@@ -903,10 +903,22 @@ rule measure_promoter_fraction:
 				}}' \\
 			| intersectBed -a stdin -b {bed_promoter} -u \\
 			| wc -l`
-		echo -e "${{N_all}}\\t${{N_prom}}" | gawk '{{ printf "All: %d\\nPromoter: %d\\nPercentage: %.1f\\n", $1,$2,$2/$1*100 }}' > {output}
+		echo -e "${{N_all}}\\t${{N_prom}}" | gawk '{{ printf "Name\\t{wildcards.sampleName}\\nTTC\\t%d\\nPromoter\\t%d\\nPercentage\\t%.1f\\n", $1,$2,$2/$1*100 }}' > {output}
 		"""
 
 
+rule make_promotercnt_table:
+	input:
+		expand(sampleDir + "/{sampleName}/QC/promoter_portion.txt", sampleName=samples.Name.tolist())
+	output:
+		expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])
+	message:
+		"Making promoter count table..."
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.makePromCntTable.r -o {qcDir}/promoterCnt {input}
+		"""
 
 
 

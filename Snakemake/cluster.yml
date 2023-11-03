@@ -62,6 +62,11 @@ make_uniqcnt_table:
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
 
+make_promotercnt_table:
+    name        : "{rule}"
+    output      : "logs/{rule}.out"
+    error       : "logs/{rule}.err"
+
 run_homermotif_ctr:
     cpu         : 4
     memory      : 5000
