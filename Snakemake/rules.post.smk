@@ -214,6 +214,46 @@ rule make_spikeintable:
 		ngs.makeSpikeCntTable.r -o {qcDir}/spikein {input}
 		"""
 
+## Make raw bedgraph files from fragment.bed for SEACR input
+rule make_bedgraph_frag:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		chrom = chrom_size
+	output:
+		all=sampleDir + "/{sampleName}/igv.raw.bedGraph.gz"
+	message:
+		"Making raw bedgraph files from fragment.bed... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.fragToBedGraphRaw.sh -g {input.chrom} -c "{chrRegexTarget}" -m 10G -o {output.all} {input.frag}
+		"""
+
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_seacr_input(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":
+		return 0.01
+	else:
+		return sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz"
+
+## Run SEACR
+rule run_seacr:
+	input:
+	 	sampleBGall = sampleDir + "/{sampleName}/igv.raw.bedGraph.gz",
+		ctrlBGall = lambda wildcards: get_seacr_input(wildcards.sampleName)
+	output:
+		stringent=sampleDir + "/{sampleName}/SEACR/seacr.stringent.bed",
+		relaxed=sampleDir + "/{sampleName}/SEACR/seacr.relaxed.bed"
+	message:
+		"Running SEACR... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery
+		SEACR_1.3.sh {input.sampleBGall} {input.ctrlBGall} norm stringent {sampleDir}/{wildcards.sampleName}/SEACR/seacr
+		SEACR_1.3.sh {input.sampleBGall} {input.ctrlBGall} norm relaxed {sampleDir}/{wildcards.sampleName}/SEACR/seacr
+		"""
+
 
 ## BigWig files from 100bp re-sized fragments
 rule make_bigwig_ctr:
