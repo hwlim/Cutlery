@@ -123,6 +123,8 @@ sampleList = samples.Name.tolist()
 sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
 # Samples for histone modification (or broad peaks)
 sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
+# Target Samples (non-control)
+sampleListTarget = sampleListFactor + sampleListHistone
 # Number of highest scoring peaks to visualize
 numHighestPeaks = 5
 
@@ -134,7 +136,8 @@ rule all:
 		expand(qcDir + "/uniqFragCnt.{ext}", ext=[ "txt", "pdf" ]),
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
-		## BigWig files	
+		## Bedgraph and BigWig files
+		expand(sampleDir + "/{sampleName}/igv.raw.bedGraph.gz", sampleName=sampleList),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 		## Peak calling
@@ -142,7 +145,8 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.{ext}", sampleName=sampleListHistone, ext=["bed","stat"]),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
-
+		## SEACR
+		expand(sampleDir + "/{sampleName}/SEACR/seacr.{thresh}.bed", sampleName=sampleListTarget, thresh=["stringent","relaxed"]),
 		## Motif search
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
