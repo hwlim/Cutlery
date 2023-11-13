@@ -153,7 +153,9 @@ mkdir -p $desDir
 tmpBG=${TMPDIR}/__temp__.$$.bedGraph
 tmpBW=${TMPDIR}/__temp__.$$.bw
 
-if [ $bedGraphOnly == false ];then
+if [ $bedGraphOnly == true ];then
+	echo -e "Creating BedGraph file from a fragment bed file" >&2
+else
 	echo -e "Creating BigWig file from a fragment bed file" >&2
 fi
 
