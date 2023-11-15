@@ -146,7 +146,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
 		## SEACR
-		expand(sampleDir + "/{sampleName}/SEACR/seacr.{thresh}.bed", sampleName=sampleListTarget, thresh=["stringent","relaxed"]),
+		expand(sampleDir + "/{sampleName}/SEACR/peak.{thresh}.{ext}", sampleName=sampleListTarget, thresh=["stringent","relaxed"], ext=["exBL.bed", "bed"]),
 		## Motif search
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),

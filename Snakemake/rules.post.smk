@@ -230,36 +230,36 @@ rule make_bedgraph_frag:
 		"""
 
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
-def get_seacr_input(sampleName):
+def get_seacr_input(sampleName, step):
 	ctrlName = get_ctrl_name(sampleName)
+	sampleBedGraph = sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz"
 	if ctrlName.upper() == "NULL":
-		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz" ]
+		if step == "input":
+			return [ sampleBedGraph ]
+		else:
+			return [ sampleBedGraph, "0.01 non" ]
 	else:
-		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz", sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz" ]
-
-def get_norm_parameter(sampleName):
-	ctrlName = get_ctrl_name(sampleName)
-	if ctrlName.upper() == "NULL":
-		return "0.01 non"
-	else:
-		return "norm"
+		ctrlBedGraph = sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz"
+		if step == "input":
+			return [ sampleBedGraph, ctrlBedGraph ]
+		else:
+			return [ sampleBedGraph, ctrlBedGraph, "norm" ]
 
 ## Run SEACR
 rule run_seacr:
 	input:
-		lambda wildcards: get_seacr_input(wildcards.sampleName)
+		lambda wildcards: get_seacr_input(wildcards.sampleName, "input")
 	output:
-		stringent=sampleDir + "/{sampleName}/SEACR/seacr.stringent.bed",
-		relaxed=sampleDir + "/{sampleName}/SEACR/seacr.relaxed.bed"
+		expand(sampleDir + "/{{sampleName}}/SEACR/peak.{type}.{ext}", type=["stringent", "relaxed"], ext=["exBL.bed", "bed"])
 	message:
 		"Running SEACR... [{wildcards.sampleName}]"
 	params:
-		norm = lambda wildcards: get_norm_parameter(wildcards.sampleName)
+		input = lambda wildcards: get_seacr_input(wildcards.sampleName, "param")
 	shell:
 		"""
 		module load Cutlery
-		SEACR_1.3.sh {input} {params.norm} stringent {sampleDir}/{wildcards.sampleName}/SEACR/seacr
-		SEACR_1.3.sh {input} {params.norm} relaxed {sampleDir}/{wildcards.sampleName}/SEACR/seacr
+		SEACR_1.3.sh {params.input} stringent {sampleDir}/{wildcards.sampleName}/SEACR/peak {peak_mask}
+		SEACR_1.3.sh {params.input} relaxed {sampleDir}/{wildcards.sampleName}/SEACR/peak {peak_mask}
 		"""
 
 
