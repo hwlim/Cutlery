@@ -41,6 +41,10 @@ make_bigwig1bp:
     cpu         : 2
     memory      : 10000
 
+make_bigwig_splice:
+    cpu         : 2
+    memory      : 10000
+
 make_bigwig1bp_raw_abs:
     cpu         : 2
     memory      : 10000
