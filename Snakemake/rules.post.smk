@@ -230,36 +230,44 @@ rule make_bedgraph_frag:
 		"""
 
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
-def get_seacr_input(sampleName, step):
+def get_seacr_input(sampleName):
 	ctrlName = get_ctrl_name(sampleName)
-	sampleBedGraph = sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz"
 	if ctrlName.upper() == "NULL":
-		if step == "input":
-			return [ sampleBedGraph ]
-		else:
-			return [ sampleBedGraph, "0.01 non" ]
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz" ]
 	else:
-		ctrlBedGraph = sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz"
-		if step == "input":
-			return [ sampleBedGraph, ctrlBedGraph ]
-		else:
-			return [ sampleBedGraph, ctrlBedGraph, "norm" ]
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz", sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz" ]
+
+def get_seacr_param(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":			
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz", "0.01 non" ]
+	else:
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz", sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz", "norm" ]
 
 ## Run SEACR
 rule run_seacr:
 	input:
-		lambda wildcards: get_seacr_input(wildcards.sampleName, "input")
+		lambda wildcards: get_seacr_input(wildcards.sampleName)
 	output:
 		expand(sampleDir + "/{{sampleName}}/SEACR/peak.{type}.{ext}", type=["stringent", "relaxed"], ext=["exBL.bed", "bed"])
 	message:
 		"Running SEACR... [{wildcards.sampleName}]"
 	params:
-		input = lambda wildcards: get_seacr_input(wildcards.sampleName, "param")
+		input = lambda wildcards: get_seacr_param(wildcards.sampleName)
 	shell:
 		"""
 		module load Cutlery
-		SEACR_1.3.sh {params.input} stringent {sampleDir}/{wildcards.sampleName}/SEACR/peak {peak_mask}
-		SEACR_1.3.sh {params.input} relaxed {sampleDir}/{wildcards.sampleName}/SEACR/peak {peak_mask}
+		SEACR_1.3.sh {params.input} stringent {sampleDir}/{wildcards.sampleName}/SEACR/peak
+		SEACR_1.3.sh {params.input} relaxed {sampleDir}/{wildcards.sampleName}/SEACR/peak
+
+		## Blacklist filtering if given
+		if [ {peak_mask} != "NULL" ];then
+			intersectBed -a {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.bed -b {peak_mask} -v > {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.exBL.bed
+			intersectBed -a {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.bed -b {peak_mask} -v > {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.exBL.bed
+		else
+			cat {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.bed > {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.exBL.bed
+			cat {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.bed > {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.exBL.bed
+		fi
 		"""
 
 
