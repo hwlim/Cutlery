@@ -21,7 +21,8 @@ Options:
 	-s <scale factor>: Manual scaling factor. This value is multiplied to \"raw read count\" primarily for spike-in based scaling.
 			If 0, RPM normalized. default=0
 	-c <chrRegex>: regular expression for chromosome filtering, default=. (no filtering)
-		e.g. \"^chr[0-9XY]+$|^dm-$\": autosome + sex chromosome + drosophila spikein" >&2
+		e.g. \"^chr[0-9XY]+$|^dm-$\": autosome + sex chromosome + drosophila spikein
+	-b <bedgraph only>: if set, create bedgraph file only" >&2
 }
 
 if [ $# -eq 0 ];then
@@ -40,7 +41,8 @@ genome=NULL
 memory=5G
 scaleFactor=0
 chrRegex=.
-while getopts ":o:l:L:r:g:m:s:c:" opt; do
+bedGraphOnly=false
+while getopts ":o:l:L:r:g:m:s:c:b" opt; do
 	case $opt in
 		o)
 			des=$OPTARG
@@ -65,6 +67,9 @@ while getopts ":o:l:L:r:g:m:s:c:" opt; do
 			;;
 		c)
 			chrRegex=$OPTARG
+			;;
+		b)
+			bedGraphOnly=true
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -148,8 +153,13 @@ mkdir -p $desDir
 tmpBG=${TMPDIR}/__temp__.$$.bedGraph
 tmpBW=${TMPDIR}/__temp__.$$.bw
 
-echo -e "Creating BigWig file from a fragment bed file
-  - src = $src
+if [ $bedGraphOnly == true ];then
+	echo -e "Creating BedGraph file from a fragment bed file" >&2
+else
+	echo -e "Creating BigWig file from a fragment bed file" >&2
+fi
+
+echo -e "  - src = $src
   - des = $des
   - fragLen = $minLen - $maxLen (bp)
   - resize = $resize (bp)
@@ -173,7 +183,10 @@ printFrag $src \
 	| gawk '{ printf "%s\t%s\t%s\t%.5f\n", $1,$2,$3,$4 }' \
 	> $tmpBG
 
-echo -e "  3) Converting to bigWig file" >&2
-bedGraphToBigWig ${tmpBG} $genome ${tmpBW}
-mv ${tmpBW} ${des}
-
+if [ $bedGraphOnly == true ];then
+	gzip -c ${tmpBG} > ${des}
+else
+	echo -e "  3) Converting to bigWig file" >&2
+	bedGraphToBigWig ${tmpBG} $genome ${tmpBW}
+	mv ${tmpBW} ${des}
+fi

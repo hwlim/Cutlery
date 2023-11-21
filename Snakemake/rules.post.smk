@@ -214,6 +214,62 @@ rule make_spikeintable:
 		ngs.makeSpikeCntTable.r -o {qcDir}/spikein {input}
 		"""
 
+## Make raw bedgraph files from fragment.bed for SEACR input
+rule make_bedgraph_frag:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		chrom = chrom_size
+	output:
+		all=sampleDir + "/{sampleName}/igv.raw.bedGraph.gz"
+	message:
+		"Making raw bedgraph files from fragment.bed... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.fragToBigWig.sh -b -g {input.chrom} -c "{chrRegexTarget}" -m 10G -s 1 -o {output.all} {input.frag}
+		"""
+
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_seacr_input(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz" ]
+	else:
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz", sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz" ]
+
+def get_seacr_param(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":			
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz", "0.01 non" ]
+	else:
+		return [ sampleDir + "/" + sampleName + "/igv.raw.bedGraph.gz", sampleDir + "/" + ctrlName + "/igv.raw.bedGraph.gz", "norm" ]
+
+## Run SEACR
+rule run_seacr:
+	input:
+		lambda wildcards: get_seacr_input(wildcards.sampleName)
+	output:
+		expand(sampleDir + "/{{sampleName}}/SEACR/peak.{type}.{ext}", type=["stringent", "relaxed"], ext=["exBL.bed", "bed"])
+	message:
+		"Running SEACR... [{wildcards.sampleName}]"
+	params:
+		input = lambda wildcards: get_seacr_param(wildcards.sampleName)
+	shell:
+		"""
+		module load Cutlery
+		SEACR_1.3.sh {params.input} stringent {sampleDir}/{wildcards.sampleName}/SEACR/peak
+		SEACR_1.3.sh {params.input} relaxed {sampleDir}/{wildcards.sampleName}/SEACR/peak
+
+		## Blacklist filtering if given
+		if [ {peak_mask} != "NULL" ];then
+			intersectBed -a {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.bed -b {peak_mask} -v > {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.exBL.bed
+			intersectBed -a {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.bed -b {peak_mask} -v > {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.exBL.bed
+		else
+			cat {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.bed > {sampleDir}/{wildcards.sampleName}/SEACR/peak.stringent.exBL.bed
+			cat {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.bed > {sampleDir}/{wildcards.sampleName}/SEACR/peak.relaxed.exBL.bed
+		fi
+		"""
+
 
 ## BigWig files from 100bp re-sized fragments
 rule make_bigwig_ctr:
