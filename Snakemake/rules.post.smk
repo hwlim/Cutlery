@@ -120,6 +120,20 @@ rule check_baseFreq:
 #		rm {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
 #		rm {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
 
+rule check_baseFreq_chrM:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+	output:
+		expand(sampleDir + "/{{sampleName}}/QC/base_freq_chrM.{ext}", ext=["png","html"])
+	message:
+		"Checking baseFrequency... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq_chrM \
+			-n {wildcards.sampleName} -g {genomeFa} -c "^chrM" -m both -l 20 -f -i -v {input.frag}
+		"""
+
 
 ## BAM to fragment bed files: all / nfr / nuc
 rule split_bam:

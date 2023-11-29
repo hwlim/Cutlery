@@ -26,6 +26,10 @@ check_baseFreq:
     cpu         : 2
     memory      : 6000
 
+check_baseFreq_chrM:
+    cpu         : 2
+    memory      : 6000
+
 dedup_align:
     cpu         : 2
     memory      : 6000

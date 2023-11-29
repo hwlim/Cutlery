@@ -42,7 +42,7 @@ opt_cutadapt	= ""	# additional option for cutadapt
 ## Regular expressions for chromosome names
 ## Target chromosomes + spikein chromosome (if needed)
 ## This is also useful in excluding all the scaffold and random chromosomes
-chrRegexAll		= "^chr[0-9XY]+$"
+chrRegexAll		= "^chr[0-9XYM]+$"
 ## Target chromosomes
 chrRegexTarget	= "^chr[0-9XY]+$"
 
@@ -136,6 +136,7 @@ rule all:
 		expand(qcDir + "/uniqFragCnt.{ext}", ext=[ "txt", "pdf" ]),
 		expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"]),
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
+		expand(sampleDir + "/{sampleName}/QC/base_freq_chrM.{ext}",  sampleName=sampleList, ext=["png","html"]),
 		## Bedgraph and BigWig files
 		expand(sampleDir + "/{sampleName}/igv.raw.bedGraph.gz", sampleName=sampleList),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
