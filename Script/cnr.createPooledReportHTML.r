@@ -82,7 +82,8 @@ for (sample in sampleQC) {
 	fileList <- list.files(sampleDirectory)
 	
 	#get heatmap and coverage
-	homerFolderName <- grep("Homer", fileList, value=TRUE)
+	#homerFolderName <- grep("Homer", fileList, value=TRUE)
+	homerFolderName <- grep("HomerPeak.(factor|histone)$", fileList, value=TRUE)
 	peakMode <- tail(unlist(strsplit(homerFolderName, ".", fixed = TRUE)))[2]
 	homerFolderPath <- paste0(sampleDirectory, "/", homerFolderName)
 	
