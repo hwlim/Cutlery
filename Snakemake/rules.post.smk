@@ -615,7 +615,7 @@ rule run_homer_motif_ctr:
 			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all {input}
 		"""
 
-rule run_homermotif_frag:
+rule run_homer_motif_allfrag:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	output:
@@ -636,7 +636,7 @@ rule run_meme_motif_rand5k:
 	output:
 		sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html"
 	message:
-		"Running MEME-ChIP motif search for random 5k TSS peaks [{wildcards.sampleName}]"
+		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
 	shell:
 		"""
 		module purge
@@ -653,12 +653,12 @@ rule run_meme_motif_rand5k_allfrag:
 	output:
 		sampleDir + "/{sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html"
 	message:
-		"Running MEME-ChIP motif search for random 5k TSS peaks [{wildcards.sampleName}]"
+		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
 	shell:
 		"""
 		module purge
 		module load MotifMEME/1.0
-		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db}} \
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
 			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input.bed}
 		"""
 

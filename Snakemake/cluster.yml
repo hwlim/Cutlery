@@ -75,11 +75,11 @@ make_promotercnt_table:
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
 
-run_homermotif_ctr:
+run_homer_motif_ctr:
     cpu         : 4
     memory      : 5000
 
-run_homermotif_frag:
+run_homer_motif_allfrag:
     cpu         : 4
     memory      : 5000
 
