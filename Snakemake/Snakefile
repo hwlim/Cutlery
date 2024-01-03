@@ -166,7 +166,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListFactor),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListHistone),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListFactor),
-		expand(sampleDir + "/{sampleName}/QC/promoter_portion.txt", sampleName=sampleList),
+		expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])
 
 		## Create final report
 		"Report.html"
