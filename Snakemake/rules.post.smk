@@ -478,10 +478,14 @@ def get_ctrl_name(sampleName):
 
 
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
-def get_peakcall_input(sampleName, fragment):
+def get_peakcall_input(sampleName, fragment, getCtrl=True):
 	#ctrlName = samples.Ctrl[samples.Name == sampleName]
 	#ctrlName = ctrlName.tolist()[0]
-	ctrlName = get_ctrl_name(sampleName)
+	if getCtrl:
+		ctrlName = get_ctrl_name(sampleName)
+	else:
+		ctrlName = "NULL"
+
 	if ctrlName.upper() == "NULL":
 		return [ sampleDir + "/" + sampleName + "/TSV." + fragment ]
 	else:
@@ -519,6 +523,25 @@ rule call_peaks_factor:
 		module load Cutlery/1.0
 		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s {params.optStr} {input.tagDir}
 		"""
+
+## Peak calling in factor mode using resized fragment
+rule call_peaks_factor_no_ctrl:
+	input:
+		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr", getCtrl=False),
+		bw = sampleDir + "/{sampleName}/igv.nfr.con.bw",
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor.noCtrl/peak.exBL.1rpm.{ext}", ext=["bed", "stat"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.noCtrl",
+		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
+	message:
+		"Peak calling using Homer... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s {params.optStr} {input.tagDir}
+		"""
+
 
 ## Peak calling in factor mode using original size fragment
 rule call_peaks_factor_allfrag:
