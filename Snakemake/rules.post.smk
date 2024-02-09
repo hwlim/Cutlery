@@ -27,6 +27,10 @@ if "numHighestPeaks" not in locals():
 if "bed_promoter" not in locals():
 	bed_promoter = "NULL"
 
+if 'species_macs' not in locals():
+	print("Warning: species_macs is not defined; using hs (default)")
+	species_macs="hs"
+
 #################################
 ## Rule Start
 
@@ -1012,6 +1016,136 @@ rule make_promotercnt_table:
 		module load Cutlery/1.0
 		cnr.makePromCntTable.r -o {qcDir}/promoterCnt {input}
 		"""
+
+
+
+################ MACS Peak Calling in PE mode #######################
+## Return bam file (with full path) for a given sample name
+# Return control bam file if mode == "ctrl"
+# NOTE: needs to handle no-ctrl case
+
+rule make_bam_nfr:
+	input:
+		bamDir + "/{sampleName}.bam"
+	output:
+		bamDir + "/{sampleName}.nfr.bam"
+	message:
+		"Making NFR bam file... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load samtools/1.14.0
+		samtools view -h {input} \
+			| gawk 'substr($0,1,1)=="@" || ($9 < 120 && $9 > -120)' \
+			| samtools view -b \
+			> {output}
+		"""
+
+rule make_bam_nuc:
+	input:
+		bamDir + "/{sampleName}.bam"
+	output:
+		bamDir + "/{sampleName}.nuc.bam"
+	message:
+		"Making NUC bam file... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load samtools/1.14.0
+		samtools view -h {input} \
+			| gawk 'substr($0,1,1)=="@" || ($9 >= 120 && $9 <= -120)' \
+			| samtools view -b \
+			> {output}
+		"""
+
+## find control sample name for peak calling using target sample name
+def get_ctrl_name(sampleName):
+	ctrlName = samples.Ctrl[samples.Name == sampleName]
+	ctrlName = ctrlName.tolist()[0]
+
+	return ctrlName
+
+
+def get_bam_for_macs(sampleName, fragment, mode="target"):
+	assert ( fragment == "nfr" ) | ( fragment == "nuc" )
+	assert (mode == "target" ) | ( mode == "ctrl" )
+	if mode == "target":
+		name = sampleName
+	else:
+		name = get_ctrl_name(sampleName)
+	bam = bamDir + "/" + name + "." + fragment + ".bam"
+	print(bam)
+	return bam
+
+## MACS peak calling vs control
+rule call_peak_macs_factor:
+	input:
+		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="target"),
+		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="ctrl")
+	output:
+		peak = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}.log"
+	message:
+		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
+	params:
+		mask = peak_mask,
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MACS/2.2.8
+		module load bedtools/2.27.0
+		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		"""
+
+## MACS peak calling with relaxed criteria using p-value for IDR analysis
+rule call_peak_macs_factor_relax:
+	input:
+		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="target"),
+		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="ctrl")
+	output:
+		peak = sampleDir + "/{sampleName}/MACS2.factor.relax/{sampleName}_summits.exBL.bed",
+		peak2 = sampleDir + "/{sampleName}/MACS2.factor.relax/{sampleName}_peaks.sorted.narrowPeak",
+		log = sampleDir + "/{sampleName}/MACS2.factor.relax/{sampleName}.log"
+	message:
+		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
+	params:
+		mask = peak_mask,
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MACS/2.2.8
+		module load bedtools/2.27.0
+		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
+			--outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits -p 0.001 \
+			2>&1 | tee {output.log}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		sort -k8,8nr {params.outDir}/{wildcards.sampleName}_peaks.narrowPeak > {output.peak2}
+		"""
+
+## MACS peak calling without control
+rule call_peak_macs_factor_wo_ctrl:
+	input:
+		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="target")
+	output:
+		peak = sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/{sampleName}_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/{sampleName}.log"
+	message:
+		"Calling TF peaks/SE ... [{wildcards.sampleName}]"
+	params:
+		mask = peak_mask,
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MACS/2.2.8
+		module load bedtools/2.27.0
+		macs3 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		"""
+
 
 
 
