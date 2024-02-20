@@ -33,6 +33,7 @@ sampDir=normalizePath(opt$sampleDir)
 qcDir=normalizePath(opt$qcDir)
 outputFile=opt$outputFile
 sampleTsvIn = opt$sampleTsvIn
+fragMixPrefix=opt$fragMixPrefix
 
 #Read in and crop logo
 logo = paste0(Sys.getenv("CUTLERY"), "/Plan/logo.png")
@@ -76,23 +77,23 @@ for (sample in sampleQC) {
 	#get sample name
 	sampleName <- tail(unlist(strsplit(sample, "/")), n=2)[1]
 
-	#get path to sample Directory
+	## get sample info from sample.tsv file
+	rowNum = which(grepl(sampleName, sampleIn$Name))
+	rowData = sampleIn[rowNum,]
+	peakMode = rowData$PeakMode
+
+	## get path to sample Directory
 	sampleDirectory <- paste(head(unlist(strsplit(sample, "/")), -1), collapse = "/")
-	fragBed <- paste0(sampleDirectory, "/fragment.bed.gz")
-	fileList <- list.files(sampleDirectory)
 	
-	#get heatmap and coverage
-	#homerFolderName <- grep("Homer", fileList, value=TRUE)
-	homerFolderName <- grep("HomerPeak.(factor|histone)$", fileList, value=TRUE)
-	peakMode <- tail(unlist(strsplit(homerFolderName, ".", fixed = TRUE)))[2]
-	homerFolderPath <- paste0(sampleDirectory, "/", homerFolderName)
+	## get homer dir
+	homerFolderPath <- paste0(sampleDirectory, "/", "HomerPeak.", peakMode)
 	
 	#get fragmentQC file for the sample
-	fragQCfile <- paste0(sample, "/", opt$fragMixPrefix ,".txt")
+	fragQCfile <- paste0(sample, "/", fragMixPrefix ,".txt")
 	fragQC <- read.table(fragQCfile, header = TRUE)
 
 	# skip visualization of control samples, but retrieve fragQC
-	if (is.null(peakMode)) {
+	if (peakMode == "NULL") {
 		peakMode = "ctrl"
 		fragQCtable <- rbind(fragQCtable, list(sampleName, peakMode, formatC(as.numeric(fragQC[[1]]), format="f", digits=2), 
 		formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
@@ -101,15 +102,15 @@ for (sample in sampleQC) {
 	}
 
 	if (peakMode == "factor") {
-		heatmap <- list.files(homerFolderPath, pattern = "*heatmap.exBL.1rpm.png", full.names = TRUE)
-		peakFile <- list.files(homerFolderPath, pattern = "*peak.exBL.1rpm.bed", full.names = TRUE)
-		percFile <- list.files(homerFolderPath, pattern = "*peak.exBL.1rpm.stat", full.names = TRUE)
+		heatmap <- paste0(homerFolderPath, "/heatmap.exBL.1rpm.png")
+		peakFile <- paste0(homerFolderPath, "/peak.exBL.1rpm.bed")
+		percFile <- paste0(homerFolderPath, "/peak.exBL.1rpm.stat")
 		intersectPerc <- read.table(file = percFile, sep = "\t", header = FALSE)[[2]]
 		factorTable <- rbind(factorTable, list(sampleName, countPeaks(peakFile), paste0(intersectPerc, "%")))
 	} else {
-		heatmap <- list.files(homerFolderPath, pattern = "*heatmap.exBL.png", full.names = TRUE)
-		peakFile <- list.files(homerFolderPath, pattern = "*peak.exBL.bed", full.names = TRUE)
-		percFile <- list.files(homerFolderPath, pattern = "*peak.exBL.stat", full.names = TRUE)
+		heatmap <- paste0(homerFolderPath, "/heatmap.exBL.png")
+		peakFile <- paste0(homerFolderPath, "/peak.exBL.bed")
+		percFile <- paste0(homerFolderPath, "/peak.exBL.stat")
 		intersectPerc <- read.table(file = percFile, sep = "\t", header = FALSE)[[2]]
 		histoneTable <- rbind(histoneTable, list(sampleName, countPeaks(peakFile), sumPeaks(peakFile), paste0(intersectPerc, "%")))
 	}
@@ -120,7 +121,7 @@ for (sample in sampleQC) {
 	formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
 
 	#get peak-examples png file
-	peakExamplePlot <- list.files(homerFolderPath, pattern = "*peak.examples.png", full.names = TRUE)
+	peakExamplePlot <- paste0(homerFolderPath, "/peak.examples.png")
 
 	#write peak-examples section of Rmd file
 	#add heatmap at the end
