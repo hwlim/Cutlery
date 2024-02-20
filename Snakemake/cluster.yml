@@ -118,3 +118,11 @@ create_final_report:
     name        : "{rule}"
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
+
+make_bw_from_echo_factor_results:
+    cpu         : 2
+    memory      : 10000
+
+make_bw_from_echo_histone_results:
+    cpu         : 2
+    memory      : 10000

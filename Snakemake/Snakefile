@@ -148,6 +148,15 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
 		## SEACR
 		expand(sampleDir + "/{sampleName}/SEACR/peak.{thresh}.{ext}", sampleName=sampleListTarget, thresh=["stringent","relaxed"], ext=["exBL.bed", "bed"]),
+
+		## run EChO
+		expand(sampleDir + "/{sampleName}/EChO.factor/matrix.{ext}", sampleName=sampleListFactor, ext=["in", "EChO.matrix"]),
+		expand(sampleDir + "/{sampleName}/EChO.histone/matrix.{ext}", sampleName=sampleListHistone, ext=["in", "EChO.matrix"]),
+
+		## convert EChO output to bigwig
+		expand(sampleDir + "/{sampleName}/igv.EChO.factor.bw", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/igv.EChO.histone.bw", sampleName=sampleListHistone),
+		
 		## Motif search
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
