@@ -126,7 +126,8 @@ rule check_baseFreq:
 
 rule check_baseFreq_chrM:
 	input:
-		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		bam = bamDir + "/{sampleName}/align.bam"
+		#frag = sampleDir + "/{sampleName}/fragment.bed.gz",
 	output:
 		expand(sampleDir + "/{{sampleName}}/QC/base_freq_chrM.{ext}", ext=["png","html"])
 	message:
@@ -135,7 +136,7 @@ rule check_baseFreq_chrM:
 		"""
 		module load Cutlery/1.0
 		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq_chrM \
-			-n {wildcards.sampleName} -g {genomeFa} -c "^chrM" -m both -l 20 -f -i -v {input.frag}
+			-n {wildcards.sampleName} -g {genomeFa} -c "^chrM" -m 5 -l 20 -i -v {input.bam}
 		"""
 
 
