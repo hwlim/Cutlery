@@ -1,9 +1,5 @@
 #!/usr/bin/env Rscript
 
-
-## Draw a heatmap of CUT&Run Data
-##	Written by Hee Woong Lim & Christopher Ahn
-
 suppressPackageStartupMessages(library('RColorBrewer', quiet=TRUE))
 suppressPackageStartupMessages(library('optparse', quiet=TRUE))
 suppressPackageStartupMessages(library('tools', quiet=TRUE))
@@ -14,7 +10,7 @@ source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
 # command line option handling
 option_list <- list(
-	make_option(c("-t","--title"), default="BigWig Heatmap", help="Main Title. default=BigWig Heatmap"),
+	make_option(c("-t","--title"), default="Peak Heatmap", help="Main Title. default=Peak Heatmap"),
 	make_option(c("-w","--width"), default=2000, help="Visualization window, default=2000; Leave as 2000 for TF samples and use 10000 instead for histone samples."),
 	make_option(c("-b","--binSize"), default=20, help="Bin size for tiled-average, default=20"),
 	make_option(c("-m","--margin"), default="0,0.5,2,0.5", help="Outside margin (oma), default=0,0.5,2,0.5"),
@@ -22,17 +18,21 @@ option_list <- list(
 	make_option(c("-q","--maxColor"), default="red", help="Color for the maximum value to use for color function, default=red"),
 	make_option(c("-p","--dpi"), default=200, help="DPI for pdf->png conversion, default=200"),
 	make_option(c("-d","--dataDir"), default="NULL", help="Data directory. default=<outPrefix>.data"),
-	make_option(c("-o","--outPrefix"), default="BigWigHeatmap", help="Output prefix. default=BigWigHeatmap")
+	make_option(c("-o","--outPrefix"), default="PeakHeatmap", help="Output prefix. default=PeakHeatmap")
 )
-parser <- OptionParser(usage = "%prog [options] <bed1> <bed2> ... <bw file | bw prefix for stranded data> ...", option_list=option_list,
-			description = "Draw a matrix of stack-height profile heatmaps for multiple bed / bigwig files
-Each bed file corresponds to row, bigWig file corresponds to column
+parser <- OptionParser(usage = "%prog [options] <bed1> <bed2> ... <bw1> <bw2> ...", option_list=option_list,
+			description = "Draw a matrix of peak heatmaps for one or more bed files against two or four bigwig files
+Each bed file corresponds to a row and each bigwig file corresponds to a column.
+
 Note:
-	- Strand sensitive
-	- Not appropriate 1bp-sensitive Job.
-	- If data files are already exists, plots are re-drawn only.
-	- If colName or rowName is given, data files are named using this as prefix/suffix.
-	- If ctrl sample bw files exist, include them as well after the sample bw files." )
+	- Not appropriate for 1bp-sensitive jobs.
+	- If data files already exist, only the plots are re-drawn.
+	- The number of input bigwig files should either be 2 or 4; 2 when there are no controls, 4 when there are controls.
+	- If there are controls, include the ctrl bw file after its corresponding sample bw file.
+	- Example command with 1 bed file and 4 bigwig files: %prog -o outPrefix peak.bed nfr.bw nfr_ctrl.bw nuc.bw nuc_ctrl.bw
+	- Example command with 2 bed files and 2 bigwig files: %prog -o outPrefix peaks1.bed peaks2.bed nfr.bw nuc.bw"
+	)
+
 arguments <- parse_args(parser, positional_arguments = TRUE)
 if(length(arguments$args) == 0) {
 	print_help(parser)
@@ -69,9 +69,6 @@ for( src in srcL ){
 	}else{
 		if(ext=="bw"){
 			assertFileExist(src)
-		}else{
-			bw.pair = sprintf("%s.%s.bw", src, c("plus","minus"))
-			assertFileExist(bw.pair)
 		}
 		srcL.bw = c(srcL.bw, src)
 	}
@@ -88,10 +85,13 @@ stopifnot( N.bed > 0 && N.bw > 0 )
 #Define column names and re-order bw files if ctrl sample exists
 if( N.bw == 4 ){
 	nameL.bw = c("NFR", "NFR_Ctrl", "NUC", "NUC_Ctrl")
-    srcL.bw = srcL.bw[c(1,3,2,4)]
-}else{
+	margin = "0,3.8,2.5,3.8"
+}else if ( N.bw == 2 ) {
     nameL.bw = c("NFR", "NUC")
 	margin = "0,3.8,1.5,3.8"
+} else {
+	print("Number of bigwig file should either be 2 or 4")
+	q()
 }
 
 nameL.bed = sapply(srcL.bed, function(x) sub(".bed$","",basename(x)))
@@ -142,19 +142,6 @@ for( i in 1:N.bw ){
 				write(sprintf("  - BigWig: %s", bw), stderr())
 				data = extractBigWigData(bed, bw, width=width, binSize=binSize, des)
 			}
-		}else{
-			## stranded / plus,minus
-			desPrefix=sprintf("%s/%s.%s.%dbp", dataDir, bedName, bwName, width)
-			if(file.exists(sprintf("%s.plus.gz", desPrefix)) && file.exists(sprintf("%s.minus.gz", desPrefix)) ){
-				write(sprintf("Warning: %s.<plus/minus>.gz already exists, reading ...", desPrefix), stderr())
-				data = readBigWigDataStranded(desPrefix, direc=tmp.bed[,6])
-			}else{
-				write(sprintf("Extracting => %s", desPrefix), stderr())
-				write(sprintf("  - Bed: %s", bed), stderr())
-				write(sprintf("  - BigWig: %s.<plus/minus>.bw", bw), stderr())
-				data = extractBigWigDataStranded2(bed, bw, width, binSize, desPrefix)
-			}
-			data = data[["plus"]] + data[["minus"]]
 		}
 		dataL[[bwName]][[bedName]]=data
 	}
