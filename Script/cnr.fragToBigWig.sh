@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-## PLAN
-## -c chrRegex option for chromosome selection
+## Create bigwig file from fragment bed file
+##	Written by Hee Woong Lim
+
 
 source $COMMON_LIB_BASE/commonBash.sh
 trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
