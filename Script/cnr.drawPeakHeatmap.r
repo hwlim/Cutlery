@@ -85,7 +85,6 @@ stopifnot( N.bed > 0 && N.bw > 0 )
 #Define column names and re-order bw files if ctrl sample exists
 if( N.bw == 4 ){
 	nameL.bw = c("NFR", "NFR_Ctrl", "NUC", "NUC_Ctrl")
-    # srcL.bw = srcL.bw[c(1,3,2,4)]
 	margin = "0,3.8,2.5,3.8"
 }else if ( N.bw == 2 ) {
     nameL.bw = c("NFR", "NUC")
