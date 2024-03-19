@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+
+## Draw a heatmap of CUT&Run Data
+##	Written by Hee Woong Lim & Christopher Ahn
+
 suppressPackageStartupMessages(library('RColorBrewer', quiet=TRUE))
 suppressPackageStartupMessages(library('optparse', quiet=TRUE))
 suppressPackageStartupMessages(library('tools', quiet=TRUE))
