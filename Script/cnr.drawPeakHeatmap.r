@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+# Draw a bigwig heatmap for CUT&Run data
+# Written by Hee Woong Lim & Christopher Ahn
+
+
 suppressPackageStartupMessages(library('RColorBrewer', quiet=TRUE))
 suppressPackageStartupMessages(library('optparse', quiet=TRUE))
 suppressPackageStartupMessages(library('tools', quiet=TRUE))
@@ -17,20 +21,26 @@ option_list <- list(
 	make_option(c("-s","--size"), default="3,3", help="Comma-separated figure size, xSize,ySize, in inch, default=3,3"),
 	make_option(c("-q","--maxColor"), default="red", help="Color for the maximum value to use for color function, default=red"),
 	make_option(c("-p","--dpi"), default=200, help="DPI for pdf->png conversion, default=200"),
-	make_option(c("-d","--dataDir"), default="NULL", help="Data directory. default=<outPrefix>.data"),
+	make_option(c("-d","--dataDir"), default="NULL", help="Directory containing extracted data. default=<outPrefix>.data"),
 	make_option(c("-o","--outPrefix"), default="PeakHeatmap", help="Output prefix. default=PeakHeatmap")
 )
 parser <- OptionParser(usage = "%prog [options] <bed1> <bed2> ... <bw1> <bw2> ...", option_list=option_list,
-			description = "Draw a matrix of peak heatmaps for one or more bed files against two or four bigwig files
-Each bed file corresponds to a row and each bigwig file corresponds to a column.
-
+			description = "Draw a matrix of CUT&Run data heatmaps for one or more bed files using given bigwig files
+Input:
+	- BED: One or more bed file to draw heatmaps
+	- BigWig: ordered list of two or four bed files
+		Two files: NFR and NUC bigwig files
+		Four files: NFR / NFR IgG / NUC / NUC IgG
+		Heatmap columns are named accordingly
+Output:
+	- a matrix of heatmaps where bed bed file corresponds to a row, and each bigwig file corresponds to a column.
+		Colorscale is automatically decided separately in NFR and NUC
+		If IgG bigwig files are given, they are visualized with the same color scale matching NFR and NUC
+			e.g. NFR & NFR IgG / NUC & NUC IgG
+		If more than one bed file is given, row names are annotated for each bed following the file name excluding the extension
 Note:
 	- Not appropriate for 1bp-sensitive jobs.
-	- If data files already exist, only the plots are re-drawn.
-	- The number of input bigwig files should either be 2 or 4; 2 when there are no controls, 4 when there are controls.
-	- If there are controls, include the ctrl bw file after its corresponding sample bw file.
-	- Example command with 1 bed file and 4 bigwig files: %prog -o outPrefix peak.bed nfr.bw nfr_ctrl.bw nuc.bw nuc_ctrl.bw
-	- Example command with 2 bed files and 2 bigwig files: %prog -o outPrefix peaks1.bed peaks2.bed nfr.bw nuc.bw"
+	- If data files already exist, only the plots are re-drawn."
 	)
 
 arguments <- parse_args(parser, positional_arguments = TRUE)
@@ -90,8 +100,7 @@ if( N.bw == 4 ){
     nameL.bw = c("NFR", "NUC")
 	margin = "0,3.8,1.5,3.8"
 } else {
-	print("Number of bigwig file should either be 2 or 4")
-	q()
+	stop("Number of bigwig file should either be 2 or 4")
 }
 
 nameL.bed = sapply(srcL.bed, function(x) sub(".bed$","",basename(x)))
