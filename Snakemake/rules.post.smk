@@ -1173,15 +1173,6 @@ rule call_peak_macs_factor_wo_ctrl:
 		rm ${{TMPDIR}}/{wildcards.sampleName}_target.bam
 		"""
 
-
-## Returns peak calling input tagDir(s): ctrl (optional) & target
-def get_macs3_input(sampleName):
-	ctrlName = get_ctrl_name(sampleName)
-	if ctrlName.upper() == "NULL":
-		return [ f'{alignDir}/{sampleName}/align.bam' ]
-	else:
-		return [ f'{alignDir}/{sampleName}/align.bam', f'{alignDir}/{ctrlName}/align.bam' ]
-
 def get_macs3_param(sampleName):
 	ctrlName = get_ctrl_name(sampleName)
 	if ctrlName.upper() == "NULL":			
