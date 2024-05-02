@@ -1026,9 +1026,9 @@ rule make_promotercnt_table:
 
 rule make_bam_nfr:
 	input:
-		bamDir + "/{sampleName}/align.bam"
+		bamDir + "/{sampleName}.bam"
 	output:
-		bamDir + "/{sampleName}/align.nfr.bam"
+		bamDir + "/{sampleName}.nfr.bam"
 	message:
 		"Making NFR bam file... [{wildcards.sampleName}]"
 	shell:
@@ -1075,7 +1075,7 @@ def get_bam_for_macs(sampleName, fragment, mode="target"):
 		name = sampleName
 	else:
 		name = get_ctrl_name(sampleName)
-	bam = f'{bamDir}/{name}/align.nfr.bam'
+	bam = bamDir + "/" + name + "." + fragment + ".bam"
 	print(bam)
 	return bam
 
