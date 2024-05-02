@@ -690,6 +690,7 @@ rule run_meme_motif_rand5k_allfrag:
 			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input.bed}
 		"""
 
+
 #get bw file for control sample
 #bwType variable should be either "nuc" or "nfr"
 #this function assumes that a ctrl sample exists and is not NULL
@@ -1058,6 +1059,8 @@ rule make_bam_nuc:
 			| gawk 'substr($0,1,1)=="@" || ($9 >= 120 && $9 <= -120)' \
 			| samtools view -b \
 			> {output}
+		
+		samtools index {output}
 		"""
 
 ## find control sample name for peak calling using target sample name
