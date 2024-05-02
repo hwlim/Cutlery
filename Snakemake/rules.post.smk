@@ -690,7 +690,6 @@ rule run_meme_motif_rand5k_allfrag:
 			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input.bed}
 		"""
 
-
 #get bw file for control sample
 #bwType variable should be either "nuc" or "nfr"
 #this function assumes that a ctrl sample exists and is not NULL
@@ -1027,9 +1026,9 @@ rule make_promotercnt_table:
 
 rule make_bam_nfr:
 	input:
-		bamDir + "/{sampleName}.bam"
+		bamDir + "/{sampleName}/align.bam"
 	output:
-		bamDir + "/{sampleName}.nfr.bam"
+		bamDir + "/{sampleName}/align.nfr.bam"
 	message:
 		"Making NFR bam file... [{wildcards.sampleName}]"
 	shell:
@@ -1040,6 +1039,8 @@ rule make_bam_nfr:
 			| gawk 'substr($0,1,1)=="@" || ($9 < 120 && $9 > -120)' \
 			| samtools view -b \
 			> {output}
+		
+		samtools index {output}
 		"""
 
 rule make_bam_nuc:
@@ -1074,7 +1075,7 @@ def get_bam_for_macs(sampleName, fragment, mode="target"):
 		name = sampleName
 	else:
 		name = get_ctrl_name(sampleName)
-	bam = bamDir + "/" + name + "." + fragment + ".bam"
+	bam = f'{bamDir}/{name}/align.nfr.bam'
 	print(bam)
 	return bam
 
@@ -1096,8 +1097,16 @@ rule call_peak_macs_factor:
 		module purge
 		module load MACS/2.2.8
 		module load bedtools/2.27.0
-		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		module load samtools/1.18.0
+
+		samtools idxstats {input.target} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.target} > ${{TMPDIR}}/{wildcards.sampleName}_target.bam
+		samtools idxstats {input.ctrl} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.ctrl} > ${{TMPDIR}}/{wildcards.sampleName}_ctrl.bam
+
+		macs3 callpeak -t ${{TMPDIR}}/{wildcards.sampleName}_target.bam -c ${{TMPDIR}}/{wildcards.sampleName}_ctrl.bam -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+
+		rm ${{TMPDIR}}/{wildcards.sampleName}_target.bam
+		rm ${{TMPDIR}}/{wildcards.sampleName}_ctrl.bam
 		"""
 
 ## MACS peak calling with relaxed criteria using p-value for IDR analysis
@@ -1119,11 +1128,18 @@ rule call_peak_macs_factor_relax:
 		module purge
 		module load MACS/2.2.8
 		module load bedtools/2.27.0
+
+		samtools idxstats {input.target} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.target} > ${{TMPDIR}}/{wildcards.sampleName}_target_relaxed.bam
+		samtools idxstats {input.ctrl} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.ctrl} > ${{TMPDIR}}/{wildcards.sampleName}_ctrl_relaxed.bam
+
 		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
 			--outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits -p 0.001 \
 			2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
 		sort -k8,8nr {params.outDir}/{wildcards.sampleName}_peaks.narrowPeak > {output.peak2}
+
+		rm ${{TMPDIR}}/{wildcards.sampleName}_target_relaxed.bam
+		rm ${{TMPDIR}}/{wildcards.sampleName}_ctrl_relaxed.bam
 		"""
 
 ## MACS peak calling without control
@@ -1143,13 +1159,69 @@ rule call_peak_macs_factor_wo_ctrl:
 		module purge
 		module load MACS/2.2.8
 		module load bedtools/2.27.0
+
+		samtools idxstats {input.target} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.target} > ${{TMPDIR}}/{wildcards.sampleName}_target.bam
+
 		macs3 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+
+		rm ${{TMPDIR}}/{wildcards.sampleName}_target.bam
 		"""
 
 
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_macs3_input(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":
+		return [ f'{alignDir}/{sampleName}/align.bam' ]
+	else:
+		return [ f'{alignDir}/{sampleName}/align.bam', f'{alignDir}/{ctrlName}/align.bam' ]
 
+def get_macs3_param(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":			
+		return [ f'-t {alignDir}/{sampleName}/align.bam' ]
+	else:
+		return [ f'-t {alignDir}/{sampleName}/align.bam -c {alignDir}/{ctrlName}/align.bam' ]
 
+def is_paired(sampleName):
+    current_row = samples[samples.Name == sampleName]
+    if current_row.Fq2.item() != "NULL":
+        return "BAMPE"
+    else:
+        return "BAM"
+
+rule run_homer_motif_macs3:
+	input:
+		peak = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
+	output:
+		sampleDir + "/{sampleName}/Motif/Homer.MACS3/homerResults.html"
+	params:
+		input = lambda wildcards: get_macs3_param(wildcards.sampleName),
+		paired = lambda wildcards: is_paired(wildcards.sampleName)
+	message:
+		"Peak calling using MACS3... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Motif/1.0
+		findMotifsGenome.pl {input} {genome} {sampleDir}/{wildcards.sampleName}/Motif/Homer.MACS3 -size 200 -len 8,10,12 -p 4 -preparsedDir {sampleDir}/{wildcards.sampleName}/Motif/Homer.MACS3
+		"""
+
+rule run_meme_motif_rand5k_macs3:
+	input:
+		peak = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
+	output:
+		sampleDir + "/{sampleName}/Motif/MEME.random5k.MACS3/meme-chip.html"
+	message:
+		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load MotifMEME/1.0
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
+			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.MACS3 {input.peak}
+		"""
 
 ########################################
 ## Rules for report generation
