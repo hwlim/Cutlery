@@ -1131,6 +1131,7 @@ rule call_peak_macs_factor_relax:
 		module purge
 		module load MACS/2.2.8
 		module load bedtools/2.27.0
+		module load samtools/1.18.0
 
 		samtools idxstats {input.target} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.target} > ${{TMPDIR}}/{wildcards.sampleName}_target_relaxed.bam
 		samtools idxstats {input.ctrl} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.ctrl} > ${{TMPDIR}}/{wildcards.sampleName}_ctrl_relaxed.bam
@@ -1162,6 +1163,7 @@ rule call_peak_macs_factor_wo_ctrl:
 		module purge
 		module load MACS/2.2.8
 		module load bedtools/2.27.0
+		module load samtools/1.18.0
 
 		samtools idxstats {input.target} | cut -f1 | grep -P {chrRegexTarget} | xargs samtools view -b {input.target} > ${{TMPDIR}}/{wildcards.sampleName}_target.bam
 
