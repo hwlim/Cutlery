@@ -94,7 +94,7 @@ stopifnot( N.bed > 0 && N.bw > 0 )
 
 #Define column names and re-order bw files if ctrl sample exists
 if( N.bw == 4 ){
-	nameL.bw = c("NFR", "NFR_Ctrl", "NUC", "NUC_Ctrl")
+	nameL.bw = c("NFR", "NUC", "NFR_Ctrl", "NUC_Ctrl")
 	margin = "0,3.8,2.5,3.8"
 }else if ( N.bw == 2 ) {
     nameL.bw = c("NFR", "NUC")
@@ -167,8 +167,8 @@ for( bwName in names(dataL) ){
 }
 
 if (N.bw == 4){
-    axisLim[2] = axisLim[1]
-    axisLim[4] = axisLim[3]
+    axisLim[3] = axisLim[1]
+    axisLim[4] = axisLim[2]
 }
 
 colorFun=function(n){
