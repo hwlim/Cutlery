@@ -1075,7 +1075,6 @@ def get_bam_for_macs(sampleName, fragment, mode="target"):
 	else:
 		name = get_ctrl_name(sampleName)
 	bam = bamDir + "/" + name + "." + fragment + ".bam"
-	print(bam)
 	return bam
 
 ## MACS peak calling vs control
