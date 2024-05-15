@@ -32,12 +32,14 @@ function printUsage {
 Description: Split BAM file records into three bed files
 Options:
 	-o <outPrefix>: Output prefix. required
-	-f <samFlag>: SAM flag to include, default=0x2 (Properly paired)
-	-F <samFlag>: SAM flag to exclude, default=0x400 (Duplicate)
+	-f <samFlag>: SAM flag to include, default=0x2 (Properly paired). Use NULL to unset
+	-F <samFlag>: SAM flag to exclude, default=0x400 (Duplicate). Use NULL to unset
 	-l <finalLen>: final fixed size around the fragment center for *ctr.bed files, default=100
 	-c <chromosome regex>: Regular expression for chromosome selection, default=^chr[0-9XY]+$
 		For multiple patterns use regular expression, such as \"^chr[0-9XY]+$|^chrM$\" 
 		NULL if not applicable or no filtering
+	-s: if set, bam file is assumed to be coordinated-sorted not by read names,
+		thus ngs.bamToFragment.py will be used instead of bedtools
 Output:
 	** Output files are not sorted **
 	All reads
@@ -67,7 +69,8 @@ flagInc=0x2
 flagExc=0x400
 finalLen=100
 chrRegex='^chr[0-9XY]+$'
-while getopts ":o:f:F:l:c:" opt; do
+csorted=FALSE
+while getopts ":o:f:F:l:c:s" opt; do
 	case $opt in
 		o)
 			outPrefix=$OPTARG
@@ -83,6 +86,9 @@ while getopts ":o:f:F:l:c:" opt; do
 			;;
 		c)
 			chrRegex=$OPTARG
+			;;
+		s)
+			csorted=TRUE
 			;;
 		\?)
 			echo "Invalid options: -$OPTARG" >&2
@@ -131,14 +137,23 @@ if [ "$chrRegex" == "NULL" ];then
 	chrRegex="."
 fi
 
+# Print BAM file in BEDPE format
 printBAM(){
 	local src=$1
 	assertFileExist $src
 	
-	if [ "$optStr" == "" ];then
-		bamToBed -bedpe -i $src
+	if [ "$csorted" == "TRUE" ];then
+		if [ "$optStr" == "" ];then
+			ngs.bamToFragment.py $src | gawk '{ printf "%s\t%d\t%d\t%s\t%d\t%d\t%d\t+\t-\n", $1,$2,$3,$1,$2,$3,$4,$5 }'
+		else
+			ngs.bamToFragment.py $optStr $src | gawk '{ printf "%s\t%d\t%d\t%s\t%d\t%d\t%d\t+\t-\n", $1,$2,$3,$1,$2,$3,$4,$5 }'
+		fi
 	else
-		samtools view -u -b $optStr $src | bamToBed -bedpe
+		if [ "$optStr" == "" ];then
+			bamToBed -bedpe -i $src
+		else
+			samtools view -u -b $optStr $src | bamToBed -bedpe
+		fi
 	fi
 }
 
