@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
-# source("/Volumes/limlab/ChristopherAhn/21.09.24_create_pdf_py/genomeR.r")
-# source("/Volumes/limlab/ChristopherAhn/21.09.24_create_pdf_py/basicR.r")
+# source("/Volumes/limlab/ChristopherAhn/LimLabBase/Common/genomeR.r")
+# source("/Volumes/limlab/ChristopherAhn/LimLabBase/Common/basicR.r")
 source(sprintf("%s/genomeR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
@@ -45,7 +45,7 @@ create_plots_and_add_to_plot_list=function(tempNUC.melt, tempNFR.melt, nucMax, n
 
     #if max RPM in nfr bw is zero, set ylim manually
     NFR <- draw_NFR(tempNFR.melt, nfrMax, col)
-    
+
     #if max RPM in nuc bw is zero, set ylim manually
     NUC <- draw_NUC(tempNUC.melt, nucMax, chr)
 
@@ -61,9 +61,10 @@ create_plots_and_add_to_plot_list=function(tempNUC.melt, tempNFR.melt, nucMax, n
 
 #Draw one NFR plot
 draw_NFR=function(tempNFR.melt, nfrMax, col){
-    
-    NFR <- ggplot(tempNFR.melt, aes(rows,value)) +
-        geom_area(colour=tempNFR.melt$color, fill=tempNFR.melt$color) + 
+
+    NFR <- ggplot(tempNFR.melt, aes(rows,value, fill=color)) +
+        geom_area() +
+        scale_fill_manual(values = c("red" = "red", "grey43" = "grey43")) +
         facet_grid(series ~ .) + 
         labs(title=paste0("Highest Scoring Peak #", col), y = "Score") +
         theme(plot.title = element_text(hjust = 0.5, face="bold"),
@@ -75,7 +76,8 @@ draw_NFR=function(tempNFR.melt, nfrMax, col){
             axis.title.x = element_blank(),
             axis.text.x = element_blank(),
             axis.ticks.x = element_blank(),
-            axis.title.y = element_text(colour="white")
+            axis.title.y = element_text(colour="white"),
+            legend.position = "none"
             ) +
         theme(strip.background = element_rect(fill="red")) +
         theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
@@ -86,9 +88,10 @@ draw_NFR=function(tempNFR.melt, nfrMax, col){
 
 #Draw one NUC plot
 draw_NUC=function(tempNUC.melt, nucMax, chr){
-    
-    NUC <- ggplot(tempNUC.melt, aes(rows,value)) +
-        geom_area(colour=tempNUC.melt$color, fill=tempNUC.melt$color) + 
+
+    NUC <- ggplot(tempNUC.melt, aes(rows,value, fill=color)) +
+        geom_area() +
+        scale_fill_manual(values = c("blue" = "blue", "grey43" = "grey43")) +
         facet_grid(series ~ .) + 
         labs(x = chr, y = "Score") +
         theme(
@@ -98,7 +101,8 @@ draw_NUC=function(tempNUC.melt, nucMax, chr){
             axis.line = element_line(colour = "black"),
             panel.border = element_rect(colour = "black", fill=NA),
             axis.title.x = element_text(face="bold"),
-            axis.title.y = element_text(colour="white")
+            axis.title.y = element_text(colour="white"),
+            legend.position = "none"
             ) +
         theme(strip.background = element_rect(fill="blue")) +
         theme(strip.text = element_text(colour = 'white', face="bold", size = 14)) +
@@ -269,6 +273,8 @@ if (mode == 'factor') {
     windowSize = 10000
     binsize = 20
 }
+
+#bwFiles = c("3.Sample/Cp_H3K4me1/igv.nfr.con.bw", "3.Sample/Cp_H3K4me1/igv.nuc.con.bw", "3.Sample/Cp_IgG/igv.nfr.con.bw", "3.Sample/Cp_IgG/igv.nuc.con.bw")
 
 #extractBW
 extractedBW = list()
