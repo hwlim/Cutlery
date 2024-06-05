@@ -272,8 +272,6 @@ if (mode == 'factor') {
     binsize = 20
 }
 
-#bwFiles = c("3.Sample/Cp_H3K4me1/igv.nfr.con.bw", "3.Sample/Cp_H3K4me1/igv.nuc.con.bw", "3.Sample/Cp_IgG/igv.nfr.con.bw", "3.Sample/Cp_IgG/igv.nuc.con.bw")
-
 #extractBW
 extractedBW = list()
 for (i in seq_along(bwFiles)) {
