@@ -1,7 +1,5 @@
 #!/usr/bin/env Rscript
 
-# source("/Volumes/limlab/ChristopherAhn/LimLabBase/Common/genomeR.r")
-# source("/Volumes/limlab/ChristopherAhn/LimLabBase/Common/basicR.r")
 source(sprintf("%s/genomeR.r", Sys.getenv("COMMON_LIB_BASE")))
 source(sprintf("%s/basicR.r", Sys.getenv("COMMON_LIB_BASE")))
 
