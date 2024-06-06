@@ -155,6 +155,21 @@ rule split_bam:
 		cnr.splitBamToBed.sh -o {sampleDir}/{wildcards.sampleName}/Fragments/frag -c "{chrRegexTarget}" {input}
 		"""
 
+## split fragment file by length 
+## NFR / NUC
+rule split_fragment_ctr:
+	input:
+		sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		sampleDir + "/{sampleName}/fragment.ctr.nfr.bed.gz",
+		sampleDir + "/{sampleName}/fragment.ctr.nuc.bed.gz"
+	message:
+		"Splitting fragment file by fragment size... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.splitFragFile.sh -o {sampleDir}/{wildcards.sampleName}/fragment.ctr -c "{chrRegexTarget}" {input}
+		"""
 
 ## FCL (Fragment Center / Length) file
 rule make_fcl_file:
