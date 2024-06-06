@@ -148,9 +148,13 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
 		## SEACR
 		expand(sampleDir + "/{sampleName}/SEACR/peak.{thresh}.{ext}", sampleName=sampleListTarget, thresh=["stringent","relaxed"], ext=["exBL.bed", "bed"]),
+		## MACS
+		expand(sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed", sampleName=sampleListFactor),
 		## Motif search
 		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Motif/Homer.MACS3/homerResults.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k.MACS3/meme-chip.html", sampleName=sampleListFactor),
 		## BigWig 1bp raw/abs (motivated for BPnet input file)
 		#expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"]),
 
