@@ -797,9 +797,17 @@ rule draw_peak_heatmap_factor_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
-			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm \
-			{input.bed} {input.bw}
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+				-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm \
+				{input.bed} {input.bw}
+		fi
 		"""
 
 rule analyze_footprint_homer:
