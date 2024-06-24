@@ -154,10 +154,6 @@ rule all:
 		## BigWig 1bp raw/abs (motivated for BPnet input file)
 		#expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"]),
 
-		## Draw peak examples
-		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.{ext}", sampleName=sampleListFactor, ext=["png","pdf"]),
-		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.{ext}", sampleName=sampleListHistone, ext=["png","pdf"]),
-
 		## Calculate fragment QC
 		expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=sampleList),
 

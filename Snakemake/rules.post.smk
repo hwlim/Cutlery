@@ -744,10 +744,19 @@ rule draw_peak_heatmap_factor:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
 		"""
+
 		module load Cutlery/1.0
-		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
-			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
-			{input.bed} {input.bw}
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+				-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
+				{input.bed} {input.bw}
+		fi
 		"""
 
 
@@ -761,10 +770,19 @@ rule draw_peak_heatmap_histone:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
 		"""
+
 		module load Cutlery/1.0
-		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 100 \
-			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/heatmap.exBL \
-			{input.bed} {input.bw}
+		
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 100 \
+				-o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/heatmap.exBL \
+				{input.bed} {input.bw}
+		fi
 		"""
 
 
@@ -779,9 +797,17 @@ rule draw_peak_heatmap_factor_allfrag:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
-			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm \
-			{input.bed} {input.bw}
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+				-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm \
+				{input.bed} {input.bw}
+		fi
 		"""
 
 rule analyze_footprint_homer:
@@ -938,42 +964,6 @@ def get_peak_mode(sampleName):
 	peakMode = samples.PeakMode[samples.Name == sampleName]
 	assert(len(peakMode.tolist()[0]) != 0)
 	return peakMode.tolist()[0]
-
-
-rule draw_peak_examples_histone:
-	input:
-		peak = sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed",
-		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
-	output:
-		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/peak.examples.{ext}", ext=["png", "pdf"])
-	message:
-		"Getting snapshot of highest scoring peaks... [{wildcards.sampleName}]"
-	params:
-		peakMode = lambda wildcards: get_peak_mode(wildcards.sampleName)
-	shell:
-		"""
-		module load Cutlery/1.0
-		cnr.drawPeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/peak.examples \
-			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
-		"""
-
-
-rule draw_peak_examples_factor:
-	input:
-		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
-		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
-	output:
-		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/peak.examples.{ext}", ext=["png", "pdf"])
-	message:
-		"Getting snapshot of highest scoring peaks... [{wildcards.sampleName}]"
-	params:
-		peakMode = lambda wildcards: get_peak_mode(wildcards.sampleName)
-	shell:
-		"""
-		module load Cutlery/1.0
-		cnr.drawPeakExamples.r -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/peak.examples \
-			-m {params.peakMode} -n "{numHighestPeaks}" -p {input.peak} {input.bw}
-		"""
 
 rule calc_frag_QC:
 	input:
@@ -1205,7 +1195,6 @@ rule create_report_per_sample:
 		baseFreqPNG = sampleDir + "/{sampleName}/QC/base_freq.png",
 		fragDistPNG = sampleDir + "/{sampleName}/QC/fragLen.dist.png",
 		fragQC = sampleDir + "/{sampleName}/QC/fragMix.txt",
-		peakExample = lambda wildcards: get_peak_example(wildcards.sampleName),
 		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName),
 		peakStat = lambda wildcards: get_peakIntersectPerc(wildcards.sampleName)
 	output:
@@ -1216,6 +1205,7 @@ rule create_report_per_sample:
 		group = lambda wildcards: get_group(wildcards.sampleName)
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		module load ImageMagick/6.9.12
 		cnr.createSampleReportHTML.r -o Report -t {src_sampleInfo} -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}
@@ -1225,8 +1215,6 @@ rule create_report_per_sample:
 rule create_final_report:
 	input:
 		uniqFragCnt = qcDir + "/uniqFragCnt.txt",
-		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
-		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
 		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
 		fragQC = expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=samples.Name.tolist()),
 		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
@@ -1239,6 +1227,7 @@ rule create_final_report:
 		"Creating final report in HTML..."
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		module load ImageMagick/6.9.12
 		cnr.createReportHTML.r -o Report -t {src_sampleInfo} -s {sampleDir} -q {qcDir}
@@ -1250,7 +1239,6 @@ rule create_report_per_sample_pooled:
 		baseFreqPNG = sampleDir + "/{sampleName}/QC/base_freq.png",
 		fragDistPNG = sampleDir + "/{sampleName}/QC/fragLen.dist.png",
 		fragQC = sampleDir + "/{sampleName}/QC/fragMix.txt",
-		peakExample = lambda wildcards: get_peak_example(wildcards.sampleName),
 		heatmap = lambda wildcards: get_heatmap(wildcards.sampleName),
 		peakStat = lambda wildcards: get_peakIntersectPerc(wildcards.sampleName)
 	output:

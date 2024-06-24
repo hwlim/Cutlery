@@ -118,9 +118,6 @@ fragQCtable <- rbind(fragQCtable, list(peakMode, formatC(as.numeric(fragQC[[1]])
 formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
 formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
 
-#get peak-examples png file
-peakExamplePlot <- paste0(homerFolderPath, "/peak.examples.png")
-
 #Render report
 rmarkdown::render(tempTemplate, output_file = paste0(outputFile, ".html"), output_dir = sampleQC)
 

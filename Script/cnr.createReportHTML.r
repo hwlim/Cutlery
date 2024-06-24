@@ -120,22 +120,9 @@ for (sample in sampleQC) {
 	formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
 	formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
 
-	#get peak-examples png file
-	peakExamplePlot <- paste0(homerFolderPath, "/peak.examples.png")
-
-	#write peak-examples section of Rmd file
-	#add heatmap at the end
+	#write heatmap section of Rmd file
 	#This is required as tabs need to be generated based on the number of samples in the sample.tsv file
 	line = paste0("### ", sampleName, " {.tabset}")
-	write(line,file=tempTemplate,append=TRUE)
-	line="```{r, echo=FALSE, out.width='100%', fig.align='center', message=FALSE, warning=FALSE}"
-	write(line,file=tempTemplate,append=TRUE)
-	line = paste0("knitr::include_graphics(\"",peakExamplePlot,"\")")
-	write(line,file=tempTemplate,append=TRUE)
-	line = "```"
-	write(line,file=tempTemplate,append=TRUE)
-
-	line = "<br />"
 	write(line,file=tempTemplate,append=TRUE)
 
 	line="```{r, echo=FALSE, out.width='70%', fig.align=\"center\"}"
