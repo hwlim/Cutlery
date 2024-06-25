@@ -142,6 +142,18 @@ else
 	findPeaks $target -i ${ctrl} ${optStr} 2>&1 | tee ${log}
 fi
 
+## Robust handling of zero peak case
+N0=`cat $peak0 | ( grep -v ^# || true ) | wc -l`
+if [ $N0 -eq 0  ];then
+	echo -e "Warning: No peak detected; creating dummy output" >&2
+	touch $peakBed
+	touch $peakMasked
+	touch $peak1rpm
+	echo -e "FragmentInPeakFrac\t0.00\n" > $peakStat
+	exit 0
+fi
+
+
 tmpAll=${TMPDIR}/__temp__.$$.all.bed
 tmpCtr=${TMPDIR}/__temp__.$$.ctr.bed
 tmpStat=${TMPDIR}/__temp__.$$.stat
@@ -152,6 +164,7 @@ grep -v "^#" ${peak0} \
 	| gawk '{ printf "%s\t%d\t%d\t%s\t%s\t+\n", $2, $3, $4, $1, $6 }' \
 	| gawk '$2 > 1' \
 	> ${tmpAll}
+
 
 ## Peak centering using given NFR bigwig file
 if [ "$bw" != "NULL" ];then

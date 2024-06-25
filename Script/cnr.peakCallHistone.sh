@@ -141,6 +141,16 @@ else
 	findPeaks $target -i ${ctrl} -o ${peak0} ${optStr} 2>&1 | tee ${log}
 fi
 
+# Robust handling of zero peak case
+N0=`cat $peak0 | ( grep -v  ^# || true ) | wc -l`
+if [ $N0 -eq 0  ];then
+	#touch $peakBed
+	echo -e "Warning: No peak detected; creating dummy output" >&2
+	touch $peakMasked
+	echo -e "FragmentInPeakFrac\t0.00\n" > $peakStat
+	exit 0
+fi
+
 
 ## To implement, how to calculate RPKM value efficiently for 5th column
 
@@ -150,6 +160,7 @@ grep -v "^#" ${peak0} \
 	| gawk '{ printf "%s\t%d\t%d\t%s\t%.3f\t+\n", $2, $3, $4, $1, $6*1000/($4-$3) }' \
 	> ${peakBed}
 
+# Blacklist
 echo -e "Blacking masking & merging" >&2
 if [ "$mask" != "NULL" ];then
 	#subtractBed -a ${peakBed} -b $mask \

@@ -654,6 +654,12 @@ rule run_homer_motif_ctr:
 	shell:
 		"""
 		module load Motif/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/Homer.all
+			touch {sampleDir}/{wildcards.sampleName}/Motif/Homer.all/homerResults.html
+			exit 0
+		fi
 		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
 			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all {input}
 		"""
@@ -668,6 +674,12 @@ rule run_homer_motif_allfrag:
 	shell:
 		"""
 		module load Motif/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/Homer.all
+			touch {sampleDir}/{wildcards.sampleName}/Motif/Homer.all/homerResults.html
+			exit 0
+		fi
 		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
 			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all.allFrag {input}
 		"""
@@ -684,6 +696,12 @@ rule run_meme_motif_rand5k:
 		"""
 		module purge
 		module load MotifMEME/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k
+			touch {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k/meme-chip.html
+			exit 0
+		fi
 		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
 			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k {input.bed}
 		"""
@@ -701,6 +719,12 @@ rule run_meme_motif_rand5k_allfrag:
 		"""
 		module purge
 		module load MotifMEME/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag
+			touch {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html
+			exit 0
+		fi
 		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
 			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input.bed}
 		"""
