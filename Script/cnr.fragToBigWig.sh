@@ -179,7 +179,7 @@ fi
 
 echo -e "  2) Making bedGraph file" >&2
 printFrag $src \
-	| sort -S $memory -k1,1 -k2,2n -k3,3n \
+	| sort -S $memory -k1,1 -k2,2n -k3,3n --compress-program=gzip \
 	| genomeCoverageBed -bg -scale $scaleFactor -g $genome -i stdin \
 	| gawk '{ printf "%s\t%s\t%s\t%.5f\n", $1,$2,$3,$4 }' \
 	> $tmpBG
