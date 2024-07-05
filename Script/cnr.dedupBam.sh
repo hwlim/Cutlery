@@ -4,7 +4,7 @@
 # Written by Hee-Wooong Lim
 # 
 source $COMMON_LIB_BASE/commonBash.sh
-trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
+trap 'if [ `ls -1 ${TMPDIR}/__temp__.dedup.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.dedup.$$.*; fi' EXIT
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [bam]" >&2
@@ -92,10 +92,11 @@ mkdir -p $desDir
 ## deduplicated / coordinate sorted bam
 ## deduplicated / readname sorted bam
 outPrefix=${des%.bam}
+desMetric=${outPrefix}.metric
 tmpCsort=${TMPDIR}/__temp__.$$.csort.bam
 tmpDedupCsort=${TMPDIR}/__temp__.$$.csort.dedup.bam
 tmpDedup=${TMPDIR}/__temp__.$$.dedup.bam
-metric=${outPrefix}.metric
+tmpMetric=${TMPDIR}/__temp__.$$.dedup.metric
 
 if [ "$src" == "$des" ];then
 	echo -e "Error: source and destination are the same" >&2
@@ -120,16 +121,17 @@ echo -e "  2) Deduplicate => $tmpDedupCsort" >&2
 java $memOpt -jar ${PICARD_HOME}/picard.jar MarkDuplicates \
 	INPUT=${tmpCsort} \
 	OUTPUT=${tmpDedupCsort} \
-	METRICS_FILE=${metric} \
+	METRICS_FILE=${tmpMetric} \
 	REMOVE_DUPLICATES=${removeDuplicate} \
 	ASSUME_SORTED=true \
-	COMPRESSION_LEVEL=1 
+	COMPRESSION_LEVEL=5 
 
 if [ "$sortByName" = "TRUE" ];then
 	echo -e "  3) Sort by Queryname => $des" >&2
 	java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam \
 		INPUT=${tmpDedupCsort} \
 		OUTPUT=${tmpDedup} \
+		COMPRESSION_LEVEL=5  \
 		SORT_ORDER=queryname 
 	mv $tmpDedup $des
 else
@@ -137,6 +139,8 @@ else
 	mv ${tmpDedupCsort} $des
 	mv ${tmpDedupCsort}.bai ${des}.bai
 fi
+mv -v $tmpMetric $desMetric
+
 #java $memOpt -jar ${PICARD_HOME}/picard.jar SortSam INPUT=${dedup} OUTPUT=${tmp} SORT_ORDER=queryname MAX_RECORDS_IN_RAM=$maxRead
 #samtools sort -n -l 5 -m $maxMem -T ${TMPDIR}/__temp__.$$ -@ $thread -o $tmpDedup $tmpDedupCsort
 
