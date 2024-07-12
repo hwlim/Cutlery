@@ -22,6 +22,18 @@ align_pe:
     memory      : 50000
     walltime    : "24:00"
 
+csort_bam:
+    cpu         : 4
+    memory      : 10000
+
+run_csem:
+    cpu         : 4
+    memory      : 10000
+
+csort_csem:
+    cpu         : 4
+    memory      : 10000
+
 check_baseFreq:
     cpu         : 2
     memory      : 6000
