@@ -7,7 +7,6 @@
 # Pool fragments files of multiple replicates by group
 
 source $COMMON_LIB_BASE/commonBash.sh
-trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm ${TMPDIR}/__temp__.$$.*; fi' EXIT
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) <sample.tsv> <src bam directory> <des bam directory>
@@ -39,6 +38,9 @@ if [ $# -eq 0 ];then
 	printUsage
 	exit 1
 fi
+
+tmpPrefix=${TMPDIR}/__temp__.pool_frag.$$.$RANDOM
+trap 'if [ `ls -1 ${tmpPrefix}* 2>/dev/null | wc -l` -gt 0 ];then rm ${tmpPrefix}*; fi' EXIT
 
 
 ###################################
@@ -136,7 +138,7 @@ do
 	done
 
 
-	tmp=${TMPDIR}/__temp__.$$.${group}.bed.gz
+	tmp=${tmpPrefix}_${group}.bed.gz
 	if [ "$unsorted" == "TRUE" ];then
 		if [ "$bsub" == "TRUE" ];then
 			## Parallel processing using HPC:lsf
@@ -168,4 +170,5 @@ EOF
 		fi
 	fi
 done
+
 
