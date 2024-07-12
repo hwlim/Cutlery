@@ -31,18 +31,54 @@ if 'species_macs' not in locals():
 	print("Warning: species_macs is not defined; using hs (default)")
 	species_macs="hs"
 
+if 'do_csem' not in locals():
+	print("Warning: do_csem is not defined; setting False")
+	do_csem=False
+
 #################################
 ## Rule Start
 
-## bamDir is used to designated bam file directory for downstream analysis
-## Originally motivated for reuse or rule.post.smk in replicate pooling in Snakemake.pool
-## If bamDir is not defined, i.e. for simply processing individual replicates not pooling
-## dedupDir or alignDir is selected 
-if "bamDir" not in locals():
+# ## bamDir is used to designated bam file directory for downstream analysis
+# ## Originally motivated for reuse or rule.post.smk in replicate pooling in Snakemake.pool
+# ## If bamDir is not defined, i.e. for simply processing individual replicates not pooling
+# ## dedupDir or alignDir is selected 
+# if "bamDir" not in locals():
+# 	if doDedup:
+# 		bamDir = dedupDir
+# 	else:
+# 		bamDir = alignDir
+
+## 20240710: Need update to handle CSEM results
+rule dedup_align:
+	input:
+		alignDir + "/{sampleName}/align.bam"
+	output:
+		bam = dedupDir + "/{sampleName}/align.bam",
+		bai = dedupDir + "/{sampleName}/align.bam.bai"
+	message:
+		"Deduplicating... [{wildcards.sampleName}]"
+	params:
+		memory = "%dG" % ( cluster["dedup_align"]["memory"]/1000 - 1 )
+	shell:
+		"""
+		module load Cutlery/1.0
+		cnr.dedupBam.sh -m {params.memory} -o {output.bam} -r {input}
+		samtools index {output.bam}
+		"""
+
+
+## find bam file folder for single-end style homer tag directory creation
+def get_bam_for_downstream(sampleName):
+	# return ordered [ctrl , target] list.
 	if doDedup:
-		bamDir = dedupDir
+		bam = dedupDir + "/" + sampleName + "/align.bam"
 	else:
-		bamDir = alignDir
+		if do_csem:
+			bam = alignDir + "/" + sampleName + "/CSEM/align.uniq.bam"
+		else:
+			bam = alignDir + "/" + sampleName + "/align.bam"
+
+	return bam
 
 
 ## Convert BAM to fragment bed file
@@ -51,8 +87,8 @@ if "bamDir" not in locals():
 ## - 0x400: Removes duplicates
 rule make_fragment:
 	input:
-		bam = bamDir + "/{sampleName}/align.bam",
-		bai = bamDir + "/{sampleName}/align.bam.bai"
+		bam = lambda wildcards: get_bam_for_downstream(wildcards.sampleName),
+		bai = lambda wildcards: get_bam_for_downstream(wildcards.sampleName) + ".bai"
 	output:
 		sampleDir + "/{sampleName}/fragment.bed.gz"
 	message:
@@ -101,15 +137,12 @@ rule make_uniqcnt_table:
 ## NEED REVISION for OUTPUT names & directories
 rule check_baseFreq:
 	input:
-		#frag = sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz",
 		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
 		genomeFa = genomeFa
-		#bamDir + "/{sampleName}.bam"
 	output:
 		sampleDir + "/{sampleName}/QC/base_freq.png",
 		sampleDir + "/{sampleName}/QC/base_freq.html"
-#		sampleDir + "/{sampleName}/QC/base_freq.R1.png",
-#		sampleDir + "/{sampleName}/QC/base_freq.R2.png"
+
 	message:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
@@ -118,16 +151,11 @@ rule check_baseFreq:
 		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq \
 			-n {wildcards.sampleName} -g {input.genomeFa} -c "{chrRegexTarget}" -m both -l 20 -f -i -v {input.frag}
 		"""
-#		bamToBed.separate.sh -o {sampleDir}/{wildcards.sampleName}/tmp {input}
-#		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R1 {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
-#		checkBaseFreq.plot.sh -g {genomeFa} -n {wildcards.sampleName} -o {sampleDir}/{wildcards.sampleName}/QC/base_freq.R2 {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
-#		rm {sampleDir}/{wildcards.sampleName}/tmp.R1.bed.gz
-#		rm {sampleDir}/{wildcards.sampleName}/tmp.R2.bed.gz
+
 
 rule check_baseFreq_chrM:
 	input:
-		bam = bamDir + "/{sampleName}/align.bam"
-		#frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		bam = lambda wildcards: get_bam_for_downstream(wildcards.sampleName)
 	output:
 		expand(sampleDir + "/{{sampleName}}/QC/base_freq_chrM.{ext}", ext=["png","html"])
 	message:
@@ -143,7 +171,7 @@ rule check_baseFreq_chrM:
 ## BAM to fragment bed files: all / nfr / nuc
 rule split_bam:
 	input:
-		bamDir + "/{sampleName}.bam"
+		bam = lambda wildcards: get_bam_for_downstream(wildcards.sampleName)
 	output:
 		expand(sampleDir + "/{{sampleName}}/Fragments/frag.{group}.{proctype}.bed.gz",
 			group=["all","nfr","nuc"], proctype=["con","ctr","sep"])
@@ -152,7 +180,7 @@ rule split_bam:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.splitBamToBed.sh -o {sampleDir}/{wildcards.sampleName}/Fragments/frag -c "{chrRegexTarget}" {input}
+		cnr.splitBamToBed.sh -o {sampleDir}/{wildcards.sampleName}/Fragments/frag -c "{chrRegexTarget}" {input.bam}
 		"""
 
 ## split fragment file by length 
@@ -223,7 +251,6 @@ rule get_frag_autocor:
 
 rule count_spikein:
 	input:
-		#bamDir + "/{sampleName}.bam"
 		sampleDir + "/{sampleName}/fragment.bed.gz"
 	output:
 		sampleDir + "/{sampleName}/QC/spikeCnt.txt"
@@ -399,8 +426,8 @@ rule make_bigwig1bp_raw_abs:
 ## Incorporated to handle Collins ATAC-seq fly SPS data (Brian lab)
 rule make_bigwig_splice:
 	input:
-		bam = bamDir + "/{sampleName}/align.bam",
-		bai = bamDir + "/{sampleName}/align.bam.bai",
+		bam = lambda wildcards: get_bam_for_downstream(wildcards.sampleName),
+		bai = lambda wildcards: get_bam_for_downstream(wildcards.sampleName) + ".bai",
 		chrom = chrom_size
 	output:
 		sampleDir + "/{sampleName}/igv.all.splice.bw"
@@ -1056,9 +1083,10 @@ rule make_promotercnt_table:
 
 rule make_bam_nfr:
 	input:
-		bamDir + "/{sampleName}.bam"
+		lambda wildcards: get_bam_for_downstream(wildcards.sampleName)
+		#bamDir + "/{sampleName}.bam"
 	output:
-		bamDir + "/{sampleName}.nfr.bam"
+		alignDir + "/{sampleName}/Split/align.nfr.bam"
 	message:
 		"Making NFR bam file... [{wildcards.sampleName}]"
 	shell:
@@ -1073,9 +1101,10 @@ rule make_bam_nfr:
 
 rule make_bam_nuc:
 	input:
-		bamDir + "/{sampleName}.bam"
+		lambda wildcards: get_bam_for_downstream(wildcards.sampleName)
+		#bamDir + "/{sampleName}.bam"
 	output:
-		bamDir + "/{sampleName}.nuc.bam"
+		alignDir + "/{sampleName}/Split/align.nuc.bam"
 	message:
 		"Making NUC bam file... [{wildcards.sampleName}]"
 	shell:
@@ -1092,7 +1121,6 @@ rule make_bam_nuc:
 def get_ctrl_name(sampleName):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]
 	ctrlName = ctrlName.tolist()[0]
-
 	return ctrlName
 
 
@@ -1103,7 +1131,7 @@ def get_bam_for_macs(sampleName, fragment, mode="target"):
 		name = sampleName
 	else:
 		name = get_ctrl_name(sampleName)
-	bam = bamDir + "/" + name + "." + fragment + ".bam"
+	bam = alignDir + "/" + name + "/Split/align." + fragment + ".bam"
 	return bam
 
 ## MACS peak calling vs control
@@ -1231,7 +1259,6 @@ rule create_report_per_sample:
 		"""
 		module purge
 		module load Cutlery/1.0
-		module load ImageMagick/6.9.12
 		cnr.createSampleReportHTML.r -o Report -t {src_sampleInfo} -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}
 		"""
 
@@ -1253,7 +1280,6 @@ rule create_final_report:
 		"""
 		module purge
 		module load Cutlery/1.0
-		module load ImageMagick/6.9.12
 		cnr.createReportHTML.r -o Report -t {src_sampleInfo} -s {sampleDir} -q {qcDir}
 		"""
 
@@ -1274,7 +1300,6 @@ rule create_report_per_sample_pooled:
 	shell:
 		"""
 		module load Cutlery/1.0
-		module load ImageMagick/6.9.12
 		cnr.createPooledSampleReportHTML.r -o Report_pooled -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}		
 		"""
 
@@ -1295,6 +1320,5 @@ rule create_final_report_pooled:
 	shell:
 		"""
 		module load Cutlery/1.0
-		module load ImageMagick/6.9.12
 		cnr.createPooledReportHTML.r -o Report_pooled -t {src_sampleInfo} -s {sampleDir} -q {qcDir} -f fragMix
 		"""
