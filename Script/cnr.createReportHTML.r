@@ -78,7 +78,7 @@ for (sample in sampleQC) {
 	sampleName <- tail(unlist(strsplit(sample, "/")), n=2)[1]
 
 	## get sample info from sample.tsv file
-	rowNum = which(grepl(sampleName, sampleIn$Name))
+	rowNum = which(sampleIn$Name == sampleName)
 	rowData = sampleIn[rowNum,]
 	peakMode = rowData$PeakMode
 

@@ -75,7 +75,7 @@ sampleName = tail(unlist(strsplit(sampDir, "/")), n=1)
 sampleQC = paste0(sampDir, "/QC")
 
 ## get sample info from sample.tsv file
-rowNum = which(grepl(sampleName, sampleIn$Name))
+rowNum = which(sampleIn$Name == sampleName)
 rowData = sampleIn[rowNum,]
 peakMode = rowData$PeakMode
 

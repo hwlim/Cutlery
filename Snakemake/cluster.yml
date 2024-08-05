@@ -46,6 +46,10 @@ dedup_align:
     cpu         : 2
     memory      : 6000
 
+make_bedgraph_frag:
+    cpu         : 2
+    memory      : 10000
+
 make_bigwig_ctr:
     cpu         : 2
     memory      : 10000
