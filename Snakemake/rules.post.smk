@@ -15,6 +15,7 @@
 
 #################################
 ## Default values for undefined variables in Snakefile
+import sys
 
 
 if "meme_db" not in locals():
@@ -28,11 +29,11 @@ if "bed_promoter" not in locals():
 	bed_promoter = "NULL"
 
 if 'species_macs' not in locals():
-	print("Warning: species_macs is not defined; using hs (default)")
+	print("Warning: species_macs is not defined; using hs (default)", file=sys.stderr)
 	species_macs="hs"
 
 if 'do_csem' not in locals():
-	print("Warning: do_csem is not defined; setting False")
+	print("Warning: do_csem is not defined; setting False", file=sys.stderr)
 	do_csem=False
 
 #################################
