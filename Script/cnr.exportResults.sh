@@ -98,6 +98,7 @@ sampleL=( `ls -d "${srcDir}"/*/` )
 # - peak & heatmap: all / 1rpm
 # - motif
 
+# src / des / isDir / makelink
 exportFile(){
 	local src=$1
 	local des=$2
@@ -154,6 +155,10 @@ for samplePath in ${sampleL[@]}
 do
 	echo -e "Exporting ${samplePath}" >&2
 	sample=`basename $samplePath`
+#
+	# Report.html
+	if [ -f Report.html ];then
+		exportFile Report.html ${desDir}/Report.html FALSE FALSE
 
 	# fragment length distribution
 	if [ "$exportQC" == "y" ] || [ "$exportQC" == "Y" ];then
