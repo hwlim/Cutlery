@@ -159,6 +159,7 @@ do
 	# Report.html
 	if [ -f Report.html ];then
 		exportFile Report.html ${desDir}/Report.html FALSE FALSE
+	fi
 
 	# fragment length distribution
 	if [ "$exportQC" == "y" ] || [ "$exportQC" == "Y" ];then
