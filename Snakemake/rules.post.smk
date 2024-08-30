@@ -114,6 +114,7 @@ rule count_uniq_fragment:
 		"Counting unique fragments... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		ngs.countUniqFrag.sh -n {wildcards.sampleName} -o {output} {input}
 		"""
@@ -130,6 +131,7 @@ rule make_uniqcnt_table:
 		"Making unique fragment count table..."
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		ngs.makeUniqCntTable.r -o {qcDir}/uniqFragCnt {input}
 		"""
@@ -148,6 +150,7 @@ rule check_baseFreq:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq \
 			-n {wildcards.sampleName} -g {input.genomeFa} -c "{chrRegexTarget}" -m both -l 20 -f -i -v {input.frag}
@@ -163,6 +166,7 @@ rule check_baseFreq_chrM:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		checkBaseFreq.plot.sh -o {sampleDir}/{wildcards.sampleName}/QC/base_freq_chrM \
 			-n {wildcards.sampleName} -g {genomeFa} -c "^chrM" -m 5 -l 20 -i -v {input.bam}
@@ -180,6 +184,7 @@ rule split_bam:
 		"Splitting BAM file by fragment size... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.splitBamToBed.sh -o {sampleDir}/{wildcards.sampleName}/Fragments/frag -c "{chrRegexTarget}" {input.bam}
 		"""
@@ -196,6 +201,7 @@ rule split_fragment_ctr:
 		"Splitting fragment file by fragment size... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.splitFragFile.sh -o {sampleDir}/{wildcards.sampleName}/fragment.ctr -c "{chrRegexTarget}" {input}
 		"""
@@ -213,6 +219,7 @@ rule make_fcl_file:
 		"Making FCL bed files... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		fragmentToFCL.sh -o {output} -m 5G {input}
 		"""
@@ -231,6 +238,7 @@ rule get_fragLenHist:
 		"Checking fragment length... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		ngs.fragLenHist.r -o {sampleDir}/{wildcards.sampleName}/QC/fragLen.dist -n {wildcards.sampleName} {input}
 		"""
@@ -259,6 +267,7 @@ rule count_spikein:
 		"Counting spikein tags... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		ngs.countSpikein.sh -p {spikePrefix} -n {wildcards.sampleName} {input} > {output}
 		"""
@@ -272,6 +281,7 @@ rule make_spikeintable:
 		"Making spikein table..."
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		ngs.makeSpikeCntTable.r -o {qcDir}/spikein {input}
 		"""
@@ -287,6 +297,7 @@ rule make_bedgraph_frag:
 		"Making raw bedgraph files from fragment.bed... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.fragToBigWig.sh -b -g {input.chrom} -c "{chrRegexTarget}" -m 10G -s 1 -o {output.all} {input.frag}
 		"""
@@ -318,6 +329,7 @@ rule run_seacr:
 		input = lambda wildcards: get_seacr_param(wildcards.sampleName)
 	shell:
 		"""
+		module purge
 		module load Cutlery
 		SEACR_1.3.sh {params.input} stringent {sampleDir}/{wildcards.sampleName}/SEACR/peak
 		SEACR_1.3.sh {params.input} relaxed {sampleDir}/{wildcards.sampleName}/SEACR/peak
@@ -351,6 +363,7 @@ rule make_bigwig_ctr:
 #		memory = "5G"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -r 100 -m 5G -o {output.all} {input.frag}
 		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -r 100 -m 5G -o {output.nfr} {input.frag}
@@ -375,6 +388,7 @@ rule make_bigwig_frag:
 #		memory = "5G"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output.all} {input.frag}
 		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output.nfr} {input.frag}
@@ -397,6 +411,7 @@ rule make_bigwig1bp:
 #		memory = "5G"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -s 0 -m 5G {input.frag}
 		"""
@@ -419,6 +434,7 @@ rule make_bigwig1bp_raw_abs:
 #		memory = "5G"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
 		"""
@@ -438,6 +454,7 @@ rule make_bigwig_splice:
 		"Making bigWig files... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load RNAseq/1.0
 		rnaSeq.bamToBigWig.sh -g {input.chrom} -m unstranded -p -c "{chrRegexTarget}" -v -o {sampleDir}/{wildcards.sampleName}/igv.all.splice {input.bam}
 		"""
@@ -454,6 +471,7 @@ rule count_kmers:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		countKmersFromAlign.sh -l 3 -r 3 -g {genomeFa} -s {chrom_size} -f -v {input} > {output}
 		"""
@@ -468,6 +486,7 @@ rule calc_kmer_scale:
 		"Checking baseFrequency... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		calcKmerScaleFactor.sh -g {kmer_genome} -p {kmer_pseudo} -v {input} > {output}
 		"""
@@ -487,6 +506,7 @@ rule make_bigwig1bp_corrected:
 		"Making 1bp-resolution bigWig files... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		correctKmerBiasBW.sh -l 3 -r 3 -g {genomeFa} -s {input.chrom} -k {input.scale} \
 			-o {sampleDir}/{wildcards.sampleName}/igv.1bp.corrected{kmer_pseudo} -v \
@@ -511,6 +531,7 @@ rule make_tagdir:
 		"Making Homer tag directory... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.makeHomerDir.sh -o {output.all} -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
 		cnr.makeHomerDir.sh -o {output.nfr} -l 0 -L 119 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
@@ -568,6 +589,7 @@ rule call_peaks_factor:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s {params.optStr} {input.tagDir}
 		"""
@@ -586,6 +608,7 @@ rule call_peaks_factor_no_ctrl:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s {params.optStr} {input.tagDir}
 		"""
@@ -605,6 +628,7 @@ rule call_peaks_factor_allfrag:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.peakCallTF.sh -o {params.peakDir} -m {peak_mask} -b {input.bw} -s {params.optStr} {input.tagDir}
 		"""
@@ -622,6 +646,7 @@ rule call_peaks_histone:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s {params.optStr} {input.tagDir}
 		"""
@@ -639,6 +664,7 @@ rule call_peaks_histone_allfrag:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s {params.optStr} {input.tagDir}
 		"""
@@ -681,6 +707,7 @@ rule run_homer_motif_ctr:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Motif/1.0
 		n=`cat {input} | wc -l`
 		if [ $n -eq 0 ];then
@@ -701,6 +728,7 @@ rule run_homer_motif_allfrag:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Motif/1.0
 		n=`cat {input} | wc -l`
 		if [ $n -eq 0 ];then
@@ -796,7 +824,7 @@ rule draw_peak_heatmap_factor:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
 		"""
-
+		module purge
 		module load Cutlery/1.0
 
 		## Check if the file is empty; if empty, create image saying No peak detected
@@ -848,6 +876,7 @@ rule draw_peak_heatmap_factor_allfrag:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 
 		## Check if the file is empty; if empty, create image saying No peak detected
@@ -879,6 +908,7 @@ rule analyze_footprint_homer:
 		"Analyzing CUT&RUN footprints... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.analyzeFootprintBatch.r -o {params.outPrefix} -n {wildcards.sampleName} -g {genome} -b {params.bwPrefix} -p {params.cpu} \
 			{input.peak} {params.motifDir}
@@ -902,6 +932,7 @@ rule analyze_footprint_homer_corrected:
 		"Analyzing CUT&RUN footprints... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.analyzeFootprintBatch.r -o {params.outPrefix} -n {wildcards.sampleName} -g {genome} -b {params.bwPrefix} -p {params.cpu} \
 			{input.peak} {params.motifDir}
@@ -1026,6 +1057,7 @@ rule calc_frag_QC:
 		"Performing fragment QC on sample... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.calcFragMixture.py -o {sampleDir}/{wildcards.sampleName}/QC/fragMix \
 		{input.fragDist}
@@ -1048,6 +1080,7 @@ rule measure_promoter_fraction:
 		"Checking fragments within promoters... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		N_all=`zcat {input} | wc -l`
 		N_prom=`zcat {input} \\
@@ -1071,6 +1104,7 @@ rule make_promotercnt_table:
 		"Making promoter count table..."
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.makePromCntTable.r -o {qcDir}/promoterCnt {input}
 		"""
@@ -1126,13 +1160,17 @@ def get_ctrl_name(sampleName):
 
 
 def get_bam_for_macs(sampleName, fragment, mode="target"):
-	assert ( fragment == "nfr" ) | ( fragment == "nuc" )
-	assert (mode == "target" ) | ( mode == "ctrl" )
+	assert fragment in [ "nfr", "nuc", "all" ]
+	assert mode in [ "target", "ctrl" ]
 	if mode == "target":
 		name = sampleName
 	else:
 		name = get_ctrl_name(sampleName)
-	bam = alignDir + "/" + name + "/Split/align." + fragment + ".bam"
+	
+	if fragment in [ "nfr", "nuc" ]:
+		bam = alignDir + "/" + name + "/Split/align." + fragment + ".bam"
+	else:
+		bam = alignDir + "/" + name + "/align.bam"
 	return bam
 
 ## MACS peak calling vs control
@@ -1204,8 +1242,49 @@ rule call_peak_macs_factor_wo_ctrl:
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
 		"""
 
+rule call_peak_macs_factor_allfrag_wo_ctrl:
+	input:
+		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target")
+	output:
+		peak = sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}.log"
+	message:
+		"Calling TF peaks/SE ... [{wildcards.sampleName}]"
+	params:
+		mask = peak_mask,
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MACS/2.2.8
+		module load bedtools/2.27.0
+		macs3 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		"""
 
 
+rule macs_run_homer_motif_allfrag_wo_ctrl:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}_summits.exBL.bed",
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/Motif.Homer.all/homerResults.html"
+	message:
+		"Running Homer motif search... [{wildcards.sampleName}]"
+	params:
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load Motif/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {params.outDir}
+			touch {params.outDir}/homerResults.html
+			exit 0
+		fi
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+			-o {params.outDir} {input}
+		"""
 
 
 ########################################
@@ -1300,6 +1379,7 @@ rule create_report_per_sample_pooled:
 		group = lambda wildcards: get_group(wildcards.sampleName)
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.createPooledSampleReportHTML.r -o Report_pooled -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}		
 		"""
@@ -1320,6 +1400,7 @@ rule create_final_report_pooled:
 		"Creating final report in HTML..."
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.createPooledReportHTML.r -o Report_pooled -t {src_sampleInfo} -s {sampleDir} -q {qcDir} -f fragMix
 		"""
