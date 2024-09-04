@@ -54,7 +54,13 @@ make_bigwig_ctr:
     cpu         : 2
     memory      : 10000
 
-make_bigwig_frag:
+make_bigwig_frag_all:
+    memory      : 10000
+
+make_bigwig_frag_nfr:
+    memory      : 10000
+
+make_bigwig_frag_nuc:
     memory      : 10000
 
 make_bigwig1bp:
@@ -108,6 +114,18 @@ run_meme_motif_rand5k_allfrag:
     memory      : 5000
 
 draw_peak_heatmap_factor:
+    cpu         : 2
+    memory      : 10000
+
+draw_peak_heatmap_histone:
+    cpu         : 2
+    memory      : 10000
+
+draw_peak_heatmap_factor_allfrag:
+    cpu         : 2
+    memory      : 10000
+
+draw_peak_heatmap_histone_allfrag:
     cpu         : 2
     memory      : 10000
 
