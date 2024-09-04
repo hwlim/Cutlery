@@ -98,13 +98,13 @@ g.ttc = ggplot(data=data, aes(x=Name, y=TTC)) +
 g.uniq = ggplot(data=data, aes(x=Name, y=Promoter)) +
 	geom_bar(stat="identity", fill="steelblue")+
 	#theme(axis.text.x = element_text(angle = 45, hjust = 1, size=5)) +
-	labs(title="Unique Fragments", x="", y="Count") +
+	labs(title="Promoter Fragments", x="", y="Count") +
 	coord_flip()
 
 g.frac = ggplot(data=data, aes(x=Name, y=Percentage)) +
 	geom_bar(stat="identity", fill="steelblue")+
 	#theme(axis.text.x = element_text(angle = 45, hjust = 1, size=5),) +
-	labs(title="% of Unique Fragments", x="", y="Unique Fragments (%)") +
+	labs(title="% of Promoter Fragments", x="", y="Unique Fragments (%)") +
 	coord_flip()
 
 g.scatter = ggplot(data=data, aes(x=log10(TTC), y=Percentage)) +
@@ -114,7 +114,7 @@ g.scatter = ggplot(data=data, aes(x=log10(TTC), y=Percentage)) +
 
 g.scatter.labeled = g.scatter +
 	geom_text(label=rownames(data), size=2) +
-	labs(title="TTC vs UniqFrac, Labeled")
+	labs(title="TTC vs Promoter Fraction, Labeled")
 
 
 g1 = plot_grid(g.ttc, g.uniq, g.frac, ncol=1)
