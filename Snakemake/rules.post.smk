@@ -349,9 +349,6 @@ rule run_seacr:
 rule make_bigwig_ctr:
 	input:
 		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
-		#all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz"
-		#nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
-		#nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz",
 		chrom = chrom_size
 	output:
 		all = sampleDir + "/{sampleName}/igv.all.ctr.bw",
@@ -359,8 +356,6 @@ rule make_bigwig_ctr:
 		nuc = sampleDir + "/{sampleName}/igv.nuc.ctr.bw"
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
-#	params:
-#		memory = "5G"
 	shell:
 		"""
 		module purge
@@ -371,28 +366,49 @@ rule make_bigwig_ctr:
 		"""
 
 ## BigWig files from original sized fragments
-rule make_bigwig_frag:
+rule make_bigwig_frag_all:
 	input:
 		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
-		#all=sampleDir + "/{sampleName}/Fragments/frag.all.con.bed.gz"
-		#nfr=sampleDir + "/{sampleName}/Fragments/frag.nfr.con.bed.gz",
-		#nuc=sampleDir + "/{sampleName}/Fragments/frag.nuc.con.bed.gz",
 		chrom = chrom_size
 	output:
-		all=sampleDir + "/{sampleName}/igv.all.con.bw",
-		nfr=sampleDir + "/{sampleName}/igv.nfr.con.bw",
-		nuc=sampleDir + "/{sampleName}/igv.nuc.con.bw"
+		sampleDir + "/{sampleName}/igv.all.con.bw",
 	message:
 		"Making bigWig files... [{wildcards.sampleName}]"
-#	params:
-#		memory = "5G"
 	shell:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output.all} {input.frag}
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output.nfr} {input.frag}
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -m 5G -o {output.nuc} {input.frag}
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output} {input.frag}
+		"""
+
+rule make_bigwig_frag_nfr:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		chrom = chrom_size
+	output:
+		sampleDir + "/{sampleName}/igv.nfr.con.bw",
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output} {input.frag}
+		"""
+
+rule make_bigwig_frag_nuc:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz",
+		chrom = chrom_size
+	output:
+		sampleDir + "/{sampleName}/igv.nuc.con.bw"
+	message:
+		"Making bigWig files... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -m 5G -o {output} {input.frag}
 		"""
 
 ## BigWig files in 1bp-resolution using 5'-end 1bp
@@ -515,27 +531,46 @@ rule make_bigwig1bp_corrected:
 
 
 ## Create homer tag directories
-rule make_tagdir:
+rule make_tagdir_all:
 	input:
 		frag = sampleDir + "/{sampleName}/fragment.bed.gz"
-		#all = sampleDir + "/{sampleName}/Fragments/frag.all.ctr.bed.gz"
-		#nfr = sampleDir + "/{sampleName}/Fragments/frag.nfr.ctr.bed.gz",
-		#nuc = sampleDir + "/{sampleName}/Fragments/frag.nuc.ctr.bed.gz"
 	output:
-		all=directory(sampleDir + "/{sampleName}/TSV.all"),
-		nfr=directory(sampleDir + "/{sampleName}/TSV.nfr"),
-		nuc=directory(sampleDir + "/{sampleName}/TSV.nuc")
-#	params:
-#		name = "{sampleName}"
+		directory(sampleDir + "/{sampleName}/TSV.all"),
 	message:
 		"Making Homer tag directory... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.makeHomerDir.sh -o {output.all} -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
-		cnr.makeHomerDir.sh -o {output.nfr} -l 0 -L 119 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
-		cnr.makeHomerDir.sh -o {output.nuc} -l 151 -L 1000000 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		cnr.makeHomerDir.sh -o {output} -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		"""
+
+rule make_tagdir_nfr:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		directory(sampleDir + "/{sampleName}/TSV.nfr"),
+	message:
+		"Making Homer tag directory... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		cnr.makeHomerDir.sh -o {output} -l 0 -L 119 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		"""
+
+rule make_tagdir_nuc:
+	input:
+		frag = sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		directory(sampleDir + "/{sampleName}/TSV.nuc")
+	message:
+		"Making Homer tag directory... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		cnr.makeHomerDir.sh -o {outputc} -l 151 -L 1000000 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
 		"""
 
 
@@ -820,6 +855,8 @@ rule draw_peak_heatmap_factor:
 		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
 	message:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
@@ -834,7 +871,7 @@ rule draw_peak_heatmap_factor:
 		else
 
 			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
-				-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/heatmap.exBL.1rpm \
+				-o {params.outPrefix} \
 				{input.bed} {input.bw}
 		fi
 		"""
@@ -846,6 +883,8 @@ rule draw_peak_heatmap_histone:
 		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
 	message:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
@@ -860,7 +899,7 @@ rule draw_peak_heatmap_histone:
 		else
 
 			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 100 \
-				-o {sampleDir}/{wildcards.sampleName}/HomerPeak.histone/heatmap.exBL \
+				-o {params.outPrefix} \
 				{input.bed} {input.bw}
 		fi
 		"""
@@ -872,6 +911,8 @@ rule draw_peak_heatmap_factor_allfrag:
 		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
 	message:
 		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
 	shell:
@@ -886,7 +927,32 @@ rule draw_peak_heatmap_factor_allfrag:
 		else
 
 			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
-				-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm \
+				-o {params.outPrefix} \
+				{input.bed} {input.bw}
+		fi
+		"""
+
+rule draw_peak_heatmap_histone_allfrag:
+	input:
+		bed=sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed",
+		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/heatmap.exBL.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+		else
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 20 \
+				-o {params.outPrefix} \
 				{input.bed} {input.bw}
 		fi
 		"""
@@ -1189,7 +1255,7 @@ rule call_peak_macs_factor:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
@@ -1212,7 +1278,7 @@ rule call_peak_macs_factor_relax:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
 			--outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits -p 0.001 \
@@ -1256,7 +1322,7 @@ rule call_peak_macs_factor_allfrag_wo_ctrl:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs3 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
