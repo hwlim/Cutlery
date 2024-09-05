@@ -28,9 +28,10 @@ Input:
 	  └── group2
 	       └── fragment.bed.gz
 Options:
+	-n: number of cpu to use, default=1
+	-m: memory to use for bsub, default=10000
 	-t: if set, dry run simply displaying pooling message, default=off
 	-b: if set, bsub are submitted for merging bam files, default=off
-	-u: if set, input/output fragment files are assumed to be 'unsorted', default=off
 	-f: if set, force overwrite existing destination bam files, default=off" >&2
 }
 
@@ -45,12 +46,20 @@ trap 'if [ `ls -1 ${tmpPrefix}* 2>/dev/null | wc -l` -gt 0 ];then rm ${tmpPrefix
 
 ###################################
 ## option and input file handling
+memory=10000
+cpu=1
 testOnly=FALSE
 bsub=FALSE
 unsorted=FALSE
 overwrite=FALSE
-while getopts ":bfut" opt; do
+while getopts ":m:n:bfut" opt; do
 	case $opt in
+		m)
+			memory=$OPTARG
+			;;
+		n)
+			cpu=$OPTARG
+			;;
 		t)
 			testOnly=TRUE
 			;;
@@ -157,7 +166,7 @@ do
 
 		if [ "$bsub" == "TRUE" ];then
 			## Parallel processing using HPC:lsf
-			bsub -W 24:00 -n 1 -M 20000 -q rhel9  <<- EOF
+			bsub -W 24:00 -n $cpu -M $memory -q rhel9 -R "span[hosts=1]" <<- EOF
 #!/usr/bin/env bash
 sort -m -k1,1 -k2,2n -k3,3n ${inputStr} | gzip > $tmp
 mv $tmp $des
