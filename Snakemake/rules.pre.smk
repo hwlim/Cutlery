@@ -81,6 +81,7 @@ rule align_pe:
 		cluster["align_pe"]["cpu"]
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		module load {params.star_module}
 
@@ -120,6 +121,7 @@ rule csort_bam:
 		cluster["csort_bam"]["cpu"]
 	shell:
 		"""
+		module purge
 		module load ChIPseq/1.0
 		samtools sort -o {output.bam} -T ${{TMPDIR}}/csort_bam.{wildcards.sampleName}.${{RANDOM}} -@ {threads} -m 2G {input.bam}
 		samtools index {output.bam}
