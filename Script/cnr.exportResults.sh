@@ -197,7 +197,7 @@ do
 	if [ "$exportPeak" == "y" ] || [ "$exportPeak" == "Y" ];then
 		echo -e "2) Exporting peak files & heatmaps" >&2
 		#mkdir -p ${desDir}/Peak
-		for mode in factor histone
+		for mode in factor histone factor.allFrag histone.allFrag
 		do
 			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.bed
 			des=${desDir}/Peak.${mode}/${sample}.all.bed
@@ -223,7 +223,7 @@ do
 	if [ "$exportMotif" == "y" ] || [ "$exportMotif" == "Y" ];then
 		echo -e "3) Exporting motif search results" >&2
 		#mkdir -p ${desDir}/Motif
-		for src in ${srcDir}/${sample}/Motif/Homer.all  ${srcDir}/${sample}/Motif/MEME.random5k
+		for src in ${srcDir}/${sample}/Motif/Homer.all  ${srcDir}/${sample}/Motif/MEME.random5k ${srcDir}/${sample}/Motif/Homer.all.allFrag  ${srcDir}/${sample}/Motif/MEME.random5k.allFrag
 		do
 			suffix=`basename $src`
 			des=${desDir}/Motif/${sample}.${suffix}
