@@ -75,7 +75,7 @@ sampleName = tail(unlist(strsplit(sampDir, "/")), n=1)
 sampleQC = paste0(sampDir, "/QC")
 
 ## get sample info from sample.tsv file
-rowNum = which(grepl(sampleName, sampleIn$Name))
+rowNum = which(sampleIn$Name == sampleName)
 rowData = sampleIn[rowNum,]
 peakMode = rowData$PeakMode
 
@@ -117,9 +117,6 @@ if (peakMode == "factor") {
 fragQCtable <- rbind(fragQCtable, list(peakMode, formatC(as.numeric(fragQC[[1]]), format="f", digits=2), 
 formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
 formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
-
-#get peak-examples png file
-peakExamplePlot <- paste0(homerFolderPath, "/peak.examples.png")
 
 #Render report
 rmarkdown::render(tempTemplate, output_file = paste0(outputFile, ".html"), output_dir = sampleQC)
