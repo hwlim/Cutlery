@@ -1447,13 +1447,11 @@ rule create_report_per_sample_pooled:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.createPooledSampleReportHTML.r -o Report_pooled -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}		
+		cnr.createPooledSampleReportHTML.r -o Report_pooled -t {src_sampleInfo} -g {params.group} -s {sampleDir}/{wildcards.sampleName} -q {qcDir}		
 		"""
 
 rule create_final_report_pooled:
 	input:
-		histPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),
-		tfPeakExamples = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.examples.png", sampleName = samples.Name[samples.PeakMode=="factor"].tolist()),
 		fragDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.txt", sampleName=samples.Name.tolist()),
 		fragQC = expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=samples.Name.tolist()),
 		histoneHeatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName = samples.Name[samples.PeakMode=="histone"].tolist()),

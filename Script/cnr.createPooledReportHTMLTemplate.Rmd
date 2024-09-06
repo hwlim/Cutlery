@@ -292,4 +292,4 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 
 ```
 
-## Peak Examples {.tabset}
+## Peak Heatmap {.tabset}

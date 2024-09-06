@@ -75,7 +75,7 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 	knitr::include_graphics(fragLenDist)
 ```
 
-## Peak Examples {.tabset}
+## Peak Heatmap {.tabset}
 \
 ```{r peak-counts-TF, echo=FALSE, message=FALSE, warning=FALSE}
 	if (nrow(factorTable) != 0) {
@@ -99,10 +99,7 @@ htmltools::img(src = knitr::image_uri(tempLogo),
 	}
 
 ```
-\
-```{r peak-example, echo=FALSE, out.width='100%', fig.align="center", message=FALSE, warning=FALSE}
-	knitr::include_graphics(peakExamplePlot)
-```
+
 \
 ```{r peak-heatmap, echo=FALSE, out.width='70%', fig.align="center", message=FALSE, warning=FALSE}
 	knitr::include_graphics(heatmap)

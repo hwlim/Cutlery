@@ -12,7 +12,7 @@ option_list <- list(
 	make_option(c("-o","--outputFile"), help="prefix to output file; Can include path as well"),
 	make_option(c("-s","--sampleDir"), help="Path to the Sample Folder, defined by 'sampleDir'"),
 	make_option(c("-q","--qcDir"), help="Path to the Quality Control Folder, defined by 'qcDir'"),
-	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule"),
+	make_option(c("-f","--fragMixPrefix"), help="prefix for fragMix.txt file; output of frag_QC rule", default = "fragMix"),
 	make_option(c("-t","--sampleTsvIn"), help="Path to sample.tsv")
 )
 parser <- OptionParser(usage = "%prog [options]",
@@ -32,7 +32,7 @@ opt=arguments$options
 sampDir=normalizePath(opt$sampleDir)
 qcDir=normalizePath(opt$qcDir)
 outputFile=opt$outputFile
-sampleTsvIn = opt$sampleTsvIn
+sampleTsvIn=opt$sampleTsvIn
 fragMixPrefix=opt$fragMixPrefix
 
 #Read in and crop logo
@@ -78,7 +78,7 @@ for (sample in sampleQC) {
 	sampleName <- tail(unlist(strsplit(sample, "/")), n=2)[1]
 
 	## get sample info from sample.tsv file
-	rowNum = which(grepl(sampleName, sampleIn$Name))
+	rowNum = which(sampleIn$Name == sampleName)
 	rowData = sampleIn[rowNum,]
 	peakMode = rowData$PeakMode
 
@@ -88,7 +88,7 @@ for (sample in sampleQC) {
 	## get homer dir
 	homerFolderPath <- paste0(sampleDirectory, "/", "HomerPeak.", peakMode)
 	
-	#get fragmentQC file for the sample
+	## get fragmentQC file for the sample
 	fragQCfile <- paste0(sample, "/", fragMixPrefix ,".txt")
 	fragQC <- read.table(fragQCfile, header = TRUE)
 
@@ -120,22 +120,9 @@ for (sample in sampleQC) {
 	formatC(as.numeric(fragQC[[2]]), format="f", digits=2), formatC(as.numeric(fragQC[[3]]), format="f", digits=2),
 	formatC(as.numeric(fragQC[[4]]), format="f", digits=2), formatC(as.numeric(fragQC[[5]]), format="f", digits=2)))
 
-	#get peak-examples png file
-	peakExamplePlot <- paste0(homerFolderPath, "/peak.examples.png")
-
-	#write peak-examples section of Rmd file
-	#add heatmap at the end
+	#write heatmap section of Rmd file
 	#This is required as tabs need to be generated based on the number of samples in the sample.tsv file
 	line = paste0("### ", sampleName, " {.tabset}")
-	write(line,file=tempTemplate,append=TRUE)
-	line="```{r, echo=FALSE, out.width='100%', fig.align='center', message=FALSE, warning=FALSE}"
-	write(line,file=tempTemplate,append=TRUE)
-	line = paste0("knitr::include_graphics(\"",peakExamplePlot,"\")")
-	write(line,file=tempTemplate,append=TRUE)
-	line = "```"
-	write(line,file=tempTemplate,append=TRUE)
-
-	line = "<br />"
 	write(line,file=tempTemplate,append=TRUE)
 
 	line="```{r, echo=FALSE, out.width='70%', fig.align=\"center\"}"
