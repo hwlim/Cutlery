@@ -99,7 +99,7 @@ rule make_fragment:
 		module purge
 		module load Cutlery/1.0
 		mkdir -p {sampleDir}/{wildcards.sampleName}
-		ngs.bamToFragment.py -c "{chrRegexAll}" -f 0x2 -F 0x400 {input.bam} | sort -S 2G -k1,1 -k2,2n -k3,3n | gzip > {output}
+		ngs.bamToFragment.py -c "{chrRegexAll}" -f 0x2 -F 0x400 {input.bam} | sort -S 4G -k1,1 -k2,2n -k3,3n | gzip > {output}
 		"""
 
 
@@ -1257,7 +1257,7 @@ rule call_peak_macs_factor:
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
 		"""
 
@@ -1280,7 +1280,7 @@ rule call_peak_macs_factor_relax:
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs3 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
 			--outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits -p 0.001 \
 			2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
@@ -1304,7 +1304,7 @@ rule call_peak_macs_factor_wo_ctrl:
 		module purge
 		module load MACS/2.2.8
 		module load bedtools/2.27.0
-		macs3 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
 		"""
 
@@ -1324,7 +1324,7 @@ rule call_peak_macs_factor_allfrag_wo_ctrl:
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs3 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
 		"""
 
