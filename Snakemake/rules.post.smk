@@ -1329,6 +1329,31 @@ rule call_peak_macs_factor_allfrag_wo_ctrl:
 		"""
 
 
+
+rule macs_run_homer_motif_wo_ctrl:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/{sampleName}_summits.exBL.bed",
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/Motif.Homer.all/homerResults.html"
+	message:
+		"Running Homer motif search... [{wildcards.sampleName}]"
+	params:
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load Motif/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {params.outDir}
+			touch {params.outDir}/homerResults.html
+			exit 0
+		fi
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+			-o {params.outDir} {input}
+		"""
+
+
 rule macs_run_homer_motif_allfrag_wo_ctrl:
 	input:
 		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}_summits.exBL.bed",
