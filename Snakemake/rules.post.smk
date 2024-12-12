@@ -29,11 +29,11 @@ if "bed_promoter" not in locals():
 	bed_promoter = "NULL"
 
 if 'species_macs' not in locals():
-	print("Warning: species_macs is not defined; using hs (default)", file=sys.stderr)
+	#print("Warning: species_macs is not defined; using hs (default)", file=sys.stderr)
 	species_macs="hs"
 
 if 'do_csem' not in locals():
-	print("Warning: do_csem is not defined; setting False", file=sys.stderr)
+	#print("Warning: do_csem is not defined; setting False", file=sys.stderr)
 	do_csem=False
 
 #################################
@@ -570,7 +570,7 @@ rule make_tagdir_nuc:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.makeHomerDir.sh -o {outputc} -l 151 -L 1000000 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		cnr.makeHomerDir.sh -o {output} -l 151 -L 1000000 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
 		"""
 
 
