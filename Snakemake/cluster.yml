@@ -19,7 +19,7 @@ trim_pe:
 
 align_pe:
     cpu         : 4
-    memory      : 50000
+    memory      : 40000
     walltime    : "24:00"
 
 csort_bam:
