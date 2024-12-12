@@ -9,7 +9,7 @@
 source $COMMON_LIB_BASE/commonBash.sh
 
 function printUsage {
-	echo -e "Usage: `basename $0` (options) <sample.tsv> <src bam directory> <des bam directory>
+	echo -e "Usage: `basename $0` (options) <sample.tsv> <src sample directory> <des sample directory>
 Description:
 	Merge multiple fragment bed files of a group according to sample/group information within a given sample.tsv file
 Input:
@@ -19,7 +19,7 @@ Input:
 	   <sample dir>/sample1
 	  ├── sample1
 	  │    └── fragment.bed.gz
-	  └── sample12
+	  └── sample2
 	       └── fragment.bed.gz
 	- des directory pooling replicate samples per group
 	  e.g. <des dir>
