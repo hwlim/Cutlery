@@ -1,0 +1,237 @@
+########################
+## Cutlery Snakefile compatible with config.yml
+
+################################################
+## Required modules
+import pandas as pd
+import sys
+import os
+import yaml
+
+
+## Load config yaml
+assert os.path.exists("./config.yml"), "./config.yml file does not exist"
+with open(os.path.expanduser("./config.yml"), 'r') as fh:
+    configL = yaml.safe_load(fh)
+
+
+## Essential paramters related to analysis, must be defined in config.yml
+param_essential = [
+    "src_sampleInfo",
+    "genomeFa",
+    "chrom_size",
+    "peak_mask",
+    "genome",
+    "star_index",
+    "bed_promoter",
+    "adapter",
+    "trim_minLen",
+    "trim_minQual",
+    "opt_cutadapt",
+    "chrRegexTarget",
+    "star_option",
+    "doTrim",
+    "doDedup",
+    "fastqDir",
+    "trimDir",
+    "alignDir",
+    "dedupDir",
+    "qcDir",
+    "sampleDir",
+    "homerPreparseDir",
+
+    "align_stat",
+    "library_complexity",
+    "fragment_length",
+    "base_frequency",
+    "bigwig_default",
+    "peak_homer",
+    "motif_homer",
+    "motif_meme",
+    "report_generation",
+    "measure_promoter"
+
+]
+
+## Test if essential paramter is defined
+undefined=[]
+for param in param_essential:
+    if param not in configL.keys():
+        undefined.append(param)
+
+## If any, print undefined parameters and exit
+if len(undefined) > 0:
+    print("Error: Following parameters are not defined in config.yml file")
+    for x in undefined:
+        print ("  - " + x)
+    exit(1)
+
+################################################
+## Assign parameters
+src_sampleInfo  = configL["src_sampleInfo"]
+genomeFa        = configL["genomeFa"]
+chrom_size      = configL["chrom_size"]
+peak_mask       = configL["peak_mask"]
+genome          = configL["genome"]
+star_index      = configL["star_index"]
+bed_promoter    = configL["bed_promoter"]
+adapter         = configL["adapter"]
+trim_minLen     = configL["trim_minLen"]
+trim_minQual    = configL["trim_minQual"]
+opt_cutadapt    = configL["opt_cutadapt"]
+chrRegexTarget  = configL["chrRegexTarget"]
+star_option     = configL["star_option"]
+doTrim          = configL["doTrim"]
+doDedup         = configL["doDedup"]
+fastqDir        = configL["fastqDir"]
+trimDir         = configL["trimDir"]
+alignDir        = configL["alignDir"]
+dedupDir        = configL["dedupDir"]
+qcDir           = configL["qcDir"]
+sampleDir       = configL["sampleDir"]
+homerPreparseDir= configL["homerPreparseDir"]
+
+## Job flags
+align_stat          = configL["align_stat"]
+library_complexity  = configL["library_complexity"]
+fragment_length     = configL["fragment_length"]
+base_frequency      = configL["base_frequency"]
+bigwig_default      = configL["bigwig_default"]
+peak_homer          = configL["peak_homer"]
+motif_homer         = configL["motif_homer"]
+motif_meme          = configL["motif_meme"]
+report_generation   = configL["report_generation"]
+measure_promoter    = configL["measure_promoter"]
+
+## Test if necessary or specified file exists
+assert os.path.exists(src_sampleInfo)
+if not genomeFa == None and not genomeFa == "NULL":
+    assert os.path.exists(genomeFa), "genomeFa file does not exist: " + genomeFa
+
+if not chrom_size == None and not chrom_size == "NULL":
+    assert os.path.exists(chrom_size), "chrom_size file does not exist: " + chrom_size
+
+if not star_index == None and not star_index == "NULL":
+    assert os.path.exists(star_index + "/" + "SAindex"), "star_index does not exist: " + star_index
+
+if not peak_mask == None and not peak_mask == "NULL":
+    assert os.path.exists(peak_mask), "peak_mask file does not exist: " + peak_mask
+
+if not bed_promoter == None and not bed_promoter == "NULL":
+    assert os.path.exists(bed_promoter), "bed_promoter file does not exist: " + bed_promoter
+
+if len(motif_homer) > 0:
+    bg_seq = homerPreparseDir + "/" + genome + ".200.seq"
+    assert os.path.exists(bg_seq), "Homer background file does not exist: " + bg_seq
+
+
+
+################################################
+## Implicitly defined resource and configuration
+# Not shown to front-end
+
+# Clustser/LSF job resource config8uration
+cluster_yml = os.environ["CUTLERY"] + "/Snakemake/cluster.yml"
+
+# MEME Motif DB needed for MEME motif search
+meme_db = os.environ["CUTLERY"] + "/Resource/H12CORE_meme_format.meme"
+
+
+################################################
+## Loading sample Information & cluster config
+
+## Sample table
+samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
+
+## Configuration & sample sheet validation
+include: os.environ["CUTLERY"] + "/Snakemake/validate.smk"
+
+## Cluster configuration
+with open(os.path.expanduser(cluster_yml), 'r') as fh:
+	cluster = yaml.safe_load(fh)
+
+
+
+#########################
+## Rules start
+
+### Sample list and types (No need to change) 
+# All sample names (Name field in sample.tsv file)
+sampleList = samples.Name.tolist()
+# Samples for TF (or narrow peaks)
+sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
+# Samples for histone modification (or broad peaks)
+sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
+# Target Samples (non-control)
+sampleListTarget = sampleListFactor + sampleListHistone
+
+
+output_list = []
+
+if align_stat:
+    output = qcDir + "/alignStat.txt"
+    output_list.append(output)
+
+if library_complexity:
+    output = qcDir + "/uniqFragCnt.pdf"
+    output_list.append(output)
+
+if fragment_length:
+    output = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"])
+    output_list.append(output)
+
+if base_frequency:
+    output = expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"])
+    output_list.append(output)
+
+if bigwig_default:
+    output = expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"])
+    output_list.append(output)
+    output = expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"])
+    output_list.append(output)
+
+if "default" in peak_homer:
+    output = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor)
+    output_list.append(output)
+    output = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone)
+    output_list.append(output)
+
+if "allfrag" in peak_homer:
+    output = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm.png", sampleName=sampleListFactor)
+    output_list.append(output)
+    output = expand(sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/heatmap.exBL.png", sampleName=sampleListHistone)
+    output_list.append(output)
+
+if "default" in motif_homer:
+    output = expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
+    output_list.append(output)
+
+if "allfrag" in motif_homer:
+    output = expand(sampleDir + "/{sampleName}/Motif/Homer.all.allFrag/homerResults.html", sampleName=sampleListFactor)
+    output_list.append(output)
+
+if "default" in motif_meme:
+    output = expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+    output_list.append(output)
+
+if "allfrag" in motif_meme:
+    output = expand(sampleDir + "/{sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html", sampleName=sampleListFactor)
+    output_list.append(output)
+
+if measure_promoter:
+    output = expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])
+    output_list.append(output)
+
+if report_generation:
+    output = "Report.html"
+    output_list.append(output)
+
+
+
+rule all:
+	input:
+		output_list
+
+## Snakemake rule files
+include: os.environ["CUTLERY"] + "/Snakemake/rules.pre.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/rules.post.smk"
