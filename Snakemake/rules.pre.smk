@@ -8,10 +8,14 @@
 
 ## default STAR module
 if 'star_module' not in locals():
-	star_module = "STAR/2.5"
+	star_module = "STAR/2.7.4"
 
 if 'opt_cutadapt' not in locals():
 	opt_cutadapt = ""
+
+if 'chrRegexAll' not in locals():
+	chrRegexAll = chrRegexTarget
+
 
 rule trim_pe:
 	input:
@@ -144,7 +148,6 @@ rule make_align_stat_table:
 		"Creating alignment stat file"
 	shell:
 		"""
-		#module load ChIPseq/1.0
 		module purge
 		module load R/4.4.0
 		star.getAlignStats.r -o {params.outPrefix} {params.inputDir}
