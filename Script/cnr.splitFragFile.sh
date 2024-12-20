@@ -13,7 +13,7 @@ trap 'if [ `ls -1 ${TMPDIR}/__temp__.$$.* 2>/dev/null | wc -l` -gt 0 ];then rm $
 
 function printUsage {
 	echo -e "Usage: `basename $0` (options) [fragment.bed.gz]
-Description: Split BAM file records into three bed files
+Description: Split fragment file into two by length 
 Options:
 	-o <outPrefix>: Output prefix. required
 	-l <finalLen>: final fixed size around the fragment center, default=100. (Set 0 to keep the original size)
@@ -22,8 +22,8 @@ Options:
 		NULL if not applicable or no filtering
 Output:
 	** Note: output bed files are not sorted **
-	- <outPrefix>.nfr.bed.gz: NFR fragments
-	- <outPrefix>.nuc.bed.gz: NUC fragments" >&2
+	- <outPrefix>.nfr.bed.gz: NFR fragments (<120bp)
+	- <outPrefix>.nuc.bed.gz: NUC fragments (>150bp)" >&2
 }
 
 if [ $# -eq 0 ];then
