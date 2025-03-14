@@ -35,7 +35,8 @@ rule trim_pe:
 	shell:
 		"""
 		# Note: Needs to be implemented as a quantum transaction
-		#module load cutadapt/
+		module purge
+		module load cutadapt/2.1.0
 		cutadapt -a {params.adapter} -A {params.adapter} --minimum-length {params.minLen} -q {params.minQual} {opt_cutadapt} \
 			-o __temp__.$$.1.fq.gz -p __temp__.$$.2.fq.gz {input.fq1} {input.fq2} 2>&1 | tee {log}
 		mv __temp__.$$.1.fq.gz {output.fq1}
@@ -213,6 +214,7 @@ rule unify_csem:
 		prefix = lambda wildcards, output: __import__("re").sub(".bam$", "", output[0])
 	shell:
 		"""
+		module purge
 		module load ChIPseq/1.0
 		tmpBam=${{TMPDIR}}/unify_csem.{wildcards.sampleName}.${{RANDOM}}.bam
 

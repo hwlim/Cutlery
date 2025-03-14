@@ -62,6 +62,7 @@ rule dedup_align:
 		memory = "%dG" % ( cluster["dedup_align"]["memory"]/1000 - 1 )
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.dedupBam.sh -m {params.memory} -o {output.bam} -r {input}
 		samtools index {output.bam}
@@ -254,6 +255,7 @@ rule get_frag_autocor:
 		"Checking fragment auto-correlation... [{wildcards.sampleName}]"
 	shell:
 		"""
+		module purge
 		module load Cutlery/1.0
 		cnr.drawAutoCorFrag.r -o {sampleDir}/{wildcards.sampleName}/QC/enrich {input}
 		"""
@@ -866,7 +868,7 @@ rule draw_peak_heatmap_factor:
 
 		## Check if the file is empty; if empty, create image saying No peak detected
 		if [ ! -s "{input.bed}" ]; then
-			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
 		
 		else
 
@@ -894,7 +896,7 @@ rule draw_peak_heatmap_histone:
 		
 		## Check if the file is empty; if empty, create image saying No peak detected
 		if [ ! -s "{input.bed}" ]; then
-			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
 		
 		else
 
@@ -922,7 +924,7 @@ rule draw_peak_heatmap_factor_allfrag:
 
 		## Check if the file is empty; if empty, create image saying No peak detected
 		if [ ! -s "{input.bed}" ]; then
-			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
 		
 		else
 
@@ -949,7 +951,7 @@ rule draw_peak_heatmap_histone_allfrag:
 
 		## Check if the file is empty; if empty, create image saying No peak detected
 		if [ ! -s "{input.bed}" ]; then
-			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font FreeSerif -annotate 0 "No peak detected" {output}
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
 		else
 			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 20 \
 				-o {params.outPrefix} \
