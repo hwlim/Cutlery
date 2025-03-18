@@ -1187,9 +1187,8 @@ rule make_promotercnt_table:
 rule make_bam_nfr:
 	input:
 		lambda wildcards: get_bam_for_downstream(wildcards.sampleName)
-		#bamDir + "/{sampleName}.bam"
 	output:
-		alignDir + "/{sampleName}/Split/align.nfr.bam"
+		( dedupDir if doDedup else alignDir ) + "/{sampleName}/Split/align.nfr.bam"
 	message:
 		"Making NFR bam file... [{wildcards.sampleName}]"
 	shell:
@@ -1205,8 +1204,9 @@ rule make_bam_nfr:
 rule make_bam_nuc:
 	input:
 		lambda wildcards: get_bam_for_downstream(wildcards.sampleName)
-		#bamDir + "/{sampleName}.bam"
 	output:
+		( dedupDir if doDedup else alignDir ) + "/{sampleName}/Split/align.nuc.bam"
+	message:
 		alignDir + "/{sampleName}/Split/align.nuc.bam"
 	message:
 		"Making NUC bam file... [{wildcards.sampleName}]"
@@ -1230,18 +1230,19 @@ def get_ctrl_name(sampleName):
 def get_bam_for_macs(sampleName, fragment, mode="target"):
 	assert fragment in [ "nfr", "nuc", "all" ]
 	assert mode in [ "target", "ctrl" ]
+	bamDir = dedupDir if doDedup else alignDir
 	if mode == "target":
 		name = sampleName
 	else:
 		name = get_ctrl_name(sampleName)
 	
 	if fragment in [ "nfr", "nuc" ]:
-		bam = alignDir + "/" + name + "/Split/align." + fragment + ".bam"
+		bam = bamDir + "/" + name + "/Split/align." + fragment + ".bam"
 	else:
-		bam = alignDir + "/" + name + "/align.bam"
+		bam = bamDir + "/" + name + "/align.bam"
 	return bam
 
-## MACS peak calling vs control
+## MACS peak calling vs control: NFR
 rule call_peak_macs_factor:
 	input:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="target"),
@@ -1249,6 +1250,28 @@ rule call_peak_macs_factor:
 	output:
 		peak = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
 		log = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}.log"
+	message:
+		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
+	params:
+		mask = peak_mask,
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MACS/2.2.9.1
+		module load bedtools/2.27.0
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		"""
+
+## MACS peak calling vs control: all fragment
+rule call_peak_macs_factor_allfrag:
+	input:
+		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target"),
+		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="ctrl")
+	output:
+		peak = sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}.log"
 	message:
 		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
 	params:
@@ -1328,6 +1351,100 @@ rule call_peak_macs_factor_allfrag_wo_ctrl:
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		"""
+
+
+rule macs_run_homer_motif:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor/Motif.Homer.all/homerResults.html"
+	message:
+		"Running Homer motif search... [{wildcards.sampleName}]"
+	params:
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load Motif/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {params.outDir}
+			touch {params.outDir}/homerResults.html
+			exit 0
+		fi
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+			-o {params.outDir} {input}
+		"""
+
+rule macs_run_homer_motif_allFrag:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed",
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif.Homer.all/homerResults.html"
+	message:
+		"Running Homer motif search... [{wildcards.sampleName}]"
+	params:
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load Motif/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {params.outDir}
+			touch {params.outDir}/homerResults.html
+			exit 0
+		fi
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+			-o {params.outDir} {input}
+		"""
+
+
+rule macs_run_meme_motif_rand5k:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed"
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor/MEME.random5k/meme-chip.html"
+	message:
+		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
+	params:
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MotifMEME/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {params.outDir}
+			touch {params.outDir}/meme-chip.html
+			exit 0
+		fi
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
+			-o {params.outDir} {input}
+		"""
+
+rule macs_run_meme_motif_rand5k_allFrag:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed"
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/MEME.random5k/meme-chip.html"
+	message:
+		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
+	params:
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MotifMEME/1.0
+		n=`cat {input} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {params.outDir}
+			touch {params.outDir}/meme-chip.html
+			exit 0
+		fi
+		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
+			-o {params.outDir} {input}
 		"""
 
 
