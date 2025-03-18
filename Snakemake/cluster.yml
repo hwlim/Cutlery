@@ -97,6 +97,14 @@ make_promotercnt_table:
     output      : "logs/{rule}.out"
     error       : "logs/{rule}.err"
 
+call_peak_macs_factor:
+    cpu         : 2
+    memory      : 20000
+
+call_peak_macs_factor_allfrag:
+    cpu         : 2
+    memory      : 20000
+
 call_peak_macs_factor_wo_ctrl:
     cpu         : 2
     memory      : 20000
