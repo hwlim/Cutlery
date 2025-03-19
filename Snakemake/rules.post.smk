@@ -1261,8 +1261,39 @@ rule call_peak_macs_factor:
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
+			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			> {output.peak}
 		"""
+
+
+rule draw_peak_heatmap_factor_macs:
+	input:
+		bed = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
+		bw = lambda wildcards: get_bw_pairs(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+				-o {params.outPrefix} \
+				{input.bed} {input.bw}
+		fi
+		"""
+
 
 ## MACS peak calling vs control: all fragment
 rule call_peak_macs_factor_allfrag:
@@ -1283,7 +1314,36 @@ rule call_peak_macs_factor_allfrag:
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
+			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			> {output.peak}
+		"""
+
+rule draw_peak_heatmap_factor_macs_allfrag:
+	input:
+		bed = sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed",
+		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/heatmap.exBL.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+				-o {params.outPrefix} \
+				{input.bed} {input.bw}
+		fi
 		"""
 
 ## MACS peak calling with relaxed criteria using p-value for IDR analysis
