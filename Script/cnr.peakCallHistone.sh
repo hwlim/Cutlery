@@ -192,9 +192,10 @@ else
 		| sort -k8,8nr \
 		| cut -f 1-6 \
 		> $peakMasked
+
+	rm ${tmpTagCount} 
 fi
 rm ${tmpPeakMasked} 
-rm ${tmpTagCount} 
 #if [ "$ctrl" != "NULL" ];then
 #	getPeakTags $peakMasked $ctrl -tagAdjust 0 -tbp 0 \
 #		| sort -k1,1 \
