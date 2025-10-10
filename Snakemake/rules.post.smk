@@ -707,35 +707,8 @@ rule call_peaks_histone_allfrag:
 		"""
 
 
-'''
-rule run_homermotif:
-	input:
-		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
-	output:
-		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html"
-	message:
-		"Running Homer motif search... [{wildcards.sampleName}]"
-	shell:
-		"""
-		module load Motif/1.0
-		runHomerMotif.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor {input}
-		"""
-rule run_homermotif_allfrag:
-	input:
-		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
-	output:
-		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed.all.noBG/homerResults.html"
-	message:
-		"Running Homer motif search... [{wildcards.sampleName}]"
-	shell:
-		"""
-		module load Motif/1.0
-		runHomerMotif.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse -o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag {input}
-		"""
-'''
 
-
-rule run_homer_motif_ctr:
+rule run_homer_motif:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	output:
