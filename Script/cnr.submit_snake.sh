@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
 
+## Written by Hee Woong Lim and Chris Ahn
 ## Script to submit snakemake job to CCHMC lsf system
+
+source $COMMON_LIB_BASE/commonBash.sh
 
 nJob=50
 totalWaitTime="48:00"
 config=${CUTLERY}/Snakemake/cluster.yml
+
+assertFileExist $config
+assertFileExist ./Snakefile
+
+if [ ! -f diag.pdf ];then
+	module load python3/3.6.3
+	module load graphviz/2.40.1
+	snakemake --dag | dot -Tpdf > diag.pdf
+fi
 
 mkdir -p logs
 

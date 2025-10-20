@@ -1192,34 +1192,6 @@ rule make_bam_nuc:
 			> {output}
 		"""
 
-rule make_frag_nfr:
-	input:
-		sampleDir + "/{sampleName}/fragment.bed.gz"
-	output:
-		sampleDir + "/{sampleName}/fragment.nfr.bed.gz"
-	message:
-		"Making NFR fragment file... [{wildcards.sampleName}]"
-	shell:
-		"""
-		zcat {input} \
-			| gawk '$3 - $2 < 120' \
-			| gzip > {output}
-		"""
-
-rule make_frag_nuc:
-	input:
-		sampleDir + "/{sampleName}/fragment.bed.gz"
-	output:
-		sampleDir + "/{sampleName}/fragment.nuc.bed.gz"
-	message:
-		"Making NUC fragment file... [{wildcards.sampleName}]"
-	shell:
-		"""
-		zcat {input} \
-			| gawk '$3 - $2 >= 120' \
-			| gzip > {output}
-		"""
-
 ## find control sample name for peak calling using target sample name
 def get_ctrl_name(sampleName):
 	ctrlName = samples.Ctrl[samples.Name == sampleName]

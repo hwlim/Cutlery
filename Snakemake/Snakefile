@@ -81,7 +81,6 @@ alignDir	= "1.1.Align"		# Directory for alignment results
 filteredDir	= "1.2.Align.filtered"	# Directory for filtered alignment results, i.e. chromosome, 
 dedupDir	= "1.3.Align.dedup"	# ignored if doDeup==False
 qcDir		= "2.1.QualityControl"
-
 sampleDir	= "3.Sample"
 
 ###########################################################
@@ -90,8 +89,6 @@ sampleDir	= "3.Sample"
 #kmer_genome	= "/data/limlab/Resource/Jellyfish.Kmer/%s.6mer.txt" % genome
 kmer_genome = "NULL"
 kmer_pseudo	= 1
-
-
 
 
 ################################################
@@ -125,8 +122,7 @@ sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
 sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
 # Target Samples (non-control)
 sampleListTarget = sampleListFactor + sampleListHistone
-# Number of highest scoring peaks to visualize
-numHighestPeaks = 5
+
 
 rule all:
 	input:
@@ -174,7 +170,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListFactor),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListHistone),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListFactor),
-		expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ]),
+		# expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ]),
 
 		## Create final report
 		"Report.html"

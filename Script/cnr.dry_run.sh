@@ -6,13 +6,14 @@ if [ -z ${CUTLERY+x} ]; then
 	exit 1
 fi
 
-echo -e "Performing dry-run..." >&2
 module purge
 module load python3/3.6.3
 
 if [ -e "config.yml" ]; then
+	echo -e "Performing dry-run in Cutlery default mode..." >&2
 	snakemake -np -s ${CUTLERY}/Snakemake/Snakefile_Default
 else
+	echo -e "Performing dry-run in Cutlery advanced mode..." >&2
 	snakemake -np
 fi
 
