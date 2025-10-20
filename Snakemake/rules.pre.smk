@@ -127,7 +127,7 @@ rule csort_bam:
 	shell:
 		"""
 		module purge
-		module load ChIPseq/1.0
+		module load Cutlery/1.0
 		samtools sort -o {output.bam} -T ${{TMPDIR}}/csort_bam.{wildcards.sampleName}.${{RANDOM}} -@ {threads} -m 2G {input.bam}
 		samtools index {output.bam}
 		"""

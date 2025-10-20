@@ -23,7 +23,7 @@ Input:
 	'3.Sample' directory path
 	Output file name
 Output:
-    - Report.html",
+    - Report_pooled.html",
 	 option_list=option_list)
 arguments <- parse_args(parser, positional_arguments = TRUE)
 

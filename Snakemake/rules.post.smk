@@ -657,7 +657,7 @@ rule call_peaks_factor_allfrag:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all"),
 		bw = sampleDir + "/{sampleName}/igv.all.con.bw",
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor.allFrag/peak.exBL.1rpm.{ext}", ext=["bed","stat"])
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag",
 		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
@@ -693,7 +693,7 @@ rule call_peaks_histone_allfrag:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"all")
 	output:
-		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone.allFrag/peak.exBL.{ext}", ext=["bed","stat"])
 	params:
 		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag",
 		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
@@ -712,7 +712,7 @@ rule run_homer_motif:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	output:
-		sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html"
+		sampleDir + "/{sampleName}/HomerPeak.factor/Motif/Homer.all/homerResults.html"
 	message:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	shell:
@@ -721,19 +721,19 @@ rule run_homer_motif:
 		module load Motif/1.0
 		n=`cat {input} | wc -l`
 		if [ $n -eq 0 ];then
-			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/Homer.all
-			touch {sampleDir}/{wildcards.sampleName}/Motif/Homer.all/homerResults.html
+			mkdir -p {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/Motif/Homer.all
+			touch {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/Motif/Homer.all/homerResults.html
 			exit 0
 		fi
-		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
-			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all {input}
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b {homerPreparseDir} \
+			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/Motif/Homer.all {input}
 		"""
 
 rule run_homer_motif_allfrag:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 	output:
-		sampleDir + "/{sampleName}/Motif/Homer.all.allFrag/homerResults.html"
+		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/Homer.all/homerResults.html"
 	message:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	shell:
@@ -742,12 +742,12 @@ rule run_homer_motif_allfrag:
 		module load Motif/1.0
 		n=`cat {input} | wc -l`
 		if [ $n -eq 0 ];then
-			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/Homer.all
-			touch {sampleDir}/{wildcards.sampleName}/Motif/Homer.all/homerResults.html
+			mkdir -p {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/Homer.all
+			touch {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/Homer.all/homerResults.html
 			exit 0
 		fi
-		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
-			-o {sampleDir}/{wildcards.sampleName}/Motif/Homer.all.allFrag {input}
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b {homerPreparseDir} \
+			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/Homer.all {input}
 		"""
 
 rule run_meme_motif_rand5k:
@@ -755,7 +755,7 @@ rule run_meme_motif_rand5k:
 		bed = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 		#db = meme_db
 	output:
-		sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html"
+		sampleDir + "/{sampleName}/HomerPeak.factor/Motif/MEME.random5k/meme-chip.html"
 	message:
 		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
 	shell:
@@ -764,12 +764,12 @@ rule run_meme_motif_rand5k:
 		module load MotifMEME/1.0
 		n=`cat {input} | wc -l`
 		if [ $n -eq 0 ];then
-			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k
-			touch {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k/meme-chip.html
+			mkdir -p {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/Motif/MEME.random5k
+			touch {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/Motif/MEME.random5k/meme-chip.html
 			exit 0
 		fi
 		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
-			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k {input.bed}
+			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor/Motif/MEME.random5k {input.bed}
 		"""
 
 
@@ -778,7 +778,7 @@ rule run_meme_motif_rand5k_allfrag:
 		bed = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
 		#db = meme_db
 	output:
-		sampleDir + "/{sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html"
+		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k/meme-chip.html"
 	message:
 		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
 	shell:
@@ -787,12 +787,12 @@ rule run_meme_motif_rand5k_allfrag:
 		module load MotifMEME/1.0
 		n=`cat {input} | wc -l`
 		if [ $n -eq 0 ];then
-			mkdir -p {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag
-			touch {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag/meme-chip.html
+			mkdir -p {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k
+			touch {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k/meme-chip.html
 			exit 0
 		fi
 		runMemeChipSingle.sh -g {genomeFa} -s 200 -p 4 -r 5000 -d {meme_db} \
-			-o {sampleDir}/{wildcards.sampleName}/Motif/MEME.random5k.allFrag {input.bed}
+			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k {input.bed}
 		"""
 
 
@@ -1179,8 +1179,7 @@ rule make_bam_nuc:
 		lambda wildcards: get_bam_for_downstream(wildcards.sampleName)
 	output:
 		( dedupDir if doDedup else alignDir ) + "/{sampleName}/Split/align.nuc.bam"
-	message:
-		alignDir + "/{sampleName}/Split/align.nuc.bam"
+
 	message:
 		"Making NUC bam file... [{wildcards.sampleName}]"
 	shell:
@@ -1188,9 +1187,37 @@ rule make_bam_nuc:
 		module purge
 		module load samtools/1.14.0
 		samtools view -h {input} \
-			| gawk 'substr($0,1,1)=="@" || ($9 >= 120 && $9 <= -120)' \
+			| gawk '/^@/ || ($9 >= 120 || $9 <= -120)' \
 			| samtools view -b \
 			> {output}
+		"""
+
+rule make_frag_nfr:
+	input:
+		sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		sampleDir + "/{sampleName}/fragment.nfr.bed.gz"
+	message:
+		"Making NFR fragment file... [{wildcards.sampleName}]"
+	shell:
+		"""
+		zcat {input} \
+			| gawk '$3 - $2 < 120' \
+			| gzip > {output}
+		"""
+
+rule make_frag_nuc:
+	input:
+		sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		sampleDir + "/{sampleName}/fragment.nuc.bed.gz"
+	message:
+		"Making NUC fragment file... [{wildcards.sampleName}]"
+	shell:
+		"""
+		zcat {input} \
+			| gawk '$3 - $2 >= 120' \
+			| gzip > {output}
 		"""
 
 ## find control sample name for peak calling using target sample name
@@ -1215,6 +1242,20 @@ def get_bam_for_macs(sampleName, fragment, mode="target"):
 		bam = bamDir + "/" + name + "/align.bam"
 	return bam
 
+def get_frag_for_macs(sampleName, fragment, mode="target"):
+	assert fragment in [ "nfr", "nuc", "all" ]
+	assert mode in [ "target", "ctrl" ]
+	if mode == "target":
+		name = sampleName
+	else:
+		name = get_ctrl_name(sampleName)
+	
+	if fragment in [ "nfr", "nuc" ]:
+		frag = sampleDir + "/" + name + "/fragment." + fragment + ".bed.gz"
+	else:
+		frag = sampleDir + "/" + name + "/fragment.bed.gz"
+	return frag
+
 ## MACS peak calling vs control: NFR
 rule call_peak_macs_factor:
 	input:
@@ -1236,9 +1277,9 @@ rule call_peak_macs_factor:
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
 			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
 			> {output.peak}
 		"""
-
 
 rule draw_peak_heatmap_factor_macs:
 	input:
@@ -1267,8 +1308,7 @@ rule draw_peak_heatmap_factor_macs:
 		fi
 		"""
 
-
-## MACS peak calling vs control: all fragment
+# MACS peak calling vs control: all fragment
 rule call_peak_macs_factor_allfrag:
 	input:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target"),
@@ -1289,6 +1329,7 @@ rule call_peak_macs_factor_allfrag:
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
 			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
 			> {output.peak}
 		"""
 
@@ -1298,6 +1339,112 @@ rule draw_peak_heatmap_factor_macs_allfrag:
 		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor.allFrag/heatmap.exBL.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+				-o {params.outPrefix} \
+				{input.bed} {input.bw}
+		fi
+		"""
+
+
+## MACS peak calling vs control: NUC
+rule call_peak_macs_histone:
+	input:
+		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nuc", mode="target"),
+		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nuc", mode="ctrl")
+	output:
+		peak = sampleDir + "/{sampleName}/MACS2.histone/{sampleName}_broad.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.histone/{sampleName}.log"
+	message:
+		"Calling histone peaks using MACS.. [{wildcards.sampleName}]"
+	params:
+		mask = peak_mask,
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MACS/2.2.9.1
+		module load bedtools/2.27.0
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --broad --keep-dup all 2>&1 | tee {output.log}
+		
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_peaks.broadPeak -b {params.mask} -v \
+			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$9 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
+		"""
+
+rule draw_peak_heatmap_histone_macs:
+	input:
+		bed = sampleDir + "/{sampleName}/MACS2.histone/{sampleName}_broad.exBL.bed",
+		bw = lambda wildcards: get_bw_pairs(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png"
+	params:
+		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
+	message:
+		"Drawing peak profile heatmap... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+
+		## Check if the file is empty; if empty, create image saying No peak detected
+		if [ ! -s "{input.bed}" ]; then
+			convert -size 800x600 xc:white -gravity Center -pointsize 48 -font ${{CUTLERY}}/Resource/freeserif/FreeSerif.otf -annotate 0 "No peak detected" {output}
+		
+		else
+
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+				-o {params.outPrefix} \
+				{input.bed} {input.bw}
+		fi
+		"""
+
+## MACS histone peak calling vs control: all fragment
+rule call_peak_macs_histone_allfrag:
+	input:
+		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target"),
+		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="ctrl")
+	output:
+		peak = sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}_broad.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}.log"
+	message:
+		"Calling histone peaks using MACS.. [{wildcards.sampleName}]"
+	params:
+		mask = peak_mask,
+		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
+	shell:
+		"""
+		module purge
+		module load MACS/2.2.9.1
+		module load bedtools/2.27.0
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --broad --keep-dup all 2>&1 | tee {output.log}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_peaks.broadPeak -b {params.mask} -v \
+			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$9 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
+		"""
+
+rule draw_peak_heatmap_histone_macs_allfrag:
+	input:
+		bed = sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}_broad.exBL.bed",
+		bw = lambda wildcards: get_bw_pairs(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/MACS2.histone.allFrag/heatmap.exBL.png"
 	params:
 		outPrefix = lambda wildcards, output: __import__("re").sub(".png$","", output[0])
 	message:
@@ -1360,7 +1507,7 @@ rule call_peak_macs_factor_wo_ctrl:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
@@ -1391,7 +1538,7 @@ rule macs_run_homer_motif:
 	input:
 		sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
 	output:
-		sampleDir + "/{sampleName}/MACS2.factor/Motif.Homer.all/homerResults.html"
+		sampleDir + "/{sampleName}/MACS2.factor/Motif/Homer.all/homerResults.html"
 	message:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	params:
@@ -1406,7 +1553,7 @@ rule macs_run_homer_motif:
 			touch {params.outDir}/homerResults.html
 			exit 0
 		fi
-		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b {homerPreparseDir} \
 			-o {params.outDir} {input}
 		"""
 
@@ -1414,7 +1561,7 @@ rule macs_run_homer_motif_allFrag:
 	input:
 		sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed",
 	output:
-		sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif.Homer.all/homerResults.html"
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/Homer.all/homerResults.html"
 	message:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	params:
@@ -1429,7 +1576,7 @@ rule macs_run_homer_motif_allFrag:
 			touch {params.outDir}/homerResults.html
 			exit 0
 		fi
-		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b {homerPreparseDir} \
 			-o {params.outDir} {input}
 		"""
 
@@ -1438,7 +1585,7 @@ rule macs_run_meme_motif_rand5k:
 	input:
 		sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed"
 	output:
-		sampleDir + "/{sampleName}/MACS2.factor/MEME.random5k/meme-chip.html"
+		sampleDir + "/{sampleName}/MACS2.factor/Motif/MEME.random5k/meme-chip.html"
 	message:
 		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
 	params:
@@ -1461,7 +1608,7 @@ rule macs_run_meme_motif_rand5k_allFrag:
 	input:
 		sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed"
 	output:
-		sampleDir + "/{sampleName}/MACS2.factor.allFrag/MEME.random5k/meme-chip.html"
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/MEME.random5k/meme-chip.html"
 	message:
 		"Running MEME-ChIP motif search for random 5k peaks [{wildcards.sampleName}]"
 	params:
@@ -1486,7 +1633,7 @@ rule macs_run_homer_motif_wo_ctrl:
 	input:
 		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/{sampleName}_summits.exBL.bed",
 	output:
-		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/Motif.Homer.all/homerResults.html"
+		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/Motif/Homer.all/homerResults.html"
 	message:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	params:
@@ -1501,7 +1648,7 @@ rule macs_run_homer_motif_wo_ctrl:
 			touch {params.outDir}/homerResults.html
 			exit 0
 		fi
-		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b {homerPreparseDir} \
 			-o {params.outDir} {input}
 		"""
 
@@ -1510,7 +1657,7 @@ rule macs_run_homer_motif_allfrag_wo_ctrl:
 	input:
 		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}_summits.exBL.bed",
 	output:
-		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/Motif.Homer.all/homerResults.html"
+		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/Motif/Homer.all/homerResults.html"
 	message:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	params:
@@ -1525,7 +1672,7 @@ rule macs_run_homer_motif_allfrag_wo_ctrl:
 			touch {params.outDir}/homerResults.html
 			exit 0
 		fi
-		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b /data/limlab/Resource/Homer.preparse \
+		runHomerMotifSingle.sh -g {genome} -s 200 -p 4 -b {homerPreparseDir} \
 			-o {params.outDir} {input}
 		"""
 

@@ -66,7 +66,7 @@ star_option	= "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 
 ## MEME Motif DB needed for MEME motif search
 ## No need to change if MEME motif search is not intended, i.e. MEME.random5k/meme-chip.html in the output
 meme_db = os.environ["LIMLAB_BASE"] + "/Motif/MEME_DB/Merged_By_Lim.meme"
-
+homerPreparseDir = "/data/limlab/Resource/Homer.preparse"
 
 #########################
 ## Job flag options
@@ -141,16 +141,28 @@ rule all:
 		expand(sampleDir + "/{sampleName}/igv.raw.bedGraph.gz", sampleName=sampleList),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
-		## Peak calling
+		
+		## Homer Peak calling
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.{ext}", sampleName=sampleListFactor, ext=["bed","stat"]),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.{ext}", sampleName=sampleListHistone, ext=["bed","stat"]),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
+
+		## MACS Peak calling
+		expand(sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/MACS2.histone/{sampleName}_broad.exBL.bed", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.png", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png", sampleName=sampleListHistone),
+
 		## SEACR
 		expand(sampleDir + "/{sampleName}/SEACR/peak.{thresh}.{ext}", sampleName=sampleListTarget, thresh=["stringent","relaxed"], ext=["exBL.bed", "bed"]),
+
 		## Motif search
-		expand(sampleDir + "/{sampleName}/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
-		expand(sampleDir + "/{sampleName}/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/MACS2.factor/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/MACS2.factor/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor),
+		
 		## BigWig 1bp raw/abs (motivated for BPnet input file)
 		#expand(sampleDir + "/{sampleName}/igv.1bp.raw.abs.{strand}.bw", sampleName=sampleList, strand=["plus","minus"]),
 
@@ -162,7 +174,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListFactor),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListHistone),
 		# expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListFactor),
-		expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])
+		expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ]),
 
 		## Create final report
 		"Report.html"

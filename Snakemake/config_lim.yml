@@ -1,0 +1,145 @@
+# Cutlery config file under development
+# Note: Tab character is prohibited in YAML file
+
+
+########################
+## Basic parameters
+
+
+## Sample information file with tab-delimited five columns: id / name / group / fq1 / fq2
+src_sampleInfo: "sample.tsv"
+
+## Genome reference
+# Genome fasta file (single). Matching index file must exists (*.fai from samtools faidx)
+genomeFa:   /data/limlab/Resource/GenomeData/mm/mm10/Genome/genome.fa
+
+# Chromosome size file. tab-delimited: chr / size
+# It is OK to use chrNameLength.txt in STAR index
+chrom_size: /data/limlab/Resource/GenomeData/mm/mm10/Genome/chrom.size
+
+# Blacklist region bed file for peak, e.g. ENCODE blacklist. "NULL" if no black list to be used
+peak_mask:  /data/limlab/Resource/GenomeData/mm/mm10/ENCODE-blacklist.bed
+
+# Genome. used for genome specification in Homer motif search. The corresponding genome must be available in Homer installation
+genome:     mm10
+
+# STAR index folder
+star_index: /data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20
+
+# Promoter bed file to check promoter signal enrichment e.g. for ATAC-seq
+# Fixed window around TSS e.g. TSS +/- 1kb
+bed_promoter: NULL
+
+## Adapter sequence
+adapter: AGATCGGAAGAGC    # Illumina universal adapter in default
+# adapter: CTGTCTCTTATA   # Nextera adapter for ATAC-seq or Cut&Tag
+
+# Adapter trimming-related parameters
+# minimum fragment length. shorter fragments after trimming will be discarded
+trim_minLen:  20
+# minimum quality for quality trimming
+trim_minQual: 20
+# additional option for cutadapt
+opt_cutadapt: ""
+
+
+## Regular expressions for chromosome selection after alignment
+# Default: all regular autosomes and sex chromosomes excluding random and scaffold chromosomes
+chrRegexTarget: ^chr[0-9XY]+$
+
+
+########################
+## STAR alignment options
+# Default option for CUT&RUN/Tag (and ATAC-seq)
+# Note:
+# - Mostly OK to use the default option below
+# - Additoinal star_option to prevent soft-clipping: "--alignEndsType EndToEnd"
+# - To keep unmapped reads in the output bam file, add "--outSAMunmapped Within"
+star_option: "--alignSJDBoverhangMin 999 --alignIntronMax 1 --alignMatesGapMax 1000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.05 --outReadsUnmapped None --alignEndsProtrude 2 ConcordantPair"
+
+
+#########################
+## Job flag optio: True / False
+# Perform adapter trimming, recommended
+doTrim:     True
+# Perform deduplication, recommend in case of low library complexity e.g. unique fragment < 50% 
+doDedup:    False
+
+#########################
+## Directories
+# This directory setting helps running Cutlery with  different setting from intermediate results in a different folder keeping previous results
+# Directory containing fastq files
+fastqDir:   0.Fastq
+# Directory for trimmed fastq files
+trimDir:    0.Fastq.Trim
+# Directory for alignment results
+alignDir:   1.1.Align
+# Directory for deduplicated bam file. Ignored if doDeup==False
+dedupDir:   1.3.Align.dedup
+# Directory of Quality control results
+qcDir:      2.1.QualityControl
+# Directory processed results for each sample
+sampleDir:  3.Sample
+# Directory for Homer motif background
+homerPreparseDir: ~/Homer.Preparse
+
+
+#########################
+## Analysis options (output files)
+
+# Alignment statistics
+align_stat: True
+
+# Library complexity i.e. % of unique fragments
+library_complexity: True
+
+# Fragment length distribution
+fragment_length: True
+
+# 5'-end base frequency (A/T/G/C)
+base_frequency: True
+
+# BigWig file generation (RPM-normalized)
+# Two different style
+# 1. con: Use fragment as it is
+# 2. ctr: Use resized fragments (100bp)
+# Three different fragment groups
+# 1. all: all fragments
+# 2. nfr: short fragments (<120bp)
+# 3. nuc: long fragments (>150bp)
+# => Total 6 bigwig files are generated
+bigwig_default: True
+
+# Homer peak calling
+# Two different mode
+# 1. default: Using a corresponding subset of fragments i.e.
+#       short fragments for TF binding
+#       long fragments for histone modification
+#   as defined in sample.tsv file
+# 2. allfrag:  Using all fragments
+peak_homer:
+    - default
+#    - allfrag
+
+# Homer motif search for
+# default and/or allfrag Homer peaks
+motif_homer:
+    - default
+#    - allfrag
+
+# MEME motif search using random 5k peaks for
+# default and/or allfrag Homer peaks
+motif_meme:
+    - default
+#    - allfrag
+
+# Measure % of fragment within promoter regions defined in bed_promoter file
+# as a quality measure for ATAC-seq data
+measure_promoter: False
+
+# Creat a comprehensive html report file for default analysis containing
+# - alignment stat
+# - library complexity
+# - base frequency
+# - peak calling (Homer:default) and heatmap visualization
+report_generation: True
