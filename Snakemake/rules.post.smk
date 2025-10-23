@@ -706,6 +706,357 @@ rule call_peaks_histone_allfrag:
 		cnr.peakCallHistone.sh -o {params.peakDir} -m {peak_mask} -s {params.optStr} {input.tagDir}
 		"""
 
+# #get bam file for control sample
+# def get_ctrl_bam(sampleName):
+# 	ctrlName = get_ctrl_name(sampleName)
+	
+# 	if ctrlName == "NULL":
+# 		return ''
+# 	else:
+# 		return f'{alignDir}/{ctrlName}/align.bam'
+
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_macs3_input(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":
+		return [ f'{alignDir}/{sampleName}/align.bam' ]
+	else:
+		return [ f'{alignDir}/{sampleName}/align.bam', f'{alignDir}/{ctrlName}/align.bam' ]
+
+def get_macs3_param(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":			
+		return [ f'-t {alignDir}/{sampleName}/align.bam' ]
+	else:
+		return [ f'-t {alignDir}/{sampleName}/align.bam -c {alignDir}/{ctrlName}/align.bam' ]
+
+def is_paired(sampleName):
+    current_row = samples[samples.Name == sampleName]
+    if current_row.Fq2.item() != "NULL":
+        return "BAMPE"
+    else:
+        return "BAM"
+
+## Peak calling on TF samples using MACS3
+rule call_peaks_macs3_factor:
+	input:
+		lambda wildcards: get_macs3_input(wildcards.sampleName)
+	output:
+		peaksXL = sampleDir + "/{sampleName}/MACS3.factor/peaks.xls",
+		narrowPeaks = sampleDir + "/{sampleName}/MACS3.factor/peaks.narrowPeak",
+		summits = sampleDir + "/{sampleName}/MACS3.factor/summits.bed"
+	params:
+		input = lambda wildcards: get_macs3_param(wildcards.sampleName),
+		paired = lambda wildcards: is_paired(wildcards.sampleName)
+	message:
+		"Peak calling using MACS3... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load anaconda3
+		source activate macs3
+
+		macs3 callpeak -f {params.paired} {params.input} -g {macsGenome} --outdir {sampleDir}/{wildcards.sampleName}/MACS3.factor
+
+		mv {sampleDir}/{wildcards.sampleName}/MACS3.factor/NA_peaks.xls {sampleDir}/{wildcards.sampleName}/MACS3.factor/peaks.xls
+		mv {sampleDir}/{wildcards.sampleName}/MACS3.factor/NA_peaks.narrowPeak {sampleDir}/{wildcards.sampleName}/MACS3.factor/peaks.narrowPeak
+		mv {sampleDir}/{wildcards.sampleName}/MACS3.factor/NA_summits.bed {sampleDir}/{wildcards.sampleName}/MACS3.factor/summits.bed
+
+		source deactivate
+		"""
+
+## Peak calling on histone samples using MACS3
+rule call_peaks_macs3_histone:
+	input:
+		lambda wildcards: get_macs3_input(wildcards.sampleName)
+	output:
+		peaksXL = sampleDir + "/{sampleName}/MACS3.histone/peaks.xls",
+		broad = sampleDir + "/{sampleName}/MACS3.histone/peaks.broadPeak",
+		gapped = sampleDir + "/{sampleName}/MACS3.histone/peaks.gappedPeak"
+	params:
+		input = lambda wildcards: get_macs3_param(wildcards.sampleName),
+		paired = lambda wildcards: is_paired(wildcards.sampleName)
+	message:
+		"Peak calling using MACS3... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load anaconda3
+		source activate macs3
+
+		macs3 callpeak -f {params.paired} {params.input} -g {macsGenome} --outdir {sampleDir}/{wildcards.sampleName}/MACS3.histone --broad
+
+		mv {sampleDir}/{wildcards.sampleName}/MACS3.histone/NA_peaks.xls {sampleDir}/{wildcards.sampleName}/MACS3.histone/peaks.xls
+		mv {sampleDir}/{wildcards.sampleName}/MACS3.histone/NA_peaks.broadPeak {sampleDir}/{wildcards.sampleName}/MACS3.histone/peaks.broadPeak
+		mv {sampleDir}/{wildcards.sampleName}/MACS3.histone/NA_peaks.gappedPeak {sampleDir}/{wildcards.sampleName}/MACS3.histone/peaks.gappedPeak
+
+		source deactivate
+		"""
+
+rule run_homer_motif_macs3:
+	input:
+		sampleDir + "/{sampleName}/MACS3.factor/summits.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/Homer.MACS3/homerResults.html"
+	params:
+		input = lambda wildcards: get_macs3_param(wildcards.sampleName),
+		paired = lambda wildcards: is_paired(wildcards.sampleName)
+	message:
+		"Peak calling using MACS3... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Motif/1.0
+
+		findMotifsGenome.pl {input} {genome} {sampleDir}/{wildcards.sampleName}/Motif/Homer.MACS3 -size 200 -len 8,10,12 -p 4 -preparsedDir {sampleDir}/{wildcards.sampleName}/Motif/Homer.MACS3
+		"""
+
+## make nfr bam file
+rule make_nfr_bam:
+	input:
+		alignDir + "/{sampleName}/align.bam"
+	output:
+		alignDir + "/{sampleName}/nfr.bam"
+	message:
+		"Creating nfr.bam for [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load samtools/1.14.0
+
+		samtools view -H {input} > ${{TMPDIR}}/{wildcards.sampleName}_header.sam
+		samtools view -f 0x2 {input} | \
+		awk -F'\t' '{{
+			fragment_length = $9 > 0 ? $9 : -$9;  ## get fragLen
+			if (fragment_length < 120) {{
+				print $0;
+			}}
+		}}' > ${{TMPDIR}}/{wildcards.sampleName}_nfr.sam
+
+		cat ${{TMPDIR}}/{wildcards.sampleName}_header.sam ${{TMPDIR}}/{wildcards.sampleName}_nfr.sam | samtools view -bS > {output}
+
+		"""
+
+## run makeTagDirectory using bam file instead of frag.bed file
+rule get_homer_tagDir_from_all_bam:
+	input:
+		inBam = alignDir + "/{sampleName}/align.bam"
+	output:
+		tagInfo = sampleDir + "/{sampleName}/tagDir_all/tagInfo.txt"
+	message:
+		"Creating homer tagDir for [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery
+
+		makeTagDirectory {sampleDir}/tagDir_all {input.inBam} -fragLength pe
+		"""
+
+rule get_homer_tagDir_from_nfr_bam:
+	input:
+		inBam = alignDir + "/{sampleName}/nfr.bam"
+	output:
+		tagInfo = sampleDir + "/{sampleName}/tagDir_nfr/tagInfo.txt"
+	message:
+		"Creating homer tagDir nfr_ver for [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery
+
+		makeTagDirectory {sampleDir}/tagDir_nfr {input.inBam} -fragLength pe
+		"""
+
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_peakcall_input_benchmarking_all(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":
+		return [ f'{sampleDir}/{sampleName}/tagDir_all/tagInfo.txt' ]
+	else:
+		return [ f'{sampleDir}/{sampleName}/tagDir_all/tagInfo.txt', f'{sampleDir}/{ctrlName}/tagDir_all/tagInfo.txt' ]
+
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_peakcall_input_benchmarking_nfr(sampleName):
+	ctrlName = get_ctrl_name(sampleName)
+	if ctrlName.upper() == "NULL":
+		return [ f'{sampleDir}/{sampleName}/tagDir_nfr/tagInfo.txt' ]
+	else:
+		return [ f'{sampleDir}/{sampleName}/tagDir_nfr/tagInfo.txt', f'{sampleDir}/{ctrlName}/tagDir_nfr/tagInfo.txt' ]
+
+## Returns peak calling input tagDir(s): ctrl (optional) & target
+def get_peakcall_commandLineIn_benchmarking(sampleName, fragment):
+	ctrlName = get_ctrl_name(sampleName)
+	if fragment == "nfr":
+		suff = "_nfr"
+	else:
+		suff = "_all"
+	if ctrlName.upper() == "NULL":
+		return [ f'{sampleDir}/{sampleName}/tagDir{suff}' ]
+	else:
+		return [ f'{sampleDir}/{sampleName}/tagDir{suff}', f'{sampleDir}/{ctrlName}/tagDir{suff}' ]
+
+
+rule run_homer_peak_from_bam_tagDir_all_auto_fragLen:
+	input:
+		lambda wildcards: get_peakcall_input_benchmarking_all(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/HomerPeak_all/peak.exBL.autoFragLen.bed"
+	message:
+		"Running Homer peak calling for all_auto [{wildcards.sampleName}]"
+	params:
+		lambda wildcards: get_peakcall_commandLineIn_benchmarking(wildcards.sampleName, "all")
+	shell:
+		"""
+		module load Cutlery
+
+		findPeaks {params} -o ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.txt -style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0
+
+		grep -v '^#' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.txt > ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp1
+		awk -F'\t' '{{print $2"\t"$3"\t"$4"\t"$1"\t"$6"\t+"}}' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp1 > ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp2
+		awk '$2 > 1' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp2 > ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp3
+
+		awk '$1 ~ /^chr[0-9XY]+$/' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp3 > {sampleDir}/{wildcards.sampleName}/peak_auto.bed
+
+		## filter blacklisted
+		intersectBed -a {sampleDir}/{wildcards.sampleName}/peak_auto.bed -b {peak_mask} -v > {output}
+
+		"""
+
+
+rule run_homer_peak_from_bam_tagDir_all_robust_fragLen:
+	input:
+		lambda wildcards: get_peakcall_input_benchmarking_all(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/HomerPeak_all/peak.exBL.robustFragLen.bed"
+	message:
+		"Running Homer peak calling for all_robust [{wildcards.sampleName}]"
+	params:
+		inputDir = lambda wildcards: get_peakcall_commandLineIn_benchmarking(wildcards.sampleName, "all"),
+		fragLen = 150
+	shell:
+		"""
+		module load Cutlery
+
+		findPeaks {params} -o ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.txt -style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0 -fragLength {params.fragLen}
+
+		grep -v '^#' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.txt > ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp1
+		awk -F'\t' '{{print $2"\t"$3"\t"$4"\t"$1"\t"$6"\t+"}}' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp1 > ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp2
+		awk '$2 > 1' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp2 > ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp3
+
+		awk '$1 ~ /^chr[0-9XY]+$/' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp3 > {sampleDir}/{wildcards.sampleName}/peak_robust.bed
+
+		## filter blacklisted
+		intersectBed -a {sampleDir}/{wildcards.sampleName}/peak_robust.bed -b {peak_mask} -v > {output}
+
+		"""
+
+rule run_homer_peak_from_bam_tagDir_nfr_auto_fragLen:
+	input:
+		lambda wildcards: get_peakcall_input_benchmarking_nfr(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/HomerPeak_nfr/peak.exBL.autoFragLen.bed"
+	message:
+		"Running Homer peak calling for nfr_auto [{wildcards.sampleName}]"
+	params:
+		lambda wildcards: get_peakcall_commandLineIn_benchmarking(wildcards.sampleName, "nfr")
+	shell:
+		"""
+		module load Cutlery
+
+		findPeaks {params} -o ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.txt -style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0
+
+		grep -v '^#' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.txt > ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp1
+		awk -F'\t' '{{print $2"\t"$3"\t"$4"\t"$1"\t"$6"\t+"}}' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp1 > ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp2
+		awk '$2 > 1' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp2 > ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp3
+
+		awk '$1 ~ /^chr[0-9XY]+$/' ${{TMPDIR}}/{wildcards.sampleName}_peak_auto.tmp3 > {sampleDir}/{wildcards.sampleName}/peak_auto.bed
+
+		## filter blacklisted
+		intersectBed -a {sampleDir}/{wildcards.sampleName}/peak_auto.bed -b {peak_mask} -v > {output}
+
+		"""
+
+rule run_homer_peak_from_bam_tagDir_nfr_robust_fragLen:
+	input:
+		lambda wildcards: get_peakcall_input_benchmarking_nfr(wildcards.sampleName)
+	output:
+		sampleDir + "/{sampleName}/HomerPeak_nfr/peak.exBL.robustFragLen.bed"
+	message:
+		"Running Homer peak calling for nfr_robust [{wildcards.sampleName}]"
+	params:
+		inputDir = lambda wildcards: get_peakcall_commandLineIn_benchmarking(wildcards.sampleName, "nfr"),
+		fragLen = 150
+	shell:
+		"""
+		module load Cutlery
+
+		findPeaks {params} -o ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.txt -style factor -tbp 0 -inputtbp 0 -norm 1000000 -strand both -center -size 200 -C 0 -fragLength {params.fragLen}
+
+		grep -v '^#' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.txt > ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp1
+		awk -F'\t' '{{print $2"\t"$3"\t"$4"\t"$1"\t"$6"\t+"}}' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp1 > ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp2
+		awk '$2 > 1' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp2 > ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp3
+
+		awk '$1 ~ /^chr[0-9XY]+$/' ${{TMPDIR}}/{wildcards.sampleName}_peak_robust.tmp3 > {sampleDir}/{wildcards.sampleName}/peak_robust.bed
+
+		## filter blacklisted
+		intersectBed -a {sampleDir}/{wildcards.sampleName}/peak_robust.bed -b {peak_mask} -v > {output}
+
+		"""
+
+rule run_homer_motif_all_auto_benchmark:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak_all/peak.exBL.autoFragLen.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/all_auto/homerResults.html"
+	message:
+		"Running Homer motif search all_auto for [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Motif/1.0
+
+		findMotifsGenome.pl {input} {genomeFa} {sampleDir}/{wildcards.sampleName}/Motif/all_auto -size 200 -len 8,10,12 -p 4
+		"""
+
+rule run_homer_motif_all_robust_benchmark:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak_all/peak.exBL.robustFragLen.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/all_robust/homerResults.html"
+	message:
+		"Running Homer motif search all_robust for [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Motif/1.0
+
+		findMotifsGenome.pl {input} {genomeFa} {sampleDir}/{wildcards.sampleName}/Motif/all_robust -size 200 -len 8,10,12 -p 4
+		"""
+
+rule run_homer_motif_nfr_auto_benchmark:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak_nfr/peak.exBL.autoFragLen.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/nfr_auto/homerResults.html"
+	message:
+		"Running Homer motif search nfr_auto for [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Motif/1.0
+
+		findMotifsGenome.pl {input} {genomeFa} {sampleDir}/{wildcards.sampleName}/Motif/nfr_auto -size 200 -len 8,10,12 -p 4
+		"""
+
+rule run_homer_motif_nfr_robust_benchmark:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak_nfr/peak.exBL.robustFragLen.bed"
+	output:
+		sampleDir + "/{sampleName}/Motif/nfr_robust/homerResults.html"
+	message:
+		"Running Homer motif search nfr_robust for [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Motif/1.0
+
+		findMotifsGenome.pl {input} {genomeFa} {sampleDir}/{wildcards.sampleName}/Motif/nfr_robust -size 200 -len 8,10,12 -p 4
+		"""
 
 
 rule run_homer_motif:
@@ -1644,4 +1995,129 @@ rule create_final_report_pooled:
 		module purge
 		module load Cutlery/1.0
 		cnr.createPooledReportHTML.r -o Report_pooled -t {src_sampleInfo} -s {sampleDir} -q {qcDir} -f fragMix
+		"""
+
+rule run_echo_factor:
+	input:
+		peakBed = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
+		fragBed = sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		mtxIn = sampleDir + "/{sampleName}/EChO.factor/matrix.in",
+		bw = sampleDir + "/{sampleName}/EChO.factor/matrix.EChO.matrix"
+	message:
+		"Running EChO on factor samples... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery
+
+		## run foci mode
+		EChO_1.0.sh {input.peakBed} {input.fragBed} foci {sampleDir}/{wildcards.sampleName}/EChO.factor/foci
+
+		## get overlapping foci
+		bedtools intersect -wao -a {input.peakBed} -b {sampleDir}/{wildcards.sampleName}/EChO.factor/foci.EChO.bed | awk -F'\t' '$8 > 0' | gawk 'BEGIN {{OFS="\t"}} {{print $1, $2, $3, $8}}' > {sampleDir}/{wildcards.sampleName}/EChO.factor/matrix.in
+
+		## run matrix mode
+		EChO_1.0.sh {sampleDir}/{wildcards.sampleName}/EChO.factor/matrix.in {input.fragBed} matrix {sampleDir}/{wildcards.sampleName}/EChO.factor/matrix
+
+		"""
+
+rule run_echo_histone:
+	input:
+		peakBed = sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed",
+		fragBed = sampleDir + "/{sampleName}/fragment.bed.gz"
+	output:
+		mtxIn = sampleDir + "/{sampleName}/EChO.histone/matrix.in",
+		bw = sampleDir + "/{sampleName}/EChO.histone/matrix.EChO.matrix"
+	message:
+		"Running EChO on histone samples... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery
+
+		## run foci mode
+		EChO_1.0.sh {input.peakBed} {input.fragBed} foci {sampleDir}/{wildcards.sampleName}/EChO.histone/foci
+
+		## get overlapping foci
+		bedtools intersect -wao -a {input.peakBed} -b {sampleDir}/{wildcards.sampleName}/EChO.histone/foci.EChO.bed | awk -F'\t' '$8 > 0' | gawk 'BEGIN {{OFS="\t"}} {{print $1, $2, $3, $8}}' > {sampleDir}/{wildcards.sampleName}/EChO.histone/matrix.in
+
+		## run matrix mode
+		EChO_1.0.sh {sampleDir}/{wildcards.sampleName}/EChO.histone/matrix.in {input.fragBed} matrix {sampleDir}/{wildcards.sampleName}/EChO.histone/matrix
+
+		"""
+
+rule make_bw_from_echo_factor_results:
+	input:
+		mtxIn = sampleDir + "/{sampleName}/EChO.factor/matrix.in",
+		mtxOut = sampleDir + "/{sampleName}/EChO.factor/matrix.EChO.matrix"
+	output:
+		sampleDir + "/{sampleName}/igv.EChO.factor.bw"
+	message:
+		"Creating bigwig from factor EChO results... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery
+
+		if [[ $(wc -l < "{sampleDir}/{wildcards.sampleName}/EChO.factor/matrix.EChO.matrix") -eq 0 ]]; then
+			echo "no output from EChO" > {output}
+		else
+
+			## create 400bp window
+			gawk -F'\t' '{{start=$4; end=$4+1; print $1"\t"start"\t"end"\t"}}' {input.mtxIn} > ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_1bp.bed
+			bedtools slop -i ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_1bp.bed -g {chrom_size} -b 200 > ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_401bp.bed
+
+			## add coords to the left side of matrix
+			gawk -F'\t' '{{start=$4; end=$4+1; print $1"\t"start"\t"end"\t"}}' {input.mtxIn} | paste - {input.mtxOut} > ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_bg.in
+
+			## format to bg and sort
+			gawk 'BEGIN {{OFS="\t"}} {{for (i=$2; i<$3; i++) print $1, i, i+1, $(i-$2+4)}}' ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_bg.in | awk '$4 != ""' | sort -k1,1 -k2,2n | awk '!seen[$1,$2,$3]++' > ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_sorted.bg
+
+			## make bw
+			bedGraphToBigWig ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_sorted.bg {chrom_size} {output}
+
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_1bp.bed
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_401bp.bed
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_bg.in
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.factor_sorted.bg
+
+		fi
+
+
+		"""
+
+rule make_bw_from_echo_histone_results:
+	input:
+		mtxIn = sampleDir + "/{sampleName}/EChO.histone/matrix.in",
+		mtxOut = sampleDir + "/{sampleName}/EChO.histone/matrix.EChO.matrix"
+	output:
+		sampleDir + "/{sampleName}/igv.EChO.histone.bw"
+	message:
+		"Creating bigwig from histone EChO results... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module load Cutlery
+
+		if [[ $(wc -l < "{sampleDir}/{wildcards.sampleName}/EChO.histone/matrix.EChO.matrix") -eq 0 ]]; then
+			echo "no output from EChO" > {output}
+		else
+
+			## create 400bp window
+			gawk -F'\t' '{{start=$4; end=$4+1; print $1"\t"start"\t"end"\t"}}' {input.mtxIn} > ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_1bp.bed
+			bedtools slop -i ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_1bp.bed -g {chrom_size} -b 200 > ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_401bp.bed
+
+			## add coords to the left side of matrix
+			paste ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_401bp.bed {input.mtxOut} > ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_bg.in
+
+			## format to bg and sort
+			gawk 'BEGIN {{OFS="\t"}} {{for (i=$2; i<$3; i++) print $1, i, i+1, $(i-$2+4)}}' ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_bg.in | awk '$4 != ""' | sort -k1,1 -k2,2n | awk '!seen[$1,$2,$3]++' > ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_sorted.bg
+
+			## make bw
+			bedGraphToBigWig ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_sorted.bg {chrom_size} {output}
+			
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_1bp.bed
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_401bp.bed
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_bg.in
+			rm ${{TMPDIR}}/{wildcards.sampleName}_EChO.histone_sorted.bg
+
+		fi
+
 		"""
