@@ -126,8 +126,6 @@ if config_cnr['peak_calling']['macs']['default']:
 
 	macs_peak_calling_default = [macs_peak_factor, macs_peak_histone, macs_peak_factor_heatmap,
 									macs_peak_histone_heatmap, macs_peak_homer_motif, macs_peak_meme_motif]
-	macs_peak_calling_default = [macs_peak_factor, macs_peak_histone, macs_peak_factor_heatmap,
-									macs_peak_histone_heatmap]
 else:
 	macs_peak_calling_default = []
 
@@ -142,8 +140,6 @@ if config_cnr['peak_calling']['homer']['all_fragments']:
 
 	macs_peak_calling_allfrag = [macs_peak_factor_allfrag, macs_peak_histone_allfrag, macs_peak_factor_heatmap_allfrag, 
 							   		macs_peak_histone_heatmap_allfrag, macs_peak_allfrag_homer_motif, macs_peak_allfrag_meme_motif]
-	macs_peak_calling_allfrag = [macs_peak_factor_allfrag, macs_peak_histone_allfrag, macs_peak_factor_heatmap_allfrag, 
-							   		macs_peak_histone_heatmap_allfrag]
 else:
 	macs_peak_calling_allfrag = []
 

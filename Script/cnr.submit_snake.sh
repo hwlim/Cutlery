@@ -9,20 +9,18 @@ nJob=50
 totalWaitTime="48:00"
 config=${CUTLERY}/Snakemake/cluster.yml
 
-assertFileExist $config
-assertFileExist ./Snakefile
-
-if [ ! -f diag.pdf ];then
-	module load python3/3.6.3
-	module load graphviz/2.40.1
-	snakemake --dag | dot -Tpdf > diag.pdf
-fi
-
 mkdir -p logs
 
 ## if config.yml file exists in current directory, run default beginner mode
 if [ -e "config.yml" ]; then
 	echo -e "config.yml file found in work directory; running Cutlery in default mode." >&2
+	
+	if [ ! -f diag.pdf ];then
+	module load python3/3.6.3
+	module load graphviz/2.40.1
+	snakemake -s ${CUTLERY}/Snakemake/Snakefile_Default --dag | dot -Tpdf > diag.pdf
+	fi
+	
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
 		"
 		module load python3/3.6.3
@@ -36,6 +34,13 @@ if [ -e "config.yml" ]; then
 ## run advanced mode if config.yml file doesn't exist in the current directory
 else
 	echo -e "No config.yml file found in current directory; running Cutlery in advanced mode." >&2
+	
+	if [ ! -f diag.pdf ];then
+	module load python3/3.6.3
+	module load graphviz/2.40.1
+	snakemake --dag | dot -Tpdf > diag.pdf
+	fi
+	
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
 		"
 		module load python3/3.6.3

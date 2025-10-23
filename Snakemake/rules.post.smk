@@ -1244,7 +1244,7 @@ rule call_peak_macs_factor:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.9.1
+		module load MACS/2.2.8
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
@@ -1296,7 +1296,7 @@ rule call_peak_macs_factor_allfrag:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.9.1
+		module load MACS/2.2.8
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
@@ -1349,7 +1349,7 @@ rule call_peak_macs_histone:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.9.1
+		module load MACS/2.2.8
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --broad --keep-dup all 2>&1 | tee {output.log}
 		
@@ -1402,7 +1402,7 @@ rule call_peak_macs_histone_allfrag:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.9.1
+		module load MACS/2.2.8
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --broad --keep-dup all 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_peaks.broadPeak -b {params.mask} -v \
@@ -1455,7 +1455,7 @@ rule call_peak_macs_factor_relax:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.9.1
+		module load MACS/2.2.8
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
 			--outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits -p 0.001 \
@@ -1479,7 +1479,7 @@ rule call_peak_macs_factor_wo_ctrl:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.9.1
+		module load MACS/2.2.8
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
@@ -1499,7 +1499,7 @@ rule call_peak_macs_factor_allfrag_wo_ctrl:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.9.1
+		module load MACS/2.2.8
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
