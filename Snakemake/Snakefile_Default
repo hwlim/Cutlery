@@ -109,8 +109,8 @@ if config_cnr['peak_calling']['homer']['all_fragments']:
 	homer_peak_histone_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.{ext}", sampleName=sampleListHistone, ext=["bed","stat"])
 	homer_peak_factor_heatmap_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm.png", sampleName=sampleListFactor)
 	homer_peak_histone_heatmap_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/heatmap.exBL.png", sampleName=sampleListHistone)
-	homer_peak_homer_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/allFrag/Homer.all/homerResults.html", sampleName=sampleListFactor)
-	homer_peak_meme_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/allFrag/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+	homer_peak_homer_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
+	homer_peak_meme_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
 
 	homer_peak_calling_allfrag = [homer_peak_factor_allfrag, homer_peak_histone_allfrag, homer_peak_factor_heatmap_allfrag,
 									homer_peak_histone_heatmap_allfrag, homer_peak_homer_motif_allfrag, homer_peak_meme_motif_allfrag]
@@ -188,7 +188,7 @@ rule all:
 		## QC output
 		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
 		
-		# Bedgraph and BigWig files
+		## Bedgraph and BigWig files
 		expand(sampleDir + "/{sampleName}/igv.raw.bedGraph.gz", sampleName=sampleList),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
 		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
