@@ -111,11 +111,12 @@ echo -e "  - testOnly: $testOnly" >&2
 echo -e "  - unsorted bam: $unsortedBam" >&2
 echo -e "  - bsub:   $bsub" >&2
 
-mkdir -p $desDir
+
 for group in ${groupL[@]}
 do
-	des=${desDir}/${group}.bam
-	log=${desDir}/${group}.log
+	mkdir -p $desDir/${group}
+	des=${desDir}/${group}/align.bam
+	log=${desDir}/${group}/align.log
 
 	## Checking existing destination file
 	if [ -f $des ] && [ "$overwrite" != "TRUE" ];then
@@ -124,7 +125,7 @@ do
 	fi
 
 	## List of replicate bam files
-	srcL=( `tail -n +2 $sampleInfo | grep -v -e ^$ -e "^#" | gawk '{ if($3 == "'$group'") printf "'$srcDir'/%s.bam\n", $2 }'` )
+	srcL=( `tail -n +2 $sampleInfo | grep -v -e ^$ -e "^#" | gawk '{ if($3 == "'$group'") printf "'$srcDir'/%s/align.bam\n", $2 }'` )
 	assertFileExist ${srcL[@]}
 
 	## Merging to destination

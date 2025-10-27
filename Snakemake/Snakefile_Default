@@ -1,0 +1,211 @@
+########################
+## Basic parameters
+
+## Comparison information
+config_cnr = "config.yml"
+
+import yaml
+with open(os.path.expanduser(config_cnr), 'r') as fh:
+	config_cnr = yaml.safe_load(fh)
+
+################################################
+## Loading sample Information & cluster config
+## Sample information file with five columns: id / name / group / fq1 / fq2
+src_sampleInfo	= config_cnr['sampleInfo']
+cluster_yml		= os.environ["CUTLERY"] + "/Snakemake/cluster.yml"
+
+## Sample table
+import pandas as pd
+import sys
+samples = pd.read_csv(src_sampleInfo, sep="\t", comment="#", na_filter=False)
+
+## Cluster configuration
+with open(os.path.expanduser(cluster_yml), 'r') as fh:
+	cluster = yaml.safe_load(fh)
+
+## parse parameters fron the config.yml file
+### reference data
+genomeFa = config_cnr['genomeFa']
+chrom_size = config_cnr['chrom_size']
+peak_mask = config_cnr['peak_mask']
+genome = config_cnr['genome']
+doDedup	= config_cnr['doDedup']
+star_index = config_cnr['star_index']
+star_option = config_cnr['star_option']
+if config_cnr['genome'] == "hg38":
+	species_macs = "hs"
+elif config_cnr['genome'] == "mm10":
+	species_macs = "mm"
+elif config_cnr['genome'] == "danRer11":
+	species_macs = "1.4e9"
+
+### adapter trimming
+adapter = config_cnr['adapter']
+if adapter != "NULL":
+	doTrim = True
+	trim_minLen = config_cnr['min_fragment_length']
+	trim_minQual = config_cnr['min_quality']
+else:
+	doTrim = False
+	trim_minLen="NULL"
+	trim_minQual="NULL"
+opt_cutadapt = config_cnr['cutadapt_options']
+
+## Regular expressions for chromosome names
+chrRegexTarget	= config_cnr['chrRegexTarget']
+
+#########################
+## Job flag options
+
+#########################
+## Directories
+## directory settings
+fastqDir = config_cnr['fastqDir']
+trimDir = config_cnr['trimDir']
+alignDir = config_cnr['alignDir']
+dedupDir	= config_cnr['dedupDir']	# ignored if doDedup==False
+qcDir		= config_cnr['qcDir']
+sampleDir	= config_cnr['sampleDir']
+homerPreparseDir = config_cnr['homerPreparseDir']
+
+### Sample list and types (No need to change) 
+# All sample names (Name field in sample.tsv file)
+sampleList = samples.Name.tolist()
+# Samples for TF (or narrow peaks)
+sampleListFactor = samples.Name[samples.PeakMode=="factor"].tolist()
+# Samples for histone modification (or broad peaks)
+sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
+# Target Samples (non-control)
+sampleListTarget = sampleListFactor + sampleListHistone
+
+## check for pooling
+pooling = config_cnr['html_report']
+
+#################################################
+## Configuration & sample sheet validation
+include: os.environ["CUTLERY"] + "/Snakemake/validate.smk"
+
+#########################
+## Rules start
+
+## peak calling
+## homer default
+if config_cnr['peak_calling']['homer']['default']:
+	homer_peak_factor = expand(sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.{ext}", sampleName=sampleListFactor, ext=["bed","stat"])
+	homer_peak_histone = expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.{ext}", sampleName=sampleListHistone, ext=["bed","stat"])
+	homer_peak_factor_heatmap = expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor)
+	homer_peak_histone_heatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone)
+	homer_peak_homer_motif = expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
+	homer_peak_meme_motif = expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+
+	homer_peak_calling_default = [homer_peak_factor, homer_peak_histone, homer_peak_factor_heatmap,
+									homer_peak_histone_heatmap, homer_peak_homer_motif, homer_peak_meme_motif]
+else:
+	homer_peak_calling_default = []
+
+## homer all frag
+if config_cnr['peak_calling']['homer']['all_fragments']:
+	homer_peak_factor_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.{ext}", sampleName=sampleListFactor, ext=["bed","stat"])
+	homer_peak_histone_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.{ext}", sampleName=sampleListHistone, ext=["bed","stat"])
+	homer_peak_factor_heatmap_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/heatmap.exBL.1rpm.png", sampleName=sampleListFactor)
+	homer_peak_histone_heatmap_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/heatmap.exBL.png", sampleName=sampleListHistone)
+	homer_peak_homer_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
+	homer_peak_meme_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+
+	homer_peak_calling_allfrag = [homer_peak_factor_allfrag, homer_peak_histone_allfrag, homer_peak_factor_heatmap_allfrag,
+									homer_peak_histone_heatmap_allfrag, homer_peak_homer_motif_allfrag, homer_peak_meme_motif_allfrag]
+else:
+	homer_peak_calling_allfrag = []
+
+## macs default
+if config_cnr['peak_calling']['macs']['default']:
+	macs_peak_factor = expand(sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed", sampleName=sampleListFactor)
+	macs_peak_histone = expand(sampleDir + "/{sampleName}/MACS2.histone/{sampleName}_broad.exBL.bed", sampleName=sampleListHistone)
+	macs_peak_factor_heatmap = expand(sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.png", sampleName=sampleListFactor)
+	macs_peak_histone_heatmap = expand(sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png", sampleName=sampleListHistone)
+	macs_peak_homer_motif = expand(sampleDir + "/{sampleName}/MACS2.factor/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
+	macs_peak_meme_motif = expand(sampleDir + "/{sampleName}/MACS2.factor/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+
+	macs_peak_calling_default = [macs_peak_factor, macs_peak_histone, macs_peak_factor_heatmap,
+									macs_peak_histone_heatmap, macs_peak_homer_motif, macs_peak_meme_motif]
+else:
+	macs_peak_calling_default = []
+
+## macs all frag
+if config_cnr['peak_calling']['macs']['all_fragments']:
+	macs_peak_factor_allfrag = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed", sampleName=sampleListFactor)
+	macs_peak_histone_allfrag = expand(sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}_broad.exBL.bed", sampleName=sampleListHistone, ext=["bed","stat"])
+	macs_peak_factor_heatmap_allfrag = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/heatmap.exBL.png", sampleName=sampleListFactor)
+	macs_peak_histone_heatmap_allfrag = expand(sampleDir + "/{sampleName}/MACS2.histone.allFrag/heatmap.exBL.png", sampleName=sampleListHistone)
+	macs_peak_allfrag_homer_motif = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
+	macs_peak_allfrag_meme_motif = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+
+	macs_peak_calling_allfrag = [macs_peak_factor_allfrag, macs_peak_histone_allfrag, macs_peak_factor_heatmap_allfrag, 
+							   		macs_peak_histone_heatmap_allfrag, macs_peak_allfrag_homer_motif, macs_peak_allfrag_meme_motif]
+else:
+	macs_peak_calling_allfrag = []
+
+
+## normal analysis (without pooling)
+if pooling == "replicate":
+	
+	## align stats
+	alignStatTxt = qcDir + "/alignStat.txt"
+
+	uniqFragCnt = expand(qcDir + "/uniqFragCnt.{ext}", ext=[ "txt", "pdf" ])
+	fragLenDist = expand(sampleDir + "/{sampleName}/QC/fragLen.dist.{ext}", sampleName=sampleList, ext=["txt","png"])
+
+	## sample reports
+	sampleReportHistone = expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListHistone)
+	sampleReportFactor = expand(sampleDir + "/{sampleName}/QC/Report.html", sampleName=sampleListFactor)
+
+	## final report
+	finalReport = "Report.html"
+
+	align_stat_and_reports = [ alignStatTxt, uniqFragCnt, fragLenDist, sampleReportHistone, sampleReportFactor, finalReport ]
+
+else:
+	fastqDir	= "NULL"
+	trimDir		= "NULL"
+	
+	## pooled sample reports
+	pooledSampleReportHistone = expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListHistone),
+	pooledSampleReportFactor = expand(sampleDir + "/{sampleName}/QC/Report_pooled.html", sampleName=sampleListFactor),
+
+	## pooled final report
+	pooledFinalReport = "Report_pooled.html"
+
+	align_stat_and_reports = [pooledSampleReportHistone, pooledSampleReportFactor, pooledFinalReport]
+
+if config_cnr['bed_promoter'] is not None:
+	promoterCnt = [expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])]
+else:
+	promoterCnt = []
+
+rule all:
+	input:
+		##### Basic Output Files #####
+		## QC output
+		expand(sampleDir + "/{sampleName}/QC/base_freq.{ext}",  sampleName=sampleList, ext=["png","html"]),
+		
+		## Bedgraph and BigWig files
+		expand(sampleDir + "/{sampleName}/igv.raw.bedGraph.gz", sampleName=sampleList),
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.ctr.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		expand(sampleDir + "/{sampleName}/igv.{fragment}.con.bw", sampleName=sampleList, fragment=["all","nfr","nuc"]),
+		
+		## Peak calling and motif search
+		homer_peak_calling_default,
+		homer_peak_calling_allfrag,
+		macs_peak_calling_default,
+		macs_peak_calling_allfrag,
+		
+		## Calculate fragment QC
+		expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=sampleList),
+		align_stat_and_reports,
+		promoterCnt
+
+
+## Include Snakemake rules from separate files
+include: os.environ["CUTLERY"] + "/Snakemake/rules.pre.smk"
+include: os.environ["CUTLERY"] + "/Snakemake/rules.post.smk"
+
