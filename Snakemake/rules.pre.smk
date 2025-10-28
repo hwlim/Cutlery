@@ -167,7 +167,7 @@ rule filter_align:
 	shell:
 		"""
 		module load Cutlery/1.0
-		cnr.filterBam.sh  -o {output.bam} -c "{chrRegexAll}" {input}
+		ngs.filterBam.sh  -o {output.bam} -c "{chrRegexAll}" {input}
 		samtools index {output.bam}
 		"""
 '''

@@ -64,7 +64,7 @@ rule dedup_align:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.dedupBam.sh -m {params.memory} -o {output.bam} -r {input}
+		ngs.dedupBam.sh -m {params.memory} -o {output.bam} -r {input}
 		samtools index {output.bam}
 		"""
 
@@ -301,7 +301,7 @@ rule make_bedgraph_frag:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -b -g {input.chrom} -c "{chrRegexTarget}" -m 10G -s 1 -o {output.all} {input.frag}
+		ngs.fragToBigWig.sh -b -g {input.chrom} -c "{chrRegexTarget}" -m 10G -s 1 -o {output.all} {input.frag}
 		"""
 
 ## Returns peak calling input tagDir(s): ctrl (optional) & target
@@ -362,9 +362,9 @@ rule make_bigwig_ctr:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -r 100 -m 5G -o {output.all} {input.frag}
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -r 100 -m 5G -o {output.nfr} {input.frag}
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -r 100 -m 5G -o {output.nuc} {input.frag}
+		ngs.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -r 100 -m 5G -o {output.all} {input.frag}
+		ngs.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -r 100 -m 5G -o {output.nfr} {input.frag}
+		ngs.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -r 100 -m 5G -o {output.nuc} {input.frag}
 		"""
 
 ## BigWig files from original sized fragments
@@ -380,7 +380,7 @@ rule make_bigwig_frag_all:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output} {input.frag}
+		ngs.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -m 5G -o {output} {input.frag}
 		"""
 
 rule make_bigwig_frag_nfr:
@@ -395,7 +395,7 @@ rule make_bigwig_frag_nfr:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output} {input.frag}
+		ngs.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 0 -L 119 -m 5G -o {output} {input.frag}
 		"""
 
 rule make_bigwig_frag_nuc:
@@ -410,7 +410,7 @@ rule make_bigwig_frag_nuc:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -m 5G -o {output} {input.frag}
+		ngs.fragToBigWig.sh -g {input.chrom} -c "{chrRegexTarget}" -l 151 -L 1000000 -m 5G -o {output} {input.frag}
 		"""
 
 ## BigWig files in 1bp-resolution using 5'-end 1bp
@@ -431,7 +431,7 @@ rule make_bigwig1bp:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -s 0 -m 5G {input.frag}
+		ngs.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {input.chrom} -c "{chrRegexTarget}" -s 0 -m 5G {input.frag}
 		"""
 #		ngs.alignToBigWig.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp -g {chrom_size} -l 1 -m 5G -c "{chrRegexTarget}" {input}
 
@@ -454,7 +454,7 @@ rule make_bigwig1bp_raw_abs:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
+		ngs.fragToBigWigStranded1bp.sh -o {sampleDir}/{wildcards.sampleName}/igv.1bp.raw.abs -g {input.chrom} -c "{chrRegexTarget}" -s 1 -m 5G -n {input.frag}
 		"""
 
 ## RNA-seq style bigwig file generation ## to correctly visualize spliced fragments
@@ -544,7 +544,7 @@ rule make_tagdir_all:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.makeHomerDir.sh -o {output} -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		ngs.makeHomerDir.sh -o {output} -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
 		"""
 
 rule make_tagdir_nfr:
@@ -558,7 +558,7 @@ rule make_tagdir_nfr:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.makeHomerDir.sh -o {output} -l 0 -L 119 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		ngs.makeHomerDir.sh -o {output} -l 0 -L 119 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
 		"""
 
 rule make_tagdir_nuc:
@@ -572,7 +572,7 @@ rule make_tagdir_nuc:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.makeHomerDir.sh -o {output} -l 151 -L 1000000 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
+		ngs.makeHomerDir.sh -o {output} -l 151 -L 1000000 -r 100 -n {wildcards.sampleName} -c "{chrRegexTarget}" {input.frag}
 		"""
 
 
@@ -1022,9 +1022,9 @@ rule make_bigwig_scaled:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
+		ngs.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.all} {input.all}
+		ngs.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nfr} {input.nfr}
+		ngs.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output.nuc} {input.nuc}
 		"""
 
 
@@ -1076,7 +1076,7 @@ rule make_bigwig_allfrag_rpsm:
 			echo -e "Error: empty scale factor" >&2
 			exit 1
 		fi
-		cnr.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
+		ngs.fragToBigWig.sh -g {chrom_size} -m 5G -s $scaleFactor -o {output} {input.bed}
 		"""
 
 '''
