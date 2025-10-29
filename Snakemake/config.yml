@@ -24,19 +24,36 @@ homerPreparseDir: /data/limlab/Resource/Homer.preparse
 
 ## Genome reference
 # Genome fasta file (single). Matching index file must exists (*.fai from samtools faidx)
+# Some frequently used fasta files by genome:
+# mm10, mouse: /data/limlab/Resource/GenomeData/mm/mm10/Genome/genome.fa
+# hg38, human: /data/limlab/Resource/GenomeData/hg/hg38/Genome/genome.fa
+# danRer11, zebrafish: /data/limlab/Resource/GenomeData/danRer11/Genome/genome.fa
 genomeFa:   /data/limlab/Resource/GenomeData/mm/mm10/Genome/genome.fa
 
 # Chromosome size file. tab-delimited: chr / size
 # It is OK to use chrNameLength.txt in STAR index
+# Some frequently used chrom sizes files by genome:
+# mm10, mouse: /data/limlab/Resource/GenomeData/mm/mm10/Genome/chrom.size
+# hg38, human: /data/limlab/Resource/GenomeData/hg/hg38/Genome/chrom.size
+# danRer11, zebrafish: /data/limlab/Resource/GenomeData/danRer11/Genome/chrom.size
 chrom_size: /data/limlab/Resource/GenomeData/mm/mm10/Genome/chrom.size
 
 # Blacklist region bed file for peak, e.g. ENCODE blacklist. "NULL" if no black list to be used
+# Some frequently used peak mask bed files by genome:
+# mm10, mouse: /data/limlab/Resource/GenomeData/mm/mm10/ENCODE-blacklist.bed
+# hg38, human: /data/limlab/Resource/GenomeData/hg/hg38/ENCODE-blacklist.bed
+# danRer11, zebrafish: /data/limlab/Resource/GenomeData/danRer11/blacklist.danRer11.bed
 peak_mask:  /data/limlab/Resource/GenomeData/mm/mm10/ENCODE-blacklist.bed
 
 # Genome. used for genome specification in Homer motif search. The corresponding genome must be available in Homer installation
+# Some frequently used genomes: mm10 (mouse), hg38 (human), danRer11 (zebrafish)
 genome:     mm10
 
 # STAR index folder
+# Some frequently used STAR index folders by genome:
+# mm10, mouse: /data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20
+# hg38, human: /data/limlab/Resource/STAR_Index/2.7.4/hg38_allChr_v29
+# danRer11, zebrafish: /data/limlab/Resource/STAR_Index/2.7.4/danRer11
 star_index: /data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20
 
 ## STAR options; these settings are recommended and can be left as is
@@ -72,11 +89,11 @@ bed_promoter: NULL
 peak_calling:
   homer:
     default: True
-    all_fragments: True
+    all_fragments: False
   macs:
-    default: True
-    all_fragments:  True
+    default: False
+    all_fragments:  False
 
-## Set pooled analysis; True for pooled analysis and False for regular analysis.
-## replicate or pooled
+## Set pooled analysis; "replicate" for regular analysis, "pool" for pooled analysis.
+## replicate, pool, or NULL. Setting NULL will not create a report.
 html_report: replicate

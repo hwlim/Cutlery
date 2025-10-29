@@ -164,7 +164,7 @@ if pooling == "replicate":
 
 	align_stat_and_reports = [ alignStatTxt, uniqFragCnt, fragLenDist, sampleReportHistone, sampleReportFactor, finalReport ]
 
-else:
+elif pooling == "pool":
 	fastqDir	= "NULL"
 	trimDir		= "NULL"
 	
@@ -176,6 +176,9 @@ else:
 	pooledFinalReport = "Report_pooled.html"
 
 	align_stat_and_reports = [pooledSampleReportHistone, pooledSampleReportFactor, pooledFinalReport]
+
+else:
+	align_stat_and_reports = []
 
 if config_cnr['bed_promoter'] is not None:
 	promoterCnt = [expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])]
