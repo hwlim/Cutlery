@@ -5,6 +5,13 @@ Configuration & sample sheet validation
 ################################################
 ## Sample information Validation
 
+## Check if required columns exist in sample.tsv
+req_columns = ['Id', 'Name', 'Group', 'Fq1', 'Fq2', 'Ctrl', 'PeakMode', 'PeakOpt']
+missing_columns = [col for col in req_columns if col not in samples.columns]
+if missing_columns:
+    print(f"Error: Missing required columns: {', '.join(missing_columns)}", file=sys.stderr)
+    sys.exit(1)
+
 ## Id / Name column must be unique
 if not samples.Id.is_unique:
 	print( "Error: Id column in sample.tsv is not unique" )
@@ -30,7 +37,7 @@ for col in samples.columns:
             invalid_elem = invalid_elem + samples[col][index_invalid].tolist()
 
 if len(invalid_elem) > 0:
-    print( "Error: Must be at least two characters; Only alphanumeric, dash (-), underbar (_) and dots (.) are allowed in the sample sheet. Dashes are not allowed in the Name or Group column.")
+    print( "Error: Must be at least two characters; Only alphanumeric, dash (-), underbar (_), dots (.) and NULL are allowed in the sample sheet. Dashes are not allowed in the Name or Group column.")
     print( "Invalid values:" )
     for elem in invalid_elem: print( "  - %s" % elem )
     sys.exit(1)
@@ -54,9 +61,7 @@ for name, value in zip(dirNames, dirList):
         print(f"{name} is undefined or empty.")
         sys.exit(1)
 
-import os
-if os.path.exists("config.yml"):
-    if pooling not in ["replicate", "pooled"]:
-        print(f"html_report in the config file can only be defined as replicate or pooled.")
-        sys.exit(1)
+if pooling not in ["replicate", "pool", None]:
+    print(f"html_report variable in the config file can only be defined as replicate, pool, or NULL.")
+    sys.exit(1)
     
