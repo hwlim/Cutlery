@@ -78,8 +78,8 @@ sampleListHistone = samples.Name[samples.PeakMode=="histone"].tolist()
 # Target Samples (non-control)
 sampleListTarget = sampleListFactor + sampleListHistone
 
-## check for pooling
-pooling = config_cnr['html_report']
+## check for html_report type
+html_report = config_cnr['html_report']
 
 #################################################
 ## Configuration & sample sheet validation
@@ -147,7 +147,7 @@ else:
 
 
 ## normal analysis (without pooling)
-if pooling == "replicate":
+if html_report == "replicate":
 	
 	## align stats
 	alignStatTxt = qcDir + "/alignStat.txt"
@@ -164,7 +164,7 @@ if pooling == "replicate":
 
 	align_stat_and_reports = [ alignStatTxt, uniqFragCnt, fragLenDist, sampleReportHistone, sampleReportFactor, finalReport ]
 
-elif pooling == "pool":
+elif html_report == "pool":
 	fastqDir	= "NULL"
 	trimDir		= "NULL"
 	
@@ -177,8 +177,13 @@ elif pooling == "pool":
 
 	align_stat_and_reports = [pooledSampleReportHistone, pooledSampleReportFactor, pooledFinalReport]
 
-else:
+elif html_report == "NULL":
 	align_stat_and_reports = []
+
+else:
+	print(f"Invalid value for html_report: {html_report}")
+	sys.exit(1)
+
 
 if config_cnr['bed_promoter'] is not None:
 	promoterCnt = [expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])]
