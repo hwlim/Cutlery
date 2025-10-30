@@ -61,7 +61,3 @@ for name, value in zip(dirNames, dirList):
         print(f"{name} is undefined or empty.")
         sys.exit(1)
 
-if pooling not in ["replicate", "pool", None]:
-    print(f"html_report variable in the config file can only be defined as replicate, pool, or NULL.")
-    sys.exit(1)
-    
