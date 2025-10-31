@@ -200,24 +200,33 @@ do
 		for mode in factor histone factor.allFrag histone.allFrag
 		do
 			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.bed
-			des=${desDir}/Peak.${mode}/${sample}.all.bed
+			des=${desDir}/HomerPeak.${mode}/${sample}.all.bed
 			exportFile $src $des FALSE FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/peak.exBL.1rpm.bed
-			des=${desDir}/Peak.${mode}/${sample}.1rpm.bed
+			des=${desDir}/HomerPeak.${mode}/${sample}.1rpm.bed
 			exportFile $src $des FALSE FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.1rpm.png
-			des=${desDir}/Peak.${mode}/${sample}.1rpm.heatmap.png
+			des=${desDir}/HomerPeak.${mode}/${sample}.1rpm.heatmap.png
 			exportFile $src $des FALSE FALSE
 
 			src=${srcDir}/${sample}/HomerPeak.${mode}/heatmap.exBL.png
-			des=${desDir}/Peak.${mode}/${sample}.heatmap.png
+			des=${desDir}/HomerPeak.${mode}/${sample}.heatmap.png
 			exportFile $src $des FALSE FALSE
 
-			src=${srcDir}/${sample}/MACS2.${mode}.wo_ctrl/heatmap.exBL.png
-			des=${desDir}/Peak.${mode}/${sample}.heatmap.png
+			src=${srcDir}/${sample}/MACS2.${mode}/${sample}_summits.exBL.bed
+			des=${desDir}/MACS2.${mode}/${sample}.bed
 			exportFile $src $des FALSE FALSE
+
+			src=${srcDir}/${sample}/MACS2.${mode}/heatmap.exBL.png
+			des=${desDir}/MACS2.${mode}/${sample}.heatmap.png
+			exportFile $src $des FALSE FALSE
+
+
+#			src=${srcDir}/${sample}/MACS2.${mode}.wo_ctrl/heatmap.exBL.png
+#			des=${desDir}/Peak.${mode}/${sample}.heatmap.png
+#			exportFile $src $des FALSE FALSE
 		done
 	else
 		echo -e "2) Skipping peak files & heatmaps" >&2
@@ -227,11 +236,21 @@ do
 	if [ "$exportMotif" == "y" ] || [ "$exportMotif" == "Y" ];then
 		echo -e "3) Exporting motif search results" >&2
 		#mkdir -p ${desDir}/Motif
-		for src in ${srcDir}/${sample}/Motif/Homer.all  ${srcDir}/${sample}/Motif/MEME.random5k ${srcDir}/${sample}/Motif/Homer.all.allFrag  ${srcDir}/${sample}/Motif/MEME.random5k.allFrag
+		for mode in factor factor.allFrag
 		do
-			suffix=`basename $src`
-			des=${desDir}/Motif/${sample}.${suffix}
-			exportFile $src $des TRUE $makelink
+			for src in ${srcDir}/${sample}/HomerPeak.${mode}/Motif/{Homer.all,MEME.random5k}
+			do
+				suffix=`basename $src`
+				des=${desDir}/HomerPeak.${mode}/Motif/${sample}.${suffix}
+				exportFile $src $des TRUE $makelink
+			done
+
+			for src in ${srcDir}/${sample}/MACS2.${mode}/Motif/{Homer.all,MEME.random5k}
+			do
+				suffix=`basename $src`
+				des=${desDir}/MACS2.${mode}/Motif/${sample}.${suffix}
+				exportFile $src $des TRUE $makelink
+			done
 		done
 	else
 		echo -e "3) Skipping motif search results" >&2
