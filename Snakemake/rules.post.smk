@@ -1489,8 +1489,8 @@ rule call_peak_macs_factor_allfrag_wo_ctrl:
 	input:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}_summits.exBL.bed",
-		log = sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/{sampleName}_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/{sampleName}.log"
 	message:
 		"Calling TF peaks/SE ... [{wildcards.sampleName}]"
 	params:
@@ -1627,9 +1627,9 @@ rule macs_run_homer_motif_wo_ctrl:
 
 rule macs_run_homer_motif_allfrag_wo_ctrl:
 	input:
-		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/{sampleName}_summits.exBL.bed",
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/{sampleName}_summits.exBL.bed",
 	output:
-		sampleDir + "/{sampleName}/MACS2.factor.allfrag.wo_ctrl/Motif/Homer.all/homerResults.html"
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/Motif/Homer.all/homerResults.html"
 	message:
 		"Running Homer motif search... [{wildcards.sampleName}]"
 	params:
