@@ -19,7 +19,6 @@ if [ -e "config.yml" ]; then
 	module load python3/3.6.3
 	module load graphviz/2.40.1
 	snakemake -s ${CUTLERY}/Snakemake/Snakefile_Default --dag | dot -Tpdf > diag.pdf
-	module purge
 	fi
 	
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
@@ -40,7 +39,7 @@ else
 	echo -e "No config.yml file found in current directory; running Cutlery in advanced mode." >&2
 	
 	if [ ! -f diag.pdf ];then
-	module load python3
+	module load python3/3.6.3
 	module load graphviz/2.40.1
 	snakemake --dag | dot -Tpdf > diag.pdf
 	fi

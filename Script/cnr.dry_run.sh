@@ -19,4 +19,5 @@ else
 	snakemake -np
 fi
 
+source deactivate
 module purge
