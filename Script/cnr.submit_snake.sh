@@ -19,11 +19,15 @@ if [ -e "config.yml" ]; then
 	module load python3/3.6.3
 	module load graphviz/2.40.1
 	snakemake -s ${CUTLERY}/Snakemake/Snakefile_Default --dag | dot -Tpdf > diag.pdf
+	module purge
 	fi
 	
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
 		"
-		module load python3/3.6.3
+		module purge
+		module load anaconda3
+		source activate snakemake-7.18.2
+		module load squashfs-tools/4.5.0
 		snakemake -j $nJob --rerun-incomplete \
 			-s ${CUTLERY}/Snakemake/Snakefile_Default \
 			--latency-wait 60 \
@@ -36,14 +40,17 @@ else
 	echo -e "No config.yml file found in current directory; running Cutlery in advanced mode." >&2
 	
 	if [ ! -f diag.pdf ];then
-	module load python3/3.6.3
+	module load python3
 	module load graphviz/2.40.1
 	snakemake --dag | dot -Tpdf > diag.pdf
 	fi
 	
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
 		"
-		module load python3/3.6.3
+		module purge
+		module load anaconda3
+		source activate snakemake-7.18.2
+		module load squashfs-tools/4.5.0
 		snakemake -j $nJob \
 			--latency-wait 60 \
 			--cluster-config $config \
