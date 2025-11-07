@@ -19,6 +19,7 @@ if [ -e "config.yml" ]; then
 	module load python3/3.6.3
 	module load graphviz/2.40.1
 	snakemake -s ${CUTLERY}/Snakemake/Snakefile_Default --dag | dot -Tpdf > diag.pdf
+	module purge
 	fi
 	
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
@@ -26,7 +27,6 @@ if [ -e "config.yml" ]; then
 		module purge
 		module load anaconda3
 		source activate snakemake-7.18.2
-		module load squashfs-tools/4.5.0
 		snakemake -j $nJob --rerun-incomplete \
 			-s ${CUTLERY}/Snakemake/Snakefile_Default \
 			--latency-wait 60 \
@@ -42,6 +42,7 @@ else
 	module load python3/3.6.3
 	module load graphviz/2.40.1
 	snakemake --dag | dot -Tpdf > diag.pdf
+	module purge
 	fi
 	
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
@@ -49,8 +50,7 @@ else
 		module purge
 		module load anaconda3
 		source activate snakemake-7.18.2
-		module load squashfs-tools/4.5.0
-		snakemake -j $nJob \
+		snakemake -j $nJob --rerun-incomplete \
 			--latency-wait 60 \
 			--cluster-config $config \
 			--cluster 'bsub -W {cluster.walltime} -n {cluster.cpu} -M {cluster.memory} -q rhel9 -J $$.{cluster.name} -R {cluster.resource} -eo {cluster.error} -oo {cluster.output}'

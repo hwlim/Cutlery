@@ -1248,7 +1248,7 @@ rule call_peak_macs_factor:
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
 		"""
@@ -1300,7 +1300,7 @@ rule call_peak_macs_factor_allfrag:
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
 		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
 		"""
@@ -1356,9 +1356,10 @@ rule call_peak_macs_histone:
 		grep -v '^#' {sampleDir}/{wildcards.sampleName}/MACS2.histone/{wildcards.sampleName}_peaks.xls \
 			| tail -n +3 \
 			| intersectBed -a stdin -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%d\\t+\\n", $1,$2,$3,$9,$4 }}' \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$9,$4 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
+
 		"""
 
 rule draw_peak_heatmap_histone_macs:
@@ -1408,12 +1409,13 @@ rule call_peak_macs_histone_allfrag:
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --broad --keep-dup all 2>&1 | tee {output.log}
 
-		grep -v '^#' {sampleDir}/{wildcards.sampleName}/MACS2.histone.allFrag/{wildcards.sampleName}_peaks.xls \
+		grep -v '^#' {sampleDir}/{wildcards.sampleName}/MACS2.histone/{wildcards.sampleName}_peaks.xls \
 			| tail -n +3 \
 			| intersectBed -a stdin -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%d\\t+\\n", $1,$2,$3,$9,$4 }}' \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$9,$4 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
+
 		"""
 
 rule draw_peak_heatmap_histone_macs_allfrag:
@@ -1465,8 +1467,16 @@ rule call_peak_macs_factor_relax:
 		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
 			--outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits -p 0.001 \
 			2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
-		sort -k8,8nr {params.outDir}/{wildcards.sampleName}_peaks.narrowPeak > {output.peak2}
+		
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
+
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_peaks.narrowPeak -b {params.mask} -v \
+		| gawk '{{ if($1 ~ /'$chrRegexTarget'/) print $0"\t+" }}' \
+		| sort -k5,5nr \
+		> {output.peak2}
 		"""
 
 ## MACS peak calling without control
@@ -1487,7 +1497,10 @@ rule call_peak_macs_factor_wo_ctrl:
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
 		"""
 
 rule call_peak_macs_factor_allfrag_wo_ctrl:
@@ -1507,7 +1520,10 @@ rule call_peak_macs_factor_allfrag_wo_ctrl:
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
 		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
 		"""
 
 
