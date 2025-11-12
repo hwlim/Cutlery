@@ -145,8 +145,8 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
 
 		## MACS Peak calling
-		expand(sampleDir + "/{sampleName}/MACS2.factor/summits.exBL.bed", sampleName=sampleListFactor),
-		expand(sampleDir + "/{sampleName}/MACS2.histone/broad.exBL.bed", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.bed", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/MACS2.histone/macs_broad.exBL.bed", sampleName=sampleListHistone),
 		expand(sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png", sampleName=sampleListHistone),
 
