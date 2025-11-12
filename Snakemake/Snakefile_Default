@@ -119,8 +119,8 @@ else:
 
 ## macs default
 if config_cnr['peak_calling']['macs']['default']:
-	macs_peak_factor = expand(sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed", sampleName=sampleListFactor)
-	macs_peak_histone = expand(sampleDir + "/{sampleName}/MACS2.histone/{sampleName}_broad.exBL.bed", sampleName=sampleListHistone)
+	macs_peak_factor = expand(sampleDir + "/{sampleName}/MACS2.factor/summits.exBL.bed", sampleName=sampleListFactor)
+	macs_peak_histone = expand(sampleDir + "/{sampleName}/MACS2.histone/broad.exBL.bed", sampleName=sampleListHistone)
 	macs_peak_factor_heatmap = expand(sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.png", sampleName=sampleListFactor)
 	macs_peak_histone_heatmap = expand(sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png", sampleName=sampleListHistone)
 	macs_peak_homer_motif = expand(sampleDir + "/{sampleName}/MACS2.factor/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
@@ -133,8 +133,8 @@ else:
 
 ## macs all frag
 if config_cnr['peak_calling']['macs']['all_fragments']:
-	macs_peak_factor_allfrag = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed", sampleName=sampleListFactor)
-	macs_peak_histone_allfrag = expand(sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}_broad.exBL.bed", sampleName=sampleListHistone, ext=["bed","stat"])
+	macs_peak_factor_allfrag = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/summits.exBL.bed", sampleName=sampleListFactor)
+	macs_peak_histone_allfrag = expand(sampleDir + "/{sampleName}/MACS2.histone.allFrag/broad.exBL.bed", sampleName=sampleListHistone, ext=["bed","stat"])
 	macs_peak_factor_heatmap_allfrag = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/heatmap.exBL.png", sampleName=sampleListFactor)
 	macs_peak_histone_heatmap_allfrag = expand(sampleDir + "/{sampleName}/MACS2.histone.allFrag/heatmap.exBL.png", sampleName=sampleListHistone)
 	macs_peak_allfrag_homer_motif = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
