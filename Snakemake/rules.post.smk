@@ -1234,8 +1234,8 @@ rule call_peak_macs_factor:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="target"),
 		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="ctrl")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
-		log = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor/macs.log"
 	message:
 		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
 	params:
@@ -1244,18 +1244,23 @@ rule call_peak_macs_factor:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+			-n macs --outdir {params.outDir} -g {species_macs} \
+			--keep-dup all --call-summits 2>&1 \
+			| tee {output.log}
+		
+		intersectBed -a {params.outDir}/macs_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
+
 		"""
 
 rule draw_peak_heatmap_factor_macs:
 	input:
-		bed = sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
+		bed = sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.bed",
 		bw = lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.png"
@@ -1286,8 +1291,8 @@ rule call_peak_macs_factor_allfrag:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target"),
 		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="ctrl")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed",
-		log = sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.factor.allFrag/macs_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor.allFrag/macs.log"
 	message:
 		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
 	params:
@@ -1296,18 +1301,22 @@ rule call_peak_macs_factor_allfrag:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+			-n macs --outdir {params.outDir} -g {species_macs} \
+			--keep-dup all --call-summits 2>&1 \
+			| tee {output.log}
+		
+		intersectBed -a {params.outDir}/macs_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
 		"""
 
 rule draw_peak_heatmap_factor_macs_allfrag:
 	input:
-		bed = sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed",
+		bed = sampleDir + "/{sampleName}/MACS2.factor.allFrag/macs_summits.exBL.bed",
 		bw=lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor.allFrag/heatmap.exBL.png"
@@ -1339,8 +1348,8 @@ rule call_peak_macs_histone:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nuc", mode="target"),
 		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nuc", mode="ctrl")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.histone/{sampleName}_broad.exBL.bed",
-		log = sampleDir + "/{sampleName}/MACS2.histone/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.histone/macs_broad.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.histone/macs.log"
 	message:
 		"Calling histone peaks using MACS.. [{wildcards.sampleName}]"
 	params:
@@ -1349,19 +1358,24 @@ rule call_peak_macs_histone:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --broad --keep-dup all 2>&1 | tee {output.log}
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+			-n macs --outdir {params.outDir} -g {species_macs} \
+			--broad --keep-dup all 2>&1 \
+			| tee {output.log}
 		
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_peaks.broadPeak -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$9 }}' \
+		grep -v '^#' {sampleDir}/{wildcards.sampleName}/MACS2.histone/macs_peaks.xls \
+			| tail -n +3 \
+			| intersectBed -a stdin -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$9,$4 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
 		"""
 
 rule draw_peak_heatmap_histone_macs:
 	input:
-		bed = sampleDir + "/{sampleName}/MACS2.histone/{sampleName}_broad.exBL.bed",
+		bed = sampleDir + "/{sampleName}/MACS2.histone/macs_broad.exBL.bed",
 		bw = lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png"
@@ -1380,7 +1394,7 @@ rule draw_peak_heatmap_histone_macs:
 		
 		else
 
-			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 20 \
 				-o {params.outPrefix} \
 				{input.bed} {input.bw}
 		fi
@@ -1392,8 +1406,8 @@ rule call_peak_macs_histone_allfrag:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target"),
 		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="ctrl")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}_broad.exBL.bed",
-		log = sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.histone.allFrag/macs_broad.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.histone.allFrag/macs.log"
 	message:
 		"Calling histone peaks using MACS.. [{wildcards.sampleName}]"
 	params:
@@ -1402,18 +1416,24 @@ rule call_peak_macs_histone_allfrag:
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --broad --keep-dup all 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_peaks.broadPeak -b {params.mask} -v \
-			| gawk '{{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$9 }}' \
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+			-n macs --outdir {params.outDir} -g {species_macs} \
+			--broad --keep-dup all 2>&1 \
+			| tee {output.log}
+
+		grep -v '^#' {sampleDir}/{wildcards.sampleName}/MACS2.histone.allFrag/macs_peaks.xls \
+			| tail -n +3 \
+			| intersectBed -a stdin -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$9,$4 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
 		"""
 
 rule draw_peak_heatmap_histone_macs_allfrag:
 	input:
-		bed = sampleDir + "/{sampleName}/MACS2.histone.allFrag/{sampleName}_broad.exBL.bed",
+		bed = sampleDir + "/{sampleName}/MACS2.histone.allFrag/macs_broad.exBL.bed",
 		bw = lambda wildcards: get_bw_pairs(wildcards.sampleName)
 	output:
 		sampleDir + "/{sampleName}/MACS2.histone.allFrag/heatmap.exBL.png"
@@ -1432,7 +1452,7 @@ rule draw_peak_heatmap_histone_macs_allfrag:
 		
 		else
 
-			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 2000 -b 20 \
+			cnr.drawPeakHeatmap.r -t {wildcards.sampleName} -w 10000 -b 20 \
 				-o {params.outPrefix} \
 				{input.bed} {input.bw}
 		fi
@@ -1444,24 +1464,33 @@ rule call_peak_macs_factor_relax:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="target"),
 		ctrl = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="ctrl")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.factor.relax/{sampleName}_summits.exBL.bed",
-		peak2 = sampleDir + "/{sampleName}/MACS2.factor.relax/{sampleName}_peaks.sorted.narrowPeak",
-		log = sampleDir + "/{sampleName}/MACS2.factor.relax/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.factor.relax/macs_summits.exBL.bed",
+		peak2 = sampleDir + "/{sampleName}/MACS2.factor.relax/macs_peaks.sorted.narrowPeak",
+		log = sampleDir + "/{sampleName}/MACS2.factor.relax/macs.log"
 	message:
-		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
+		"Calling TF peaks using MACS relaxed.. [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE -n {wildcards.sampleName} \
-			--outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits -p 0.001 \
-			2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
-		sort -k8,8nr {params.outDir}/{wildcards.sampleName}_peaks.narrowPeak > {output.peak2}
+		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+			-n macs --outdir {params.outDir} -g {species_macs} \
+			--keep-dup all --call-summits -p 0.001 2>&1 \
+			| tee {output.log}
+		
+		intersectBed -a {params.outDir}/macs_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
+
+		intersectBed -a {params.outDir}/macs_peaks.narrowPeak -b {params.mask} -v \
+			| gawk '{{ if($1 ~ /'$chrRegexTarget'/) print $0"\t+" }}' \
+			| sort -k5,5nr \
+			> {output.peak2}
 		"""
 
 ## MACS peak calling without control
@@ -1469,46 +1498,60 @@ rule call_peak_macs_factor_wo_ctrl:
 	input:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "nfr", mode="target")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/{sampleName}_summits.exBL.bed",
-		log = sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/macs_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/macs.log"
 	message:
-		"Calling TF peaks/SE ... [{wildcards.sampleName}]"
+		"Calling MACS2 peaks without control ... [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		macs2 callpeak -t {input.target} -f BAMPE -n macs \
+			--outdir {params.outDir} -g {species_macs} \
+			--keep-dup all --call-summits 2>&1 \
+			| tee {output.log}
+		
+		intersectBed -a {params.outDir}/macs_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
 		"""
 
 rule call_peak_macs_factor_allfrag_wo_ctrl:
 	input:
 		target = lambda wildcards: get_bam_for_macs(wildcards.sampleName, fragment = "all", mode="target")
 	output:
-		peak = sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/{sampleName}_summits.exBL.bed",
-		log = sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/{sampleName}.log"
+		peak = sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/macs_summits.exBL.bed",
+		log = sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/macs.log"
 	message:
-		"Calling TF peaks/SE ... [{wildcards.sampleName}]"
+		"Calling MACS peaks using all frag and without control... [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
-		module load MACS/2.2.8
+		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -f BAMPE -n {wildcards.sampleName} --outdir {params.outDir} -g {species_macs} --keep-dup all --call-summits 2>&1 | tee {output.log}
-		intersectBed -a {params.outDir}/{wildcards.sampleName}_summits.bed -b {params.mask} -v > {output.peak}
+		macs2 callpeak -t {input.target} -f BAMPE -n macs \
+		--outdir {params.outDir} -g {species_macs} --keep-dup all \
+		--call-summits 2>&1 \
+		| tee {output.log}
+		
+		intersectBed -a {params.outDir}/macs_summits.bed -b {params.mask} -v \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$4,$5 }}' \
+			| sort -k5,5nr \
+			> {output.peak}
 		"""
 
 
 rule macs_run_homer_motif:
 	input:
-		sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed",
+		sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.bed",
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor/Motif/Homer.all/homerResults.html"
 	message:
@@ -1531,7 +1574,7 @@ rule macs_run_homer_motif:
 
 rule macs_run_homer_motif_allFrag:
 	input:
-		sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed",
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/macs_summits.exBL.bed",
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/Homer.all/homerResults.html"
 	message:
@@ -1555,7 +1598,7 @@ rule macs_run_homer_motif_allFrag:
 
 rule macs_run_meme_motif_rand5k:
 	input:
-		sampleDir + "/{sampleName}/MACS2.factor/{sampleName}_summits.exBL.bed"
+		sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.bed"
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor/Motif/MEME.random5k/meme-chip.html"
 	message:
@@ -1578,7 +1621,7 @@ rule macs_run_meme_motif_rand5k:
 
 rule macs_run_meme_motif_rand5k_allFrag:
 	input:
-		sampleDir + "/{sampleName}/MACS2.factor.allFrag/{sampleName}_summits.exBL.bed"
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/macs_summits.exBL.bed"
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/MEME.random5k/meme-chip.html"
 	message:
@@ -1603,7 +1646,7 @@ rule macs_run_meme_motif_rand5k_allFrag:
 
 rule macs_run_homer_motif_wo_ctrl:
 	input:
-		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/{sampleName}_summits.exBL.bed",
+		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/macs_summits.exBL.bed",
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor.wo_ctrl/Motif/Homer.all/homerResults.html"
 	message:
@@ -1627,7 +1670,7 @@ rule macs_run_homer_motif_wo_ctrl:
 
 rule macs_run_homer_motif_allfrag_wo_ctrl:
 	input:
-		sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/{sampleName}_summits.exBL.bed",
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/macs_summits.exBL.bed",
 	output:
 		sampleDir + "/{sampleName}/MACS2.factor.allFrag.wo_ctrl/Motif/Homer.all/homerResults.html"
 	message:

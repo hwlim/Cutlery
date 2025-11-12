@@ -7,7 +7,8 @@ if [ -z ${CUTLERY+x} ]; then
 fi
 
 module purge
-module load python3/3.6.3
+module load anaconda3
+source activate snakemake-7.18.2
 
 if [ -e "config.yml" ]; then
 	echo -e "Performing dry-run in Cutlery default mode..." >&2
@@ -17,4 +18,5 @@ else
 	snakemake -np
 fi
 
+source deactivate
 module purge
