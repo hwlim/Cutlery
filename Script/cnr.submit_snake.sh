@@ -27,11 +27,15 @@ if [ -e "config.yml" ]; then
 		module purge
 		module load anaconda3
 		source activate snakemake-7.18.2
+		export XDG_CACHE_HOME=/scratch/$USER/snakemake-cache
+
 		snakemake -j $nJob --rerun-incomplete \
 			-s ${CUTLERY}/Snakemake/Snakefile_Default \
 			--latency-wait 60 \
 			--cluster-config $config \
 			--cluster 'bsub -W {cluster.walltime} -n {cluster.cpu} -M {cluster.memory} -q rhel9 -J $$.{cluster.name} -R {cluster.resource} -eo {cluster.error} -oo {cluster.output}'
+
+		unset XDG_CACHE_HOME
 		"
 
 ## run advanced mode if config.yml file doesn't exist in the current directory
@@ -50,9 +54,13 @@ else
 		module purge
 		module load anaconda3
 		source activate snakemake-7.18.2
+		export XDG_CACHE_HOME=/scratch/$USER/snakemake-cache
+
 		snakemake -j $nJob --rerun-incomplete \
 			--latency-wait 60 \
 			--cluster-config $config \
 			--cluster 'bsub -W {cluster.walltime} -n {cluster.cpu} -M {cluster.memory} -q rhel9 -J $$.{cluster.name} -R {cluster.resource} -eo {cluster.error} -oo {cluster.output}'
+
+		unset XDG_CACHE_HOME
 		"
 fi
