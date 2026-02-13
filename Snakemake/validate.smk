@@ -6,7 +6,7 @@ Configuration & sample sheet validation
 ## Sample information Validation
 
 ## Check if required columns exist in sample.tsv
-req_columns = ['Id', 'Name', 'Group', 'Fq1', 'Fq2', 'Ctrl', 'PeakMode', 'PeakOpt']
+req_columns = ['Id', 'Name', 'Group', 'Fq1', 'Fq2', 'Ctrl', 'PeakMode']
 missing_columns = [col for col in req_columns if col not in samples.columns]
 if missing_columns:
     print(f"Error: Missing required columns: {', '.join(missing_columns)}", file=sys.stderr)
@@ -29,12 +29,11 @@ for col in ['Name', 'Group']:
         invalid_elem = invalid_elem + samples[col][index_invalid].tolist()
 
 ## all other columns should only contain alphanumeric, dash, underscore, dot
-for col in samples.columns:
-    if col not in ['Name', 'Group']:
-        is_valid = samples[col].str.match(r'^[a-zA-Z0-9][a-zA-Z0-9_.\-]*$')
-        index_invalid = ~is_valid.fillna(True)
-        if index_invalid.any():
-            invalid_elem = invalid_elem + samples[col][index_invalid].tolist()
+for col in ['Id', 'Fq1', 'Fq2', 'Ctrl', 'PeakMode']:
+    is_valid = samples[col].str.match(r'^[a-zA-Z0-9][a-zA-Z0-9_.\-]*$')
+    index_invalid = ~is_valid.fillna(True)
+    if index_invalid.any():
+        invalid_elem = invalid_elem + samples[col][index_invalid].tolist()
 
 if len(invalid_elem) > 0:
     print( "Error: Must be at least two characters; Only alphanumeric, dash (-), underbar (_), dots (.) and NULL are allowed in the sample sheet. Dashes are not allowed in the Name or Group column.")

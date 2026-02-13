@@ -146,6 +146,14 @@ draw_peak_heatmap_histone_allfrag:
     cpu         : 2
     memory      : 10000
 
+draw_peak_heatmap_histone_macs:
+    cpu         : 2
+    memory      : 10000
+
+draw_peak_heatmap_histone_macs_allfrag:
+    cpu         : 2
+    memory      : 10000
+
 make_align_stat_table:
     name        : "{rule}"
     output      : "logs/{rule}.out"
