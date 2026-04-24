@@ -90,6 +90,7 @@ rule align_pe:
 		module load Cutlery/1.0
 		module load {params.star_module}
 
+		tmpDir=${{TMPDIR}}/STARtmp_$$_$RANDOM
 		STAR --runMode alignReads \
 			--genomeDir {params.index} \
 			--readFilesIn {input.fq} \
@@ -101,17 +102,18 @@ rule align_pe:
 			--outTmpDir ${{TMPDIR}}/STARtmp_$$_$RANDOM \
 			{star_option}
 		
-		#	--outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000 \
-		#mv {alignDir}/{wildcards.sampleName}/align.Aligned.sortedByCoord.out.bam {alignDir}/{wildcards.sampleName}/align.bam
-		#samtools index {alignDir}/{wildcards.sampleName}/align.bam
-
 		mv {alignDir}/{wildcards.sampleName}/align.Aligned.out.bam {alignDir}/{wildcards.sampleName}/align.sortByName.bam
+		rm -rf $tmpDir
 
 		if [ -f {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate1 ];then
 			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate1
 			gzip {alignDir}/{wildcards.sampleName}/align.Unmapped.out.mate2
 		fi
 		"""
+		#	--outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000 \
+		#mv {alignDir}/{wildcards.sampleName}/align.Aligned.sortedByCoord.out.bam {alignDir}/{wildcards.sampleName}/align.bam
+		#samtools index {alignDir}/{wildcards.sampleName}/align.bam
+
 
 
 rule csort_bam:
