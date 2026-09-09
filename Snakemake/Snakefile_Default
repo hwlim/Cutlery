@@ -54,6 +54,9 @@ opt_cutadapt = config_cnr['cutadapt_options']
 ## Regular expressions for chromosome names
 chrRegexTarget	= config_cnr['chrRegexTarget']
 
+## bed promoter
+bed_promoter	= config_cnr['bed_promoter']
+
 #########################
 ## Job flag options
 
@@ -146,6 +149,14 @@ else:
 	macs_peak_calling_allfrag = []
 
 
+## footprint analysis
+## .get() so that config.yml files predating this option still load
+if config_cnr.get('footprint', False):
+	footprint_default = expand(sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete", sampleName=sampleListFactor)
+else:
+	footprint_default = []
+
+
 ## normal analysis (without pooling)
 if html_report == "replicate":
 	
@@ -177,7 +188,7 @@ elif html_report == "pool":
 
 	align_stat_and_reports = [pooledSampleReportHistone, pooledSampleReportFactor, pooledFinalReport]
 
-elif html_report == "NULL":
+elif html_report is None or (isinstance(html_report, str) and html_report.strip().upper() == "NULL"):
 	align_stat_and_reports = []
 
 else:
@@ -185,7 +196,7 @@ else:
 	sys.exit(1)
 
 
-if config_cnr['bed_promoter'] is not None:
+if bed_promoter is not None and str(bed_promoter).lower() not in ("none", "null"):
 	promoterCnt = [expand(qcDir + "/promoterCnt.{ext}", ext=[ "txt", "pdf", "png" ])]
 else:
 	promoterCnt = []
@@ -209,6 +220,10 @@ rule all:
 		
 		## Calculate fragment QC
 		expand(sampleDir + "/{sampleName}/QC/fragMix.txt", sampleName=sampleList),
+
+		## Footprint analysis
+		footprint_default,
+
 		align_stat_and_reports,
 		promoterCnt
 

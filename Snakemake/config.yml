@@ -82,10 +82,14 @@ chrRegexTarget: ^chr[0-9XY]+$
 ## if bed file is set, will measure % of fragment within promoter regions defined in bed_promoter file
 ## as a quality measure for ATAC-seq data.
 ## set as NULL if not measuring promoter count
+## e.g.
+##  hg38: /data/limlab/Resource/GenomeData/hg/hg38/Genes/ncbiRefSeq.TSS2kb.bed
+##  mm10: /data/limlab/Resource/GenomeData/mm/mm10/Genes/ncbiRefSeq.TSS2kb.bed
 bed_promoter: NULL
 
 ## peak calling
 ## set as False if you don't need a particular type of analysis
+## Note: macs peak calling without control (e.g. ATAC) is not yet implemented
 peak_calling:
   homer:
     default: True
@@ -93,6 +97,15 @@ peak_calling:
   macs:
     default: False
     all_fragments:  False
+
+## footprint analysis
+## Scans Homer de novo motifs across the called peaks and visualizes the
+## footprint of each motif using 1bp-resolution stranded coverage.
+## Applies to PeakMode=factor samples only, and requires homer peak calling
+## with motif search to be enabled above.
+## Note: this pulls in 1bp-resolution bigWig generation (igv.1bp.{plus,minus}.bw),
+## which is extra compute and disk per sample.
+footprint: False
 
 ## html report generation option
 # {replicate,pool.NULL}

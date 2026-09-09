@@ -932,17 +932,25 @@ rule draw_peak_heatmap_histone_allfrag:
 		fi
 		"""
 
+## Footprint analysis using the stand-alone cnr.footprintBatch.r
+## Note on the argument change from cnr.analyzeFootprintBatch.r:
+##	- -g is now the genome FASTA (needs a .fai index), not the Homer genome name
+##	- the bigWig prefix is the third positional argument, not -b
+##	- the motif directory is the Homer output produced by run_homer_motif,
+##	  i.e. HomerPeak.factor/Motif/Homer.all (the old .all.noBG path was stale
+##	  and produced by no rule)
 rule analyze_footprint_homer:
 	input:
 		peak = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed",
-		motif = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG/homerResults.html",
+		motif = sampleDir + "/{sampleName}/HomerPeak.factor/Motif/Homer.all/homerResults.html",
 		bwPlus = sampleDir + "/{sampleName}/igv.1bp.plus.bw",
-		bwMinus = sampleDir + "/{sampleName}/igv.1bp.minus.bw"
+		bwMinus = sampleDir + "/{sampleName}/igv.1bp.minus.bw",
+		genome = genomeFa
 	output:
 		sampleDir + "/{sampleName}/Footprint.Homer.default/cnr.4.complete"
 	params:
 		outPrefix = sampleDir + "/{sampleName}/Footprint.Homer.default/cnr",
-		motifDir = sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed.all.noBG",
+		motifDir = sampleDir + "/{sampleName}/HomerPeak.factor/Motif/Homer.all",
 		bwPrefix = sampleDir + "/{sampleName}/igv.1bp",
 		cpu = cluster["analyze_footprint_homer"]["cpu"]
 	message:
@@ -951,8 +959,23 @@ rule analyze_footprint_homer:
 		"""
 		module purge
 		module load Cutlery/1.0
-		cnr.analyzeFootprintBatch.r -o {params.outPrefix} -n {wildcards.sampleName} -g {genome} -b {params.bwPrefix} -p {params.cpu} \
-			{input.peak} {params.motifDir}
+
+		## No peaks means nothing to scan for motifs; emit the completion flag
+		## so an empty sample does not break the DAG, matching the behaviour of
+		## run_homer_motif and the peak heatmap rules.
+		n=`cat {input.peak} | wc -l`
+		if [ $n -eq 0 ];then
+			mkdir -p {sampleDir}/{wildcards.sampleName}/Footprint.Homer.default
+			touch {output}
+			exit 0
+		fi
+
+		## --allowEmpty: a sample with peaks but no motif clearing the selection
+		## thresholds, or no motif showing a footprint, completes successfully
+		## with an empty summary rather than failing the DAG.
+		cnr.footprintBatch.r -o {params.outPrefix} -n {wildcards.sampleName} \
+			-g {input.genome} -p {params.cpu} --allowEmpty \
+			{input.peak} {params.motifDir} {params.bwPrefix}
 		"""
 
 
