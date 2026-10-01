@@ -198,7 +198,7 @@ Three callers are wired in, each selecting fragment classes according to `PeakMo
 - `factor` mode uses the **NFR** tag dir, style `factor`, 200 bp peaks, then re-centers peaks on the
   NFR bigWig and emits `peak.exBL.1rpm.{bed,stat}` (blacklist-filtered, ≥1 RPM).
 - `histone` mode uses the **NUC** tag dir, style `histone`, emits `peak.exBL.{bed,stat}`.
-- Variants: `.allFrag` (all fragments instead of NFR/NUC) and `.noCtrl`.
+- Variants: `.allFrag` (all fragments instead of NFR/NUC) and `.wo_ctrl`.
 - Control tag dir is supplied automatically from the `Ctrl` column, omitted when `Ctrl = NULL`.
 
 **MACS2** (`-f BAMPE`, `--keep-dup all`):
@@ -318,7 +318,7 @@ because pooled runs start from existing fragment files), or `NULL` (no reports a
 │   ├── fragment.bed.gz, fcl.bed.gz, Fragments/
 │   ├── igv.*.bw, igv.raw.bedGraph.gz
 │   ├── TSV.{all,nfr,nuc}/             # Homer tag directories
-│   ├── HomerPeak.{factor,histone}[.allFrag|.noCtrl]/
+│   ├── HomerPeak.{factor,histone}[.allFrag|.wo_ctrl]/
 │   │   ├── peak.exBL[.1rpm].{bed,stat}, heatmap.exBL*.png
 │   │   └── Motif/{Homer.all,MEME.random5k}/
 │   ├── MACS2.{factor,histone}[.allFrag|.relax|.wo_ctrl]/
