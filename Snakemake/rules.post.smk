@@ -1223,7 +1223,10 @@ def get_bam_for_macs(sampleName, fragment, mode="target"):
 		name = sampleName
 	else:
 		name = get_ctrl_name(sampleName)
-	
+		## no control: return empty input so that MACS runs without -c
+		if name.upper() == "NULL":
+			return []
+
 	if fragment in [ "nfr", "nuc" ]:
 		bam = bamDir + "/" + name + "/Split/align." + fragment + ".bam"
 	else:
@@ -1256,13 +1259,14 @@ rule call_peak_macs_factor:
 		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
+		ctrlOpt = lambda wildcards, input: "-c " + str(input.ctrl) if input.ctrl else "",
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+		macs2 callpeak -t {input.target} {params.ctrlOpt} -f BAMPE \
 			-n macs --outdir {params.outDir} -g {species_macs} \
 			--keep-dup all --call-summits 2>&1 \
 			| tee {output.log}
@@ -1313,13 +1317,14 @@ rule call_peak_macs_factor_allfrag:
 		"Calling TF peaks using MACS.. [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
+		ctrlOpt = lambda wildcards, input: "-c " + str(input.ctrl) if input.ctrl else "",
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+		macs2 callpeak -t {input.target} {params.ctrlOpt} -f BAMPE \
 			-n macs --outdir {params.outDir} -g {species_macs} \
 			--keep-dup all --call-summits 2>&1 \
 			| tee {output.log}
@@ -1370,13 +1375,14 @@ rule call_peak_macs_histone:
 		"Calling histone peaks using MACS.. [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
+		ctrlOpt = lambda wildcards, input: "-c " + str(input.ctrl) if input.ctrl else "",
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+		macs2 callpeak -t {input.target} {params.ctrlOpt} -f BAMPE \
 			-n macs --outdir {params.outDir} -g {species_macs} \
 			--broad --keep-dup all 2>&1 \
 			| tee {output.log}
@@ -1428,13 +1434,14 @@ rule call_peak_macs_histone_allfrag:
 		"Calling histone peaks using MACS.. [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
+		ctrlOpt = lambda wildcards, input: "-c " + str(input.ctrl) if input.ctrl else "",
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+		macs2 callpeak -t {input.target} {params.ctrlOpt} -f BAMPE \
 			-n macs --outdir {params.outDir} -g {species_macs} \
 			--broad --keep-dup all 2>&1 \
 			| tee {output.log}
@@ -1487,13 +1494,14 @@ rule call_peak_macs_factor_relax:
 		"Calling TF peaks using MACS relaxed.. [{wildcards.sampleName}]"
 	params:
 		mask = peak_mask,
+		ctrlOpt = lambda wildcards, input: "-c " + str(input.ctrl) if input.ctrl else "",
 		outDir = lambda wildcards, output: __import__("os").path.dirname(output[0])
 	shell:
 		"""
 		module purge
 		module load MACS/2.2.9.1
 		module load bedtools/2.27.0
-		macs2 callpeak -t {input.target} -c {input.ctrl} -f BAMPE \
+		macs2 callpeak -t {input.target} {params.ctrlOpt} -f BAMPE \
 			-n macs --outdir {params.outDir} -g {species_macs} \
 			--keep-dup all --call-summits -p 0.001 2>&1 \
 			| tee {output.log}
