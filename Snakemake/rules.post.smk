@@ -632,14 +632,14 @@ rule call_peaks_factor:
 		"""
 
 ## Peak calling in factor mode using resized fragment
-rule call_peaks_factor_no_ctrl:
+rule call_peaks_factor_wo_ctrl:
 	input:
 		tagDir = lambda wildcards: get_peakcall_input(wildcards.sampleName,"nfr", getCtrl=False),
 		bw = sampleDir + "/{sampleName}/igv.nfr.con.bw",
 	output:
-		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor.noCtrl/peak.exBL.1rpm.{ext}", ext=["bed", "stat"])
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor.wo_ctrl/peak.exBL.1rpm.{ext}", ext=["bed", "stat"])
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.noCtrl",
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.wo_ctrl",
 		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
 	message:
 		"Peak calling using Homer... [{wildcards.sampleName}]"
@@ -814,7 +814,7 @@ def get_bw_pairs(sampleName):
 	ctrlName = get_ctrl_name(sampleName)
 	
 	#return sample bw only if ctrl = NULL
-	if ctrlName == "NULL":
+	if ctrlName.upper() == "NULL":
 		return [sampleNfrBW, sampleNucBW]
 	
 	#return sample and ctrl bw 
@@ -1214,13 +1214,6 @@ rule make_bam_nuc:
 			| samtools view -b \
 			> {output}
 		"""
-
-## find control sample name for peak calling using target sample name
-def get_ctrl_name(sampleName):
-	ctrlName = samples.Ctrl[samples.Name == sampleName]
-	ctrlName = ctrlName.tolist()[0]
-	return ctrlName
-
 
 def get_bam_for_macs(sampleName, fragment, mode="target"):
 	assert fragment in [ "nfr", "nuc", "all" ]
