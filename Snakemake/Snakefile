@@ -22,7 +22,7 @@ star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/mm10_allChr_vM20"
 #chrom_size	= "/data/limlab/Resource/GenomeData/hg/hg38/Genome/chrom.size"
 #peak_mask	= "/data/limlab/Resource/GenomeData/hg/hg38/ENCODE-blacklist.bed"
 #genome		= "hg38"
-#star_index	= "/Volumes/limlab/Resource/STAR_Index/2.7.4/hg38_allChr_v29"
+#star_index	= "/data/limlab/Resource/STAR_Index/2.7.4/hg38_allChr_v29"
 
 ## Other STAR index also available under /data/limlab/Resource/STAR_Index/2.7.4
 ## If not, send a request to Lim Lab
@@ -143,6 +143,7 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.{ext}", sampleName=sampleListHistone, ext=["bed","stat"]),
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone),
+		expand(sampleDir + "/{sampleName}/HomerPeak.factor/Annotate/homer.{ext}", sampleName=sampleListFactor, ext=["ann.txt", "stat.txt", "pie.png"]),
 
 		## MACS Peak calling
 		expand(sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.bed", sampleName=sampleListFactor),

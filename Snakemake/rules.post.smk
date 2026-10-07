@@ -795,6 +795,24 @@ rule run_meme_motif_rand5k_allfrag:
 			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k {input.bed}
 		"""
 
+## Peak calling in factor mode using resized fragment
+rule annotate_peaks_factor:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
+		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
+	message:
+		"Peak calling using Homer... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
 
 #get bw file for control sample
 #bwType variable should be either "nuc" or "nfr"
