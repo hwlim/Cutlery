@@ -85,6 +85,7 @@ chrRegexTarget: ^chr[0-9XY]+$
 ## e.g.
 ##  hg38: /data/limlab/Resource/GenomeData/hg/hg38/Genes/ncbiRefSeq.TSS2kb.bed
 ##  mm10: /data/limlab/Resource/GenomeData/mm/mm10/Genes/ncbiRefSeq.TSS2kb.bed
+##  danRer11: /data/limlab/Resource/GenomeData/danRer11/Genes/ncbiRefSeq.tss2kb.bed
 bed_promoter: NULL
 
 ## peak calling
