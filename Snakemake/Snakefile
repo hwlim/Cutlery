@@ -146,9 +146,9 @@ rule all:
 		expand(sampleDir + "/{sampleName}/HomerPeak.factor/Annotate/homer.{ext}", sampleName=sampleListFactor, ext=["ann.txt", "stat.txt", "pie.png"]),
 
 		## MACS Peak calling
-		expand(sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.bed", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.1rpm.bed", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/MACS2.histone/macs_broad.exBL.bed", sampleName=sampleListHistone),
-		expand(sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.png", sampleName=sampleListFactor),
+		expand(sampleDir + "/{sampleName}/MACS2.factor/heatmap.exBL.1rpm.png", sampleName=sampleListFactor),
 		expand(sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png", sampleName=sampleListHistone),
 
 		## SEACR

@@ -215,8 +215,20 @@ do
 			des=${desDir}/HomerPeak.${mode}/${sample}.heatmap.png
 			exportFile $src $des FALSE FALSE
 
-			src=${srcDir}/${sample}/MACS2.${mode}/${sample}_summits.exBL.bed
-			des=${desDir}/MACS2.${mode}/${sample}.bed
+			src=${srcDir}/${sample}/MACS2.${mode}/macs_summits.exBL.bed
+			des=${desDir}/MACS2.${mode}/${sample}.all.bed
+			exportFile $src $des FALSE FALSE
+
+			src=${srcDir}/${sample}/MACS2.${mode}/macs_broad.exBL.bed
+			des=${desDir}/MACS2.${mode}/${sample}.all.bed
+			exportFile $src $des FALSE FALSE
+
+			src=${srcDir}/${sample}/MACS2.${mode}/macs_summits.exBL.1rpm.bed
+			des=${desDir}/MACS2.${mode}/${sample}.1rpm.bed
+			exportFile $src $des FALSE FALSE
+
+			src=${srcDir}/${sample}/MACS2.${mode}/heatmap.exBL.1rpm.png
+			des=${desDir}/MACS2.${mode}/${sample}.1rpm.heatmap.png
 			exportFile $src $des FALSE FALSE
 
 			src=${srcDir}/${sample}/MACS2.${mode}/heatmap.exBL.png
