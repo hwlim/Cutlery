@@ -25,8 +25,8 @@ if [ -e "config.yml" ]; then
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
 		"
 		module purge
-		module load anaconda3
-		source activate snakemake-7.18.2
+		module load anaconda3/1.0.1
+		conda activate snakemake-7.18.2
 		export XDG_CACHE_HOME=/scratch/$USER/snakemake-cache
 
 		snakemake -j $nJob --rerun-incomplete \
@@ -52,8 +52,8 @@ else
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out \
 		"
 		module purge
-		module load anaconda3
-		source activate snakemake-7.18.2
+		module load anaconda3/1.0.1
+		conda activate snakemake-7.18.2
 		export XDG_CACHE_HOME=/scratch/$USER/snakemake-cache
 
 		snakemake -j $nJob --rerun-incomplete \

@@ -46,7 +46,7 @@ in the working directory**: if it does, they run `-s $CUTLERY/Snakemake/Snakefil
 otherwise they fall back to a local `Snakefile` (advanced mode).
 
 Submission details: driver runs under `bsub -W 48:00 -q rhel9` with
-`anaconda3` → `snakemake-7.18.2`, `-j 50`, `--rerun-incomplete`, `--latency-wait 60`, and a
+`anaconda3/1.0.1` → `snakemake-7.18.2`, `-j 50`, `--rerun-incomplete`, `--latency-wait 60`, and a
 `--cluster-config cluster.yml` template that submits each rule as its own `bsub` job. Logs land in
 `logs/{rule}.{sample}.{out,err}`. Snakemake's cache is redirected to `/scratch/$USER/snakemake-cache`
 via `XDG_CACHE_HOME`.
