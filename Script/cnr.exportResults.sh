@@ -239,6 +239,10 @@ do
 			des=${desDir}/HomerPeak.${mode}/Annotate/${sample}
 			exportFile $src $des TRUE FALSE
 
+			src=${srcDir}/${sample}/MACS2.${mode}/Annotate
+			des=${desDir}/MACS2.${mode}/Annotate/${sample}
+			exportFile $src $des TRUE FALSE
+
 #			src=${srcDir}/${sample}/MACS2.${mode}.wo_ctrl/heatmap.exBL.png
 #			des=${desDir}/Peak.${mode}/${sample}.heatmap.png
 #			exportFile $src $des FALSE FALSE

@@ -795,17 +795,128 @@ rule run_meme_motif_rand5k_allfrag:
 			-o {sampleDir}/{wildcards.sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k {input.bed}
 		"""
 
-## Peak calling in factor mode using resized fragment
+## Peak annotation using Homer for Homer / MACS peaks (wo_ctrl and relax peaks excluded)
 rule annotate_peaks_factor:
 	input:
 		sampleDir + "/{sampleName}/HomerPeak.factor/peak.exBL.1rpm.bed"
 	output:
 		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
 	params:
-		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor",
-		optStr = lambda wildcards: "\"" + get_peakcall_opt(wildcards.sampleName) + "\""
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor"
 	message:
-		"Peak calling using Homer... [{wildcards.sampleName}]"
+		"Annotating Homer factor peaks... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
+rule annotate_peaks_factor_allfrag:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/peak.exBL.1rpm.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.factor.allFrag/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.factor.allFrag"
+	message:
+		"Annotating Homer factor peaks (all fragments)... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
+rule annotate_peaks_histone:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.histone/peak.exBL.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone"
+	message:
+		"Annotating Homer histone peaks... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
+rule annotate_peaks_histone_allfrag:
+	input:
+		sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/peak.exBL.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/HomerPeak.histone.allFrag/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/HomerPeak.histone.allFrag"
+	message:
+		"Annotating Homer histone peaks (all fragments)... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
+rule annotate_peaks_factor_macs:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor/macs_summits.exBL.1rpm.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/MACS2.factor/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/MACS2.factor"
+	message:
+		"Annotating MACS factor peaks... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
+rule annotate_peaks_factor_macs_allfrag:
+	input:
+		sampleDir + "/{sampleName}/MACS2.factor.allFrag/macs_summits.exBL.1rpm.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/MACS2.factor.allFrag/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/MACS2.factor.allFrag"
+	message:
+		"Annotating MACS factor peaks (all fragments)... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
+rule annotate_peaks_histone_macs:
+	input:
+		sampleDir + "/{sampleName}/MACS2.histone/macs_broad.exBL.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/MACS2.histone/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/MACS2.histone"
+	message:
+		"Annotating MACS histone peaks... [{wildcards.sampleName}]"
+	shell:
+		"""
+		module purge
+		module load Cutlery/1.0
+		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		"""
+
+rule annotate_peaks_histone_macs_allfrag:
+	input:
+		sampleDir + "/{sampleName}/MACS2.histone.allFrag/macs_broad.exBL.bed"
+	output:
+		expand(sampleDir + "/{{sampleName}}/MACS2.histone.allFrag/Annotate/homer.{ext}", ext=["ann.txt", "stat.txt", "pie.png"])
+	params:
+		peakDir = sampleDir + "/{sampleName}/MACS2.histone.allFrag"
+	message:
+		"Annotating MACS histone peaks (all fragments)... [{wildcards.sampleName}]"
 	shell:
 		"""
 		module purge
@@ -1404,7 +1515,7 @@ rule call_peak_macs_histone:
 		grep -v '^#' {sampleDir}/{wildcards.sampleName}/MACS2.histone/macs_peaks.xls \
 			| tail -n +3 \
 			| intersectBed -a stdin -b {params.mask} -v \
-			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$9,$4 }}' \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%.2f\\t+\\n", $1,$2-1,$3,$9,$4*$5 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
 		"""
@@ -1463,7 +1574,7 @@ rule call_peak_macs_histone_allfrag:
 		grep -v '^#' {sampleDir}/{wildcards.sampleName}/MACS2.histone.allFrag/macs_peaks.xls \
 			| tail -n +3 \
 			| intersectBed -a stdin -b {params.mask} -v \
-			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%s\\t+\\n", $1,$2,$3,$9,$4 }}' \
+			| gawk '$1 ~ /{chrRegexTarget}/ {{ printf "%s\\t%d\\t%d\\t%s\\t%.2f\\t+\\n", $1,$2-1,$3,$9,$4*$5 }}' \
 			| sort -k5,5nr \
 			> {output.peak}
 		"""

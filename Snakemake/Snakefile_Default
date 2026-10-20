@@ -100,9 +100,12 @@ if config_cnr['peak_calling']['homer']['default']:
 	homer_peak_histone_heatmap = expand(sampleDir + "/{sampleName}/HomerPeak.histone/heatmap.exBL.png", sampleName=sampleListHistone)
 	homer_peak_homer_motif = expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
 	homer_peak_meme_motif = expand(sampleDir + "/{sampleName}/HomerPeak.factor/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+	homer_peak_factor_annot = expand(sampleDir + "/{sampleName}/HomerPeak.factor/Annotate/homer.{ext}", sampleName=sampleListFactor, ext=["ann.txt", "stat.txt", "pie.png"])
+	homer_peak_histone_annot = expand(sampleDir + "/{sampleName}/HomerPeak.histone/Annotate/homer.{ext}", sampleName=sampleListHistone, ext=["ann.txt", "stat.txt", "pie.png"])
 
 	homer_peak_calling_default = [homer_peak_factor, homer_peak_histone, homer_peak_factor_heatmap,
-									homer_peak_histone_heatmap, homer_peak_homer_motif, homer_peak_meme_motif]
+									homer_peak_histone_heatmap, homer_peak_homer_motif, homer_peak_meme_motif,
+									homer_peak_factor_annot, homer_peak_histone_annot]
 else:
 	homer_peak_calling_default = []
 
@@ -114,9 +117,12 @@ if config_cnr['peak_calling']['homer']['all_fragments']:
 	homer_peak_histone_heatmap_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/heatmap.exBL.png", sampleName=sampleListHistone)
 	homer_peak_homer_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
 	homer_peak_meme_motif_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+	homer_peak_factor_annot_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.factor.allFrag/Annotate/homer.{ext}", sampleName=sampleListFactor, ext=["ann.txt", "stat.txt", "pie.png"])
+	homer_peak_histone_annot_allfrag = expand(sampleDir + "/{sampleName}/HomerPeak.histone.allFrag/Annotate/homer.{ext}", sampleName=sampleListHistone, ext=["ann.txt", "stat.txt", "pie.png"])
 
 	homer_peak_calling_allfrag = [homer_peak_factor_allfrag, homer_peak_histone_allfrag, homer_peak_factor_heatmap_allfrag,
-									homer_peak_histone_heatmap_allfrag, homer_peak_homer_motif_allfrag, homer_peak_meme_motif_allfrag]
+									homer_peak_histone_heatmap_allfrag, homer_peak_homer_motif_allfrag, homer_peak_meme_motif_allfrag,
+									homer_peak_factor_annot_allfrag, homer_peak_histone_annot_allfrag]
 else:
 	homer_peak_calling_allfrag = []
 
@@ -128,9 +134,12 @@ if config_cnr['peak_calling']['macs']['default']:
 	macs_peak_histone_heatmap = expand(sampleDir + "/{sampleName}/MACS2.histone/heatmap.exBL.png", sampleName=sampleListHistone)
 	macs_peak_homer_motif = expand(sampleDir + "/{sampleName}/MACS2.factor/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
 	macs_peak_meme_motif = expand(sampleDir + "/{sampleName}/MACS2.factor/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+	macs_peak_factor_annot = expand(sampleDir + "/{sampleName}/MACS2.factor/Annotate/homer.{ext}", sampleName=sampleListFactor, ext=["ann.txt", "stat.txt", "pie.png"])
+	macs_peak_histone_annot = expand(sampleDir + "/{sampleName}/MACS2.histone/Annotate/homer.{ext}", sampleName=sampleListHistone, ext=["ann.txt", "stat.txt", "pie.png"])
 
 	macs_peak_calling_default = [macs_peak_factor, macs_peak_histone, macs_peak_factor_heatmap,
-									macs_peak_histone_heatmap, macs_peak_homer_motif, macs_peak_meme_motif]
+									macs_peak_histone_heatmap, macs_peak_homer_motif, macs_peak_meme_motif,
+									macs_peak_factor_annot, macs_peak_histone_annot]
 else:
 	macs_peak_calling_default = []
 
@@ -142,9 +151,12 @@ if config_cnr['peak_calling']['macs']['all_fragments']:
 	macs_peak_histone_heatmap_allfrag = expand(sampleDir + "/{sampleName}/MACS2.histone.allFrag/heatmap.exBL.png", sampleName=sampleListHistone)
 	macs_peak_allfrag_homer_motif = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/Homer.all/homerResults.html", sampleName=sampleListFactor)
 	macs_peak_allfrag_meme_motif = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/Motif/MEME.random5k/meme-chip.html", sampleName=sampleListFactor)
+	macs_peak_factor_annot_allfrag = expand(sampleDir + "/{sampleName}/MACS2.factor.allFrag/Annotate/homer.{ext}", sampleName=sampleListFactor, ext=["ann.txt", "stat.txt", "pie.png"])
+	macs_peak_histone_annot_allfrag = expand(sampleDir + "/{sampleName}/MACS2.histone.allFrag/Annotate/homer.{ext}", sampleName=sampleListHistone, ext=["ann.txt", "stat.txt", "pie.png"])
 
 	macs_peak_calling_allfrag = [macs_peak_factor_allfrag, macs_peak_histone_allfrag, macs_peak_factor_heatmap_allfrag, 
-							   		macs_peak_histone_heatmap_allfrag, macs_peak_allfrag_homer_motif, macs_peak_allfrag_meme_motif]
+							   		macs_peak_histone_heatmap_allfrag, macs_peak_allfrag_homer_motif, macs_peak_allfrag_meme_motif,
+									macs_peak_factor_annot_allfrag, macs_peak_histone_annot_allfrag]
 else:
 	macs_peak_calling_allfrag = []
 
