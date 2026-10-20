@@ -8,6 +8,7 @@ fi
 
 module purge
 module load anaconda3/1.0.1
+eval "$(conda shell.bash hook)"
 conda activate snakemake-7.18.2
 
 if [ -e "config.yml" ]; then
@@ -18,5 +19,5 @@ else
 	snakemake -np
 fi
 
-source deactivate
+conda deactivate
 module purge
