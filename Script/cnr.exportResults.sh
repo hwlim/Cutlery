@@ -115,7 +115,7 @@ exportFile(){
 		local desDir=`dirname $des`
 		mkdir -p $desDir
 
-		if [ -f $des ];then
+		if [ -e $des ];then
 			if [ "$force" == "TRUE" ];then
 				echo -e "  Warning: Overwriting $des" >&2
 				if [ "$makelink" == "TRUE" ];then
@@ -159,6 +159,10 @@ do
 	# Report.html
 	if [ -f Report.html ];then
 		exportFile Report.html ${desDir}/Report.html FALSE FALSE
+	fi
+
+	if [ -f Report_pooled.html ];then
+		exportFile Report_pooled.html ${desDir}/Report_pooled.html FALSE FALSE
 	fi
 
 	# fragment length distribution
