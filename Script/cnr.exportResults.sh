@@ -115,6 +115,12 @@ exportFile(){
 		local desDir=`dirname $des`
 		mkdir -p $desDir
 
+		## Broken link (target moved/deleted): remove and export as new
+		if [ -L $des ] && [ ! -e $des ];then
+			echo -e "  Warning: Replacing broken link $des" >&2
+			rm -f $des
+		fi
+
 		if [ -e $des ];then
 			if [ "$force" == "TRUE" ];then
 				echo -e "  Warning: Overwriting $des" >&2
