@@ -12,8 +12,8 @@ config=${CUTLERY}/Snakemake/cluster.yml
 mkdir -p logs
 
 ## The job script is passed through stdin (here-document) instead of a bsub command string,
-## since LSF expands $(...) in a command string before the job runs, i.e. before anaconda3 is loaded.
-## Variables are filled in at submission; \$ is kept for the job to evaluate.
+## since LSF expands $ in a command string before the job runs.
+## Variables are filled in at submission.
 ## <<- strips leading tabs, so the here-document must be indented with tabs only.
 
 ## if config.yml file exists in current directory, run default beginner mode
@@ -23,8 +23,7 @@ if [ -e "config.yml" ]; then
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out <<- EOF
 		module purge
 		module load anaconda3/1.0.1
-		eval "\$(conda shell.bash hook)"
-		conda activate snakemake-7.18.2
+		source activate snakemake-7.18.2
 		export XDG_CACHE_HOME=/scratch/$USER/snakemake-cache
 
 		snakemake -j $nJob --rerun-incomplete \
@@ -41,8 +40,7 @@ else
 	bsub -W ${totalWaitTime} -q rhel9 -eo submit.err -oo submit.out <<- EOF
 		module purge
 		module load anaconda3/1.0.1
-		eval "\$(conda shell.bash hook)"
-		conda activate snakemake-7.18.2
+		source activate snakemake-7.18.2
 		export XDG_CACHE_HOME=/scratch/$USER/snakemake-cache
 
 		snakemake -j $nJob --rerun-incomplete \

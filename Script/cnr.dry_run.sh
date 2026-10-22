@@ -8,8 +8,7 @@ fi
 
 module purge
 module load anaconda3/1.0.1
-eval "$(conda shell.bash hook)"
-conda activate snakemake-7.18.2
+source activate snakemake-7.18.2
 
 if [ -e "config.yml" ]; then
 	echo -e "Performing dry-run in Cutlery default mode..." >&2
@@ -19,5 +18,5 @@ else
 	snakemake -np
 fi
 
-conda deactivate
+source deactivate
 module purge
