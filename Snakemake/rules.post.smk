@@ -810,6 +810,7 @@ rule annotate_peaks_factor:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 rule annotate_peaks_factor_allfrag:
@@ -826,6 +827,7 @@ rule annotate_peaks_factor_allfrag:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 rule annotate_peaks_histone:
@@ -842,6 +844,7 @@ rule annotate_peaks_histone:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 rule annotate_peaks_histone_allfrag:
@@ -858,6 +861,7 @@ rule annotate_peaks_histone_allfrag:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 rule annotate_peaks_factor_macs:
@@ -874,6 +878,7 @@ rule annotate_peaks_factor_macs:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 rule annotate_peaks_factor_macs_allfrag:
@@ -890,6 +895,7 @@ rule annotate_peaks_factor_macs_allfrag:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 rule annotate_peaks_histone_macs:
@@ -906,6 +912,7 @@ rule annotate_peaks_histone_macs:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 rule annotate_peaks_histone_macs_allfrag:
@@ -922,6 +929,7 @@ rule annotate_peaks_histone_macs_allfrag:
 		module purge
 		module load Cutlery/1.0
 		annotatePeak.r -o {params.peakDir}/Annotate/homer -t {wildcards.sampleName} -g {genome} {input}
+		sed -i '1s/^PeakID ([^)]*)/Name/' {params.peakDir}/Annotate/homer.ann.txt
 		"""
 
 
